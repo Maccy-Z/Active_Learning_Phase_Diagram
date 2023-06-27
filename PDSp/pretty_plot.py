@@ -24,9 +24,9 @@ def plot_predcitions(model):
 
     plt.subplot(1, 3, 1)
     plt.title('Posterior mean')
+
     # Plot predictions
     plt.contourf(X1, X2, m.reshape(200, 200), 100, vmin=-1.5, vmax=1.5)
-    #plt.colorbar()
     plt.colorbar(ticks=[-1, 0, 1])
 
     # Plot train points. Extract training data points from model.
@@ -41,10 +41,10 @@ def plot_predcitions(model):
     plt.plot(points[0], points[1], label="True boundary")
     plt.legend()
 
-
     plt.subplot(1, 3, 2)
-    std_from_0 = m / v
     plt.title('STD from 0')
+
+    std_from_0 = m / v
     # Plot predictions
     plt.contourf(X1, X2, std_from_0.reshape(200, 200), 100, vmin=-1, vmax=1)
     plt.colorbar(ticks=[-1, 0, 1])
@@ -64,9 +64,8 @@ def plot_predcitions(model):
     points = test_fn_boundary(theta_values)
     plt.plot(points[0], points[1], label="True boundary")
     plt.legend()
-
-
     plt.grid(True)
+
     plt.show()
 
 
