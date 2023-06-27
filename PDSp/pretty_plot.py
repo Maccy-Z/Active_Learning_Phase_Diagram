@@ -17,8 +17,10 @@ def plot_predcitions(model):
     X2 = np.linspace(-2, 2, n_point)
     x1, x2 = np.meshgrid(X1, X2)
     X = np.hstack((x1.reshape(n_point**2,1),x2.reshape(n_point**2,1)))
-
     m, v = model.predict(X)     # m.shape = [n**2, 1]. Retuns standard deviations?!
+
+    theta_values = np.linspace(0, 2 * np.pi, 100)
+    points = test_fn_boundary(theta_values)
 
     plt.figure(figsize=(15,5))
 
@@ -36,8 +38,6 @@ def plot_predcitions(model):
     plt.scatter(sample_X[:, 0], sample_X[:, 1], c=sample_Y, cmap=cmap)
 
     # Plot true boundary
-    theta_values = np.linspace(0, 2 * np.pi, 100)
-    points = test_fn_boundary(theta_values)
     plt.plot(points[0], points[1], label="True boundary")
     plt.legend()
 
@@ -48,9 +48,8 @@ def plot_predcitions(model):
     # Plot predictions
     plt.contourf(X1, X2, std_from_0.reshape(200, 200), 100, vmin=-1, vmax=1)
     plt.colorbar(ticks=[-1, 0, 1])
+
     # Plot true boundary
-    theta_values = np.linspace(0, 2 * np.pi, 100)
-    points = test_fn_boundary(theta_values)
     plt.plot(points[0], points[1], label="True boundary")
     plt.legend()
 
@@ -60,8 +59,7 @@ def plot_predcitions(model):
     means = m.reshape(200, 200)
     plt.contour(X1, X2, means, levels=[0], colors='black')
 
-    theta_values = np.linspace(0, 2 * np.pi, 100)
-    points = test_fn_boundary(theta_values)
+    # Plot true boundary
     plt.plot(points[0], points[1], label="True boundary")
     plt.legend()
     plt.grid(True)
