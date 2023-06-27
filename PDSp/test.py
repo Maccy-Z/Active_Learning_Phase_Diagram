@@ -11,12 +11,12 @@ from pretty_plot import plot_predcitions
 def fun(x):
     x1 = x[:,0]
     x2 = x[:,1]
-    #return numpy.sign(x1**2 + x2**2 - 1)
-    if np.abs(x1) < 1:
-        y = 1
-    else:
-        y = -1
-    return y
+    return numpy.sign(x1**2 + x2**2 - 1)
+    # if np.abs(x1) < 1:
+    #     y = 1
+    # else:
+    #     y = -1
+    # return y
 
 
 def _create_model(self, X, Y):
@@ -70,4 +70,4 @@ bo.run_optimization(max_iter = max_iter)
 
 bo.plot_acquisition()
 
-plot_predcitions(model, test_fun=fun)
+plot_predcitions(model)

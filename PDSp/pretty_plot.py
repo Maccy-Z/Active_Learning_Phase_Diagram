@@ -2,32 +2,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 
-def plot_true():
-    # Generate sample input data
-    n = 50  # Number of points along each dimension
-    x_coords = np.linspace(-2, 2, n)
-    y_coords = np.linspace(-2, 2, n)
-    xx, yy = np.meshgrid(x_coords, y_coords)
-    xs = np.column_stack((xx.ravel(), yy.ravel()))  # Combine x and y coordinates
-
-    # Evaluate the function
-    ys = fun(xs)
-
-    # Reshape ys to match the grid dimensions
-    zs = ys.reshape((n, n))
-
-    # Create a continuous image using imshow
-    plt.imshow(zs, extent=[0, 1, 0, 1], origin='lower', cmap='viridis')
-
-    # Add labels and title
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Function Plot')
-
-    # Display the plot
-    plt.show()
-
-
 def test_fn_boundary(theta):
     xs = np.cos(theta)
     ys = np.sin(theta)
@@ -35,9 +9,8 @@ def test_fn_boundary(theta):
     return np.array([xs, ys])
 
 
-
-def plot_predcitions(model, test_fun):
-
+def plot_predcitions(model):
+    """Takes in a model and plots training data and preditions"""
 
     n_point = 200
     X1 = np.linspace(-2, 2, n_point)
