@@ -23,7 +23,6 @@ def _create_model(self, X, Y):
     """
     Creates the model given some input data X and Y.
     """
-    print(X, Y)
     # --- define kernel
     self.input_dim = X.shape[1]
     if self.kernel is None:
@@ -53,7 +52,7 @@ space = GPyOpt.Design_space(space=[{'name': 'x', 'type': 'continuous', 'domain':
                                    {'name': 'y', 'type': 'continuous', 'domain': (-2,2)}])
 
 model = GPyOpt.models.GPModel(optimize_restarts=5, verbose=False, kernel=GPy.kern.RBF(input_dim=2))
-#model._create_model = lambda arg1, arg2: _create_model(model, arg1, arg2)
+# model._create_model = lambda arg1, arg2: _create_model(model, arg1, arg2)
 
 acquisition_optimizer = GPyOpt.optimization.AcquisitionOptimizer(space)
 
@@ -65,7 +64,7 @@ evaluator = GPyOpt.core.evaluators.Sequential(acquisition)
 
 bo = GPyOpt.methods.ModularBayesianOptimization(model, space, objective, acquisition, evaluator, initial_design, normalize_Y=False)
 
-max_iter = 50
+max_iter = 100
 bo.run_optimization(max_iter = max_iter)
 
 bo.plot_acquisition()
