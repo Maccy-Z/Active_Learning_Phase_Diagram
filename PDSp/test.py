@@ -6,7 +6,7 @@ from AcquisitionNew import AcquisitionNew
 from numpy.random import seed
 from matplotlib import pyplot as plt
 import numpy as np
-from pretty_plot import plot_predcitions
+from utils import plot_predcitions
 
 def fun(x):
     x1 = x[:,0]
