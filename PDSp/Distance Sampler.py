@@ -7,15 +7,10 @@ from utils import model_plot, make_grid, plot_predcitions
 from matplotlib import pyplot as plt
 
 N_phases = 3
-N_train = 10
+N_train = 8
 N_test = 25
 
-def fun(x):
-    x1 = x[:,0]
-    x2 = x[:,1]
-    return np.sign(x1**2 + x2**2 - 1)
-
-
+# Test phase diagram.
 def tri_pd(X):
     x, y = X[:, 0], X[:, 1]
 
@@ -36,6 +31,46 @@ def tri_pd(X):
     return phase_diagram
 
 
+# Sample phase diagrams from models.
+def gen_pd(models: list[GPy.core.GP], xs, sample=None):
+    """
+    @param models: List of models for each phase
+    @param xs: Points to sample from
+    @param sample: Use mean or sample from GP.
+    @return: List of possible phase diagrams.
+    """
+    y_preds = []
+    for phase_i, pd_model in enumerate(models):
+        if sample is None:
+            y_pred, _ = pd_model.predict(xs, full_cov=True)  # m.shape = [n**2, 1]
+        else:
+            y_pred = pd_model.posterior_samples_f(xs, full_cov=True, size=sample).squeeze(axis=1)
+        y_preds.append(y_pred)
+
+    y_preds = np.stack(y_preds)
+
+    sample_pds = np.argmax(y_preds, axis=0).T
+    return sample_pds
+
+
+# Fit model to existing observations
+def fit_gp() -> list[GPy.core.GP]:
+    "Trains a model for each phase."
+    X, _, _ = make_grid(N_train)
+    true_pd = tri_pd(X)
+
+    models = []
+    for i in range(N_phases):
+        phase_i = (true_pd == i) * 2 - 1  # Between -1 and 1
+
+        kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
+        model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=0.01)
+        model.optimize()
+
+        models.append(model)
+    return models
+
+
 # Computes distance between two phase diagrams. Must be rectangular grid of points.
 def dist(pd_1: np.ndarray, pd_2: np.ndarray):
     n_points = pd_1.shape[0]
@@ -45,7 +80,7 @@ def dist(pd_1: np.ndarray, pd_2: np.ndarray):
     phase_1, area_1 = np.unique(p_1, return_counts=True)
     phase_2, area_2 = np.unique(p_2, return_counts=True)
 
-    # Be careful if there is a missing phase in a diagram.
+    # Be careful if there is a missing phase in one diagram.
     p_area_1, p_area_2  = defaultdict(int), defaultdict(int)
     p_area_1.update(zip(phase_1, area_1))
     p_area_2.update(zip(phase_2, area_2))
@@ -53,6 +88,7 @@ def dist(pd_1: np.ndarray, pd_2: np.ndarray):
     # Find all present phases in either diagram
     all_phases = np.union1d(phase_1, phase_2)
     abs_diffs = []
+    # Dist = total absolute fractional changes in area
     for phase in all_phases:
         abs_diff = np.abs(p_area_1[phase] - p_area_2[phase])
         abs_diffs.append(abs_diff)
@@ -104,9 +140,9 @@ def sample_new_y(models, x_new):
     return np.array(probs)
 
 
-
+# Predict new observaion and phase diagram
 def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
-    """Sample P_{n+1}(x_{n+1}, y)
+    """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming an new observation is taken at x_new.
     Returns: Phase diagrams"""
     assert isinstance(sample, int) and sample != 1, "Must take a number of samples not 1"
 
@@ -118,7 +154,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
     kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
     pds = []
     for obs_phase, obs_prob in enumerate(pd_probs):
-        print(f'Prob observe phase {obs_phase}: {obs_prob}')
+        print(f'Prob observe phase {obs_phase}: {obs_prob:.3f}')
 
         new_models = []
         for phase_i, model in enumerate(models):
@@ -133,108 +169,49 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
             new_models.append(model)
 
         # Sample new phase diagrams, weighted to probability model is observed
-        pd_new = gen_pd(new_models, sample_xs, sample=round(sample * obs_prob))
-
-        print(pd_new.shape)
+        pd_new = gen_pd(new_models, sample_xs, sample= round(sample * obs_prob)) # Note, rounding here.
+        # print(pd_new.shape)
         pds.append(pd_new)
 
     pds = np.concatenate(pds)
     return pds
 
 
-def gen_pd(models: list[GPy.core.GP], xs, sample=None):
-    """
-    Generate phase diagram from models of each individual phase.
-
-    @param models: List of models for each phase
-    @param xs: Points to sample from
-    @param sample: Use mean or sample from GP.
-    @return: List of possible phase diagrams.
-    """
-
-    y_preds = []
-    for phase_i, pd_model in enumerate(models):
-        if sample is None:
-            y_pred, _ = pd_model.predict(xs, full_cov=True)  # m.shape = [n**2, 1]
-        else:
-            y_pred = pd_model.posterior_samples_f(xs, full_cov=True, size=sample).squeeze()
-        y_preds.append(y_pred)
-
-    y_preds = np.stack(y_preds)
-
-    sample_pds = np.argmax(y_preds, axis=0).T
-    return sample_pds
-
-
-
-def fit_gp() -> list[GPy.core.GP]:
-    "Trains a model for each phase."
-    X, _, _ = make_grid(N_train)
-    true_pd = tri_pd(X)
-
-    models = []
-    for i in range(N_phases):
-        phase_i = (true_pd == i) * 2 - 1  # Between -1 and 1
-
-        kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
-        model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=0.01)
-        model.optimize()
-
-        models.append(model)
-    return models
-
-
 def main():
     models = fit_gp()
+
+    new_point = np.array([[0.2, -1.2]])
     X, _, _ = make_grid(N_test)
+
     pd_old = gen_pd(models, X, sample=None)
-    # pd2s = gen_pd(models, X, sample=100).T
-    #
-    # # Expected distance between PD1 and PD2 averaged over all instances of each other
-    # dists = []
-    # for pd1 in pd1s:
-    #     for pd2 in pd2s:
-    #         dists.append(dist(pd1, pd2))
-    # avg_dist = np.mean(dists)
-    # print(avg_dist)
+    pd_new = gen_pd_new_point(models, new_point, sample_xs=X, sample=10000)
 
-    new_point = np.array([[0, 1]])
-    pd_new = gen_pd_new_point(models, new_point, sample_xs=X, sample=5)
+    # Expected distance between PD1 and PD2 averaged over all pairs
+    pd_old_repeat = np.repeat(pd_old, pd_new.shape[0], axis=0)
+    pd_new_tile = np.tile(pd_new, (pd_old.shape[0], 1))
+    pd_all_pair = np.stack([pd_old_repeat, pd_new_tile]).swapaxes(0, 1)
 
-    plt.imshow(pd_old.reshape(25, 25))
+    dists = []
+    for (pd1, pd2) in pd_all_pair:
+        dists.append(dist(pd1, pd2))
+    avg_dist = np.mean(dists)
+    print(f'{avg_dist = }')
+
+
+    # Plot current P_{n} and sample of P_{n+1}
+    plt.subplot(1, 2, 1)
+    plt.title("Current PD")
+    plt.imshow(pd_old[0].reshape(N_test, N_test))
+
+    plt.subplot(1, 2, 2)
+    plt.title(f"Sample PD, diff={avg_dist:.3g}")
+    plt.imshow(pd_new[0].reshape(N_test, N_test))
+    #plt.colorbar()
+
+    new_plot = new_point.squeeze() * 6.25 + 12.5
+    plt.scatter(new_plot[0], new_plot[1], c="r")
     plt.show()
-    for pd in pd_new:
-        plt.imshow(pd.reshape(25, 25))
-        plt.colorbar()
-        plt.show()
-    print(pd_new.shape)
 
-    exit(3)
-    # Train
-    n_train = 30
-    X, _, _ = make_grid(n_train)
-    Y = fun(X).reshape(-1, 1)
-
-    kernel = GPy.kern.RBF(input_dim=2, variance=1., lengthscale=1.)
-    model = GPy.models.GPRegression(X, Y, kernel)
-    model.optimize(messages=True)
-
-    # Test
-    n_test = 20
-    X, _, _ = make_grid(n_test)
-
-    ys_pred = np.sign(model.posterior_samples_f(X, full_cov=True, size=1).reshape(-1, 1))
-    p1 = np.concatenate([X, ys_pred], axis=1)
-
-    ys_pred = np.sign(model.posterior_samples_f(X, full_cov=True, size=1).reshape(-1, 1))
-    p2 = np.concatenate([X, ys_pred], axis=1)
-
-    print("Total distance:", dist(p1, p2))
-
-    plot_predcitions(model)
-
-    # TODO: Sample P_{n+1}:
-    # Given a GP model P_n and x_{n+1}, sample y_{n+1}. Then train new GP model including datapoints {n+1}
 
 if __name__ == "__main__":
     main()
