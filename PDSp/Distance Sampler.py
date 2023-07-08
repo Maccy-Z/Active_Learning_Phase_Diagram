@@ -3,12 +3,14 @@ import numpy as np
 from collections import defaultdict
 import scipy
 
-from utils import model_plot, make_grid, plot_predcitions
+from utils import model_plot, make_grid, plot_scale
 from matplotlib import pyplot as plt
 
 N_phases = 3
-N_train = 8
-N_test = 25
+N_train = 9
+N_dist = 25
+N_eval = 19
+xmin, xmax, ymin, ymax = -1, 1, -2, 2
 
 # Test phase diagram.
 def tri_pd(X):
@@ -97,6 +99,14 @@ def dist(pd_1: np.ndarray, pd_2: np.ndarray):
 
     return tot_abs_diff
 
+def dist2(pd1s: np.ndarray, pd2s: np.ndarray):
+    #n_diagrams, n_points = pd1s.shape
+    diffs = np.not_equal(pd1s, pd2s)
+    mean_diffs = np.mean(diffs, axis=1)
+
+    return np.mean(mean_diffs)
+
+
 
 # Probability single gaussian is larger than the rest by integral of form f(x) exp(-x^2) where f(x) is product of CDFs.
 def max_1(mu_1, sigma_1, mus, sigmas, hermite_roots):
@@ -124,7 +134,7 @@ def sample_new_y(models, x_new):
     """Need to find phase at x_{n+1}. Everything is gaussian, so this is finding the max of gaussians."""
     mus, vars = [], []
     for model in models:
-        mu, var = model.predict(x_new)
+        mu, var = model.predict(x_new.reshape(-1, 2))
         mus.append(mu.squeeze()), vars.append(var.squeeze())
 
     sigmas = np.sqrt(vars).tolist()
@@ -142,75 +152,113 @@ def sample_new_y(models, x_new):
 
 # Predict new observaion and phase diagram
 def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
-    """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming an new observation is taken at x_new.
+    """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming a new observation is taken at x_new.
     Returns: Phase diagrams"""
-    assert isinstance(sample, int) and sample != 1, "Must take a number of samples not 1"
-
 
     # First sample P_{n}(y_{n+1})
     pd_probs = sample_new_y(models, x_new)
 
     # Sample new models for each possible observation
-    kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
     pds = []
     for obs_phase, obs_prob in enumerate(pd_probs):
-        print(f'Prob observe phase {obs_phase}: {obs_prob:.3f}')
+        #print(f'Prob observe phase {obs_phase}: {obs_prob:.3f}')
 
         new_models = []
         for phase_i, model in enumerate(models):
             X, Y = model.X, model.Y
 
-            y_new = int(phase_i == obs_phase)
-            X_new, Y_new = np.vstack([X, x_new]), np.vstack([Y, y_new])
+            y_new = 2 * int(phase_i == obs_phase) - 1
+            X_new, Y_new = np.vstack([X, x_new, x_new+0.01]), np.vstack([Y, y_new, y_new])
 
+            kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
             model = GPy.models.GPRegression(X_new, Y_new, kernel, noise_var=0.01)
             model.optimize()
 
             new_models.append(model)
 
         # Sample new phase diagrams, weighted to probability model is observed
-        pd_new = gen_pd(new_models, sample_xs, sample= round(sample * obs_prob)) # Note, rounding here.
-        # print(pd_new.shape)
+        if sample is None:
+            count = round(1000 * obs_prob)
+            pd_new = gen_pd(new_models, sample_xs, sample=None)
+            pd_new = np.repeat(pd_new, count, axis=0)
+        else:
+            pd_new = gen_pd(new_models, sample_xs, sample= round(sample * obs_prob)) # Note, rounding here.
         pds.append(pd_new)
 
     pds = np.concatenate(pds)
     return pds
 
 
+def acquisition(models, new_Xs, plot=True):
+    X, _, _ = make_grid(N_dist, xmin=xmin, xmax=xmax)
+
+    # P_n
+    pd_old = gen_pd(models, X, sample=300)
+
+    # P_{n+1}
+    avg_dists = []
+    for new_X in new_Xs:
+        pd_new = gen_pd_new_point(models, new_X, sample_xs=X, sample=1)
+
+        # Expected distance between PD1 and PD2 averaged over all pairs
+        pd_old_repeat = np.repeat(pd_old, pd_new.shape[0], axis=0)
+        pd_new_tile = np.tile(pd_new, (pd_old.shape[0], 1))
+        avg_dist = dist2(pd_old_repeat, pd_new_tile)
+        avg_dists.append(avg_dist)
+
+    if plot:
+        # Plot current P_{n} and sample of P_{n+1}
+        new_point = new_Xs[1]
+        avg_dist = avg_dists[1]
+
+        X_train, _, _ = make_grid(N_train)
+        xs_train, ys_train = plot_scale(X_train, N_dist,
+                                        xmin, xmax, ymin, ymax)
+
+        plt.subplot(1, 2, 1)
+        plt.title("Current PD")
+        plt.imshow(pd_old[0].reshape(N_dist, N_dist))
+        plt.scatter(xs_train, ys_train, marker="x", s=20)
+        plt.xlim([0, N_dist - 1]), plt.ylim([0, N_dist - 1])
+
+
+        plt.subplot(1, 2, 2)
+        plt.title(f"Sample PD, diff={avg_dist:.3g}")
+        plt.imshow(pd_new[0].reshape(N_dist, N_dist))
+        plt.scatter(xs_train, ys_train, marker="x", s=20)
+
+        x_new, y_new = plot_scale(new_point.reshape(1, -1),
+                                  N_dist, xmin, xmax, ymin, ymax)
+        plt.scatter(x_new, y_new, c="r")
+        plt.xlim([0, N_dist - 1]), plt.ylim([0, N_dist - 1])
+
+        plt.show()
+
+    return avg_dists
+
 def main():
+    import pickle
+
     models = fit_gp()
 
-    new_point = np.array([[0.2, -1.2]])
-    X, _, _ = make_grid(N_test)
+    # new_Xs, _, _ = make_grid(N_eval, xmin=xmin, xmax=xmax)
+    new_Xs = np.array([[i, -1.25] for i in np.linspace(-1, 1, 19)])
+    avg_dists = acquisition(models, new_Xs, plot=False)
 
-    pd_old = gen_pd(models, X, sample=None)
-    pd_new = gen_pd_new_point(models, new_point, sample_xs=X, sample=10000)
+    print(avg_dists)
+    avg_dists = np.array(avg_dists).reshape(N_eval, N_eval)
 
-    # Expected distance between PD1 and PD2 averaged over all pairs
-    pd_old_repeat = np.repeat(pd_old, pd_new.shape[0], axis=0)
-    pd_new_tile = np.tile(pd_new, (pd_old.shape[0], 1))
-    pd_all_pair = np.stack([pd_old_repeat, pd_new_tile]).swapaxes(0, 1)
+    plt.imshow(avg_dists)
 
-    dists = []
-    for (pd1, pd2) in pd_all_pair:
-        dists.append(dist(pd1, pd2))
-    avg_dist = np.mean(dists)
-    print(f'{avg_dist = }')
+    plt.xlim([0, N_eval - 1]), plt.ylim([0, N_eval - 1])
 
-
-    # Plot current P_{n} and sample of P_{n+1}
-    plt.subplot(1, 2, 1)
-    plt.title("Current PD")
-    plt.imshow(pd_old[0].reshape(N_test, N_test))
-
-    plt.subplot(1, 2, 2)
-    plt.title(f"Sample PD, diff={avg_dist:.3g}")
-    plt.imshow(pd_new[0].reshape(N_test, N_test))
-    #plt.colorbar()
-
-    new_plot = new_point.squeeze() * 6.25 + 12.5
-    plt.scatter(new_plot[0], new_plot[1], c="r")
+    plt.colorbar()
     plt.show()
+
+    # with open("./saves/both_sample", "wb") as f:
+    #     pickle.dump(dists, f)
+
+
 
 
 if __name__ == "__main__":

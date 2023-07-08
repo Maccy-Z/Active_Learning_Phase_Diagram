@@ -2,13 +2,12 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-def make_grid(n) -> (np.ndarray, np.ndarray, np.ndarray):
+def make_grid(n, xmin=-2, xmax=2, ymin=-2, ymax=2) -> (np.ndarray, np.ndarray, np.ndarray):
     "very commonly used test to make a n x n grid or points"
-    X1 = np.linspace(-2, 2, n)
-    X2 = np.linspace(-2, 2, n)
+    X1 = np.linspace(xmin, xmax, n)
+    X2 = np.linspace(ymin, ymax, n)
     x1, x2 = np.meshgrid(X1, X2)
     X = np.hstack((x1.reshape(n ** 2, 1), x2.reshape(n ** 2, 1)))
-
     return X, X1, X2
 
 
@@ -97,7 +96,12 @@ def model_plot(model, sample=False):
 
     plt.show()
 
-
+# Rescale from physical coords to plot coords
+def plot_scale(points, N, xmin, xmax, ymin, ymax):
+    xs, ys = points[:, 0], points[:, 1]
+    xs = xs * (N / (xmax - xmin)) + (N / 2) - 0.5
+    ys = ys * (N / (ymax - ymin)) + (N / 2) - 0.5
+    return  xs, ys
 
 
 
