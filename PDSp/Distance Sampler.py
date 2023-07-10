@@ -1,16 +1,18 @@
 import GPy
 import numpy as np
-from collections import defaultdict
+import time
 import scipy
-
-from utils import model_plot, make_grid, plot_scale
 from matplotlib import pyplot as plt
 
+from utils import model_plot, make_grid, plot_scale
+from config import Config
+
+cfg = Config()
 N_phases = 3
-N_train = 9
-N_dist = 25
-N_eval = 19
-xmin, xmax, ymin, ymax = -1, 1, -2, 2
+# N_train = 9
+# N_dist = 25
+# N_eval = 19
+# xmin, xmax, ymin, ymax = -1, 1, -2, 2
 
 # Test phase diagram.
 def tri_pd(X):
@@ -58,7 +60,7 @@ def gen_pd(models: list[GPy.core.GP], xs, sample=None):
 # Fit model to existing observations
 def fit_gp() -> list[GPy.core.GP]:
     "Trains a model for each phase."
-    X, _, _ = make_grid(N_train)
+    X, _, _ = make_grid(cfg.N_train)
     true_pd = tri_pd(X)
 
     models = []
@@ -73,39 +75,12 @@ def fit_gp() -> list[GPy.core.GP]:
     return models
 
 
-# Computes distance between two phase diagrams. Must be rectangular grid of points.
-def dist(pd_1: np.ndarray, pd_2: np.ndarray):
-    n_points = pd_1.shape[0]
-    p_1, p_2 = pd_1.astype(int), pd_2.astype(int)
-
-    # TODO: General non-uniform grids of points.
-    phase_1, area_1 = np.unique(p_1, return_counts=True)
-    phase_2, area_2 = np.unique(p_2, return_counts=True)
-
-    # Be careful if there is a missing phase in one diagram.
-    p_area_1, p_area_2  = defaultdict(int), defaultdict(int)
-    p_area_1.update(zip(phase_1, area_1))
-    p_area_2.update(zip(phase_2, area_2))
-
-    # Find all present phases in either diagram
-    all_phases = np.union1d(phase_1, phase_2)
-    abs_diffs = []
-    # Dist = total absolute fractional changes in area
-    for phase in all_phases:
-        abs_diff = np.abs(p_area_1[phase] - p_area_2[phase])
-        abs_diffs.append(abs_diff)
-
-    tot_abs_diff = np.sum(abs_diffs) / n_points / 2
-
-    return tot_abs_diff
-
 def dist2(pd1s: np.ndarray, pd2s: np.ndarray):
     #n_diagrams, n_points = pd1s.shape
     diffs = np.not_equal(pd1s, pd2s)
     mean_diffs = np.mean(diffs, axis=1)
 
     return np.mean(mean_diffs)
-
 
 
 # Probability single gaussian is larger than the rest by integral of form f(x) exp(-x^2) where f(x) is product of CDFs.
@@ -190,15 +165,17 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
 
 
 def acquisition(models, new_Xs, plot=True):
-    X, _, _ = make_grid(N_dist, xmin=xmin, xmax=xmax)
+    # Grid over which to compute distances
+    X, _, _ = make_grid(cfg.N_dist, xmin=cfg.xmin, xmax=cfg.xmax)
 
     # P_n
-    pd_old = gen_pd(models, X, sample=300)
+    pd_old = gen_pd(models, X, sample=cfg.sample_old)
 
     # P_{n+1}
     avg_dists = []
     for new_X in new_Xs:
-        pd_new = gen_pd_new_point(models, new_X, sample_xs=X, sample=1)
+        print(new_X)
+        pd_new = gen_pd_new_point(models, new_X, sample_xs=X, sample=cfg.sample_new)
 
         # Expected distance between PD1 and PD2 averaged over all pairs
         pd_old_repeat = np.repeat(pd_old, pd_new.shape[0], axis=0)
@@ -211,46 +188,46 @@ def acquisition(models, new_Xs, plot=True):
         new_point = new_Xs[1]
         avg_dist = avg_dists[1]
 
-        X_train, _, _ = make_grid(N_train)
-        xs_train, ys_train = plot_scale(X_train, N_dist,
-                                        xmin, xmax, ymin, ymax)
+        X_train, _, _ = make_grid(cfg.N_train)
+        xs_train, ys_train = plot_scale(X_train, cfg.N_dist,
+                                        cfg.xmin, cfg.xmax, cfg.ymin, cfg.ymax)
 
         plt.subplot(1, 2, 1)
         plt.title("Current PD")
-        plt.imshow(pd_old[0].reshape(N_dist, N_dist))
+        plt.imshow(pd_old[0].reshape(cfg.N_dist, cfg.N_dist))
         plt.scatter(xs_train, ys_train, marker="x", s=20)
-        plt.xlim([0, N_dist - 1]), plt.ylim([0, N_dist - 1])
+        plt.xlim([0, cfg.N_dist - 1]), plt.ylim([0, cfg.N_dist - 1])
 
 
         plt.subplot(1, 2, 2)
         plt.title(f"Sample PD, diff={avg_dist:.3g}")
-        plt.imshow(pd_new[0].reshape(N_dist, N_dist))
+        plt.imshow(pd_new[0].reshape(cfg.N_dist, cfg.N_dist))
         plt.scatter(xs_train, ys_train, marker="x", s=20)
 
         x_new, y_new = plot_scale(new_point.reshape(1, -1),
-                                  N_dist, xmin, xmax, ymin, ymax)
+                                  cfg.N_dist, cfg.xmin, cfg.xmax, cfg.ymin, cfg.ymax)
         plt.scatter(x_new, y_new, c="r")
-        plt.xlim([0, N_dist - 1]), plt.ylim([0, N_dist - 1])
+        plt.xlim([0, cfg.N_dist - 1]), plt.ylim([0, cfg.N_dist - 1])
 
         plt.show()
 
     return avg_dists
 
+
 def main():
-    import pickle
 
     models = fit_gp()
 
-    # new_Xs, _, _ = make_grid(N_eval, xmin=xmin, xmax=xmax)
-    new_Xs = np.array([[i, -1.25] for i in np.linspace(-1, 1, 19)])
+    new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)
+    # new_Xs = np.array([[i, -1.25] for i in np.linspace(-1, 1, 19)])
     avg_dists = acquisition(models, new_Xs, plot=False)
 
     print(avg_dists)
-    avg_dists = np.array(avg_dists).reshape(N_eval, N_eval)
+    avg_dists = np.array(avg_dists).reshape(cfg.N_eval, cfg.N_eval)
 
     plt.imshow(avg_dists)
 
-    plt.xlim([0, N_eval - 1]), plt.ylim([0, N_eval - 1])
+    plt.xlim([0, cfg.N_eval - 1]), plt.ylim([0, cfg.N_eval - 1])
 
     plt.colorbar()
     plt.show()
