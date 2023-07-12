@@ -4,35 +4,33 @@ import time
 import scipy
 from matplotlib import pyplot as plt
 
-from utils import model_plot, make_grid, plot_scale
+from utils import ObsHolder, make_grid, plot_scale
 from config import Config
 
+np.set_printoptions(precision=2)
 cfg = Config()
 N_phases = 3
-# N_train = 9
-# N_dist = 25
-# N_eval = 19
-# xmin, xmax, ymin, ymax = -1, 1, -2, 2
 
-# Test phase diagram.
-def tri_pd(X):
-    x, y = X[:, 0], X[:, 1]
 
-    theta = np.arctan2(x, y)
-    a = -4
-    b = -1
-    c = 1
-    d = 4
-
-    conditions = [
-        (theta > a) & (theta < b),
-        (theta >= b) & (theta < c),
-        (theta >= c) & (theta < d)
-    ]
-    values = range(N_phases)
-    phase_diagram = np.select(conditions, values, default=0)
-
-    return phase_diagram
+# # Test phase diagram.
+# def tri_pd(X):
+#     x, y = X[:, 0], X[:, 1]
+#
+#     theta = np.arctan2(x, y)
+#     a = -4
+#     b = -1
+#     c = 1
+#     d = 4
+#
+#     conditions = [
+#         (theta > a) & (theta < b),
+#         (theta >= b) & (theta < c),
+#         (theta >= c) & (theta < d)
+#     ]
+#     values = range(N_phases)
+#     phase_diagram = np.select(conditions, values, default=0)
+#
+#     return phase_diagram
 
 
 # Sample phase diagrams from models.
@@ -58,14 +56,15 @@ def gen_pd(models: list[GPy.core.GP], xs, sample=None):
 
 
 # Fit model to existing observations
-def fit_gp() -> list[GPy.core.GP]:
+def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
     "Trains a model for each phase."
-    X, _, _ = make_grid(cfg.N_train)
-    true_pd = tri_pd(X)
+    X, Y = obs_holder.get_obs()
+    # X, _, _ = make_grid(cfg.N_train)
+    # true_pd = tri_pd(X)
 
     models = []
     for i in range(N_phases):
-        phase_i = (true_pd == i) * 2 - 1  # Between -1 and 1
+        phase_i = (Y == i) * 2 - 1  # Between -1 and 1
 
         kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
         model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=0.01)
@@ -174,7 +173,7 @@ def acquisition(models, new_Xs, plot=True):
     # P_{n+1}
     avg_dists = []
     for new_X in new_Xs:
-        print(new_X)
+        print(new_X, end=" ")
         pd_new = gen_pd_new_point(models, new_X, sample_xs=X, sample=cfg.sample_new)
 
         # Expected distance between PD1 and PD2 averaged over all pairs
@@ -184,29 +183,13 @@ def acquisition(models, new_Xs, plot=True):
         avg_dists.append(avg_dist)
 
     if plot:
-        # Plot current P_{n} and sample of P_{n+1}
-        new_point = new_Xs[1]
-        avg_dist = avg_dists[1]
-
-        X_train, _, _ = make_grid(cfg.N_train)
-        xs_train, ys_train = plot_scale(X_train, cfg.N_dist,
+        # Plot current P_{n}
+        xs_train, ys_train = plot_scale(models[0].X, cfg.N_dist,
                                         cfg.xmin, cfg.xmax, cfg.ymin, cfg.ymax)
 
-        plt.subplot(1, 2, 1)
         plt.title("Current PD")
         plt.imshow(pd_old[0].reshape(cfg.N_dist, cfg.N_dist))
-        plt.scatter(xs_train, ys_train, marker="x", s=20)
-        plt.xlim([0, cfg.N_dist - 1]), plt.ylim([0, cfg.N_dist - 1])
-
-
-        plt.subplot(1, 2, 2)
-        plt.title(f"Sample PD, diff={avg_dist:.3g}")
-        plt.imshow(pd_new[0].reshape(cfg.N_dist, cfg.N_dist))
-        plt.scatter(xs_train, ys_train, marker="x", s=20)
-
-        x_new, y_new = plot_scale(new_point.reshape(1, -1),
-                                  cfg.N_dist, cfg.xmin, cfg.xmax, cfg.ymin, cfg.ymax)
-        plt.scatter(x_new, y_new, c="r")
+        plt.scatter(xs_train, ys_train, marker="x", s=40)
         plt.xlim([0, cfg.N_dist - 1]), plt.ylim([0, cfg.N_dist - 1])
 
         plt.show()
@@ -215,23 +198,35 @@ def acquisition(models, new_Xs, plot=True):
 
 
 def main():
+    obs_holder = ObsHolder(Config())
+    X_train, _, _ = make_grid(cfg.N_train)
+    for xs in X_train:
+        obs_holder.make_obs(xs)
 
-    models = fit_gp()
+    for _ in range(25):
+        models = fit_gp(obs_holder)
 
-    new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)
-    # new_Xs = np.array([[i, -1.25] for i in np.linspace(-1, 1, 19)])
-    avg_dists = acquisition(models, new_Xs, plot=False)
+        new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)  # Points to test for aquisition
+        # new_Xs = np.array([[i, -1.25] for i in np.linspace(-1, 1, 19)])
+        avg_dists = acquisition(models, new_Xs, plot=True)
 
-    print(avg_dists)
-    avg_dists = np.array(avg_dists).reshape(cfg.N_eval, cfg.N_eval)
+        max_pos = np.argmax(avg_dists)
+        new_point = new_Xs[max_pos]
+        print()
+        print()
+        print("New point to sample from:", new_point)
+        obs_holder.make_obs(new_point)
 
-    plt.imshow(avg_dists)
+        avg_dists = np.array(avg_dists).reshape(cfg.N_eval, cfg.N_eval)
 
-    plt.xlim([0, cfg.N_eval - 1]), plt.ylim([0, cfg.N_eval - 1])
+        # plt.imshow(avg_dists)
+        # plt.xlim([0, cfg.N_eval - 1]), plt.ylim([0, cfg.N_eval - 1])
+        #
+        # plt.title(new_point)
+        # plt.colorbar()
+        # plt.show()
 
-    plt.colorbar()
-    plt.show()
-
+    obs_holder.plot_samples()
     # with open("./saves/both_sample", "wb") as f:
     #     pickle.dump(dists, f)
 

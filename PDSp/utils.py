@@ -1,6 +1,71 @@
 # Helpful functions
 from matplotlib import pyplot as plt
 import numpy as np
+from config import Config
+import scipy
+
+class ObsHolder:
+    def __init__(self, cfg:Config):
+        self.cfg = cfg
+        self.obs_pos = []
+        self.obs_phase = []
+
+    def make_obs(self, X):
+        print(X, self.tri_pd(X))
+
+        self.obs_pos.append(X)
+        self.obs_phase.append(self.tri_pd(X))
+
+    def get_obs(self) ->[np.ndarray, np.ndarray]:
+
+        return np.array(self.obs_pos), np.array(self.obs_phase)
+
+
+    # Test function, representing making a observation
+    def tri_pd(self, X):
+        x, y = X[0], X[1]
+
+        theta = np.arctan2(x, y) + 0.4
+        theta = np.mod(theta, 2 * np.pi) - np.pi
+
+        r = np.sqrt(x ** 2 + y ** 2)
+        a = -np.pi
+        b = -np.pi / 3
+        c = np.pi / 3
+        d = np.pi
+
+        if theta < b or r < 1:
+            return 0
+        elif theta < c:
+            return 1
+        else:
+            return 2
+
+    def plot_samples(self):
+        Xs = np.array(self.obs_pos)
+        obs = np.array(self.obs_phase)
+        cmap = plt.cm.plasma
+
+        plt.scatter(Xs[:, 0], Xs[:,1], s=20)
+        # plt.xlim(self.cfg.xmin, self.cfg.xmax)
+        # plt.ylim(self.cfg.ymin, self.cfg.ymax)
+
+
+
+        xi = np.linspace(-2, 2, 100)  # x-coordinate of regular grid
+        yi = np.linspace(-2, 2, 100)  # y-coordinate of regular grid
+        xi, yi = np.meshgrid(xi, yi)  # Create grid mesh
+        zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
+        plt.imshow(zi, origin="lower", extent=(-2, 2, -2, 2))
+        #print(Xs[:, 0], Xs[:,1])
+        #plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
+
+        plt.xlim(self.cfg.xmin, self.cfg.xmax)
+        plt.ylim(self.cfg.ymin, self.cfg.ymax)
+        plt.show()
+
+
+
 
 def make_grid(n, xmin=-2, xmax=2, ymin=-2, ymax=2) -> (np.ndarray, np.ndarray, np.ndarray):
     "very commonly used test to make a n x n grid or points"
@@ -102,6 +167,15 @@ def plot_scale(points, N, xmin, xmax, ymin, ymax):
     xs = xs * (N / (xmax - xmin)) + (N / 2) - 0.5
     ys = ys * (N / (ymax - ymin)) + (N / 2) - 0.5
     return  xs, ys
+
+if __name__ == "__main__":
+    sampler = ObsHolder(Config())
+
+    grid, _, _ = make_grid(25)
+
+    for xs in grid:
+        sampler.make_obs(xs)
+    sampler.plot_samples()
 
 
 

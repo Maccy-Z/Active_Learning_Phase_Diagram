@@ -5,11 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="08105d9d-84db-46d1-9faa-e1ea6c98732d" name="Changes" comment="Fixed bug">
-      <change afterPath="$PROJECT_DIR$/PDSp/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/active_phase.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PDSp/Distance Sampler.py" beforeDir="false" afterPath="$PROJECT_DIR$/PDSp/Distance Sampler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PDSp/GPRseq.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PDSp/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/PDSp/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PDSp/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/PDSp/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,9 +59,9 @@
       <recent name="$PROJECT_DIR$/PDSp/saves" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.config">
+  <component name="RunManager" selected="Python.Distance Sampler">
     <configuration name="Distance Sampler" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="PDSp" />
+      <module name="active_phase" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -118,7 +119,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="/usr/local/bin/python3" />
-      <option name="SDK_NAME" value="Remote Python 3.11.4 Docker (phase_sample:0)" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -170,7 +170,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="/usr/local/bin/python3" />
-      <option name="SDK_NAME" value="Remote Python 3.11.4 Docker (phase_sample:0)" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/PDSp" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -206,58 +205,6 @@
       </EXTENSION>
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/PDSp/config.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="pretty_plot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="PDSp" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="/usr/local/bin/python3" />
-      <option name="SDK_NAME" value="Remote Python 3.11.4 Docker (phase_sample:0)" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/PDSp" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="DockerContainerSettingsRunConfigurationExtension">
-        <option name="envVars">
-          <list />
-        </option>
-        <option name="extraHosts">
-          <list />
-        </option>
-        <option name="links">
-          <list />
-        </option>
-        <option name="networkDisabled" value="false" />
-        <option name="networkMode" value="bridge" />
-        <option name="portBindings">
-          <list />
-        </option>
-        <option name="publishAllPorts" value="false" />
-        <option name="runCliOptions" value="--entrypoint= --rm --net=host" />
-        <option name="version" value="2" />
-        <option name="volumeBindings">
-          <list>
-            <DockerVolumeBindingImpl>
-              <option name="containerPath" value="/opt/project" />
-              <option name="editable" value="true" />
-              <option name="hostPath" value="$PROJECT_DIR$" />
-              <option name="readOnly" value="false" />
-            </DockerVolumeBindingImpl>
-          </list>
-        </option>
-      </EXTENSION>
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/PDSp/pretty_plot.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -317,6 +264,57 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="utils" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="active_phase" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/local/bin/python3" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/PDSp" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="DockerContainerSettingsRunConfigurationExtension">
+        <option name="envVars">
+          <list />
+        </option>
+        <option name="extraHosts">
+          <list />
+        </option>
+        <option name="links">
+          <list />
+        </option>
+        <option name="networkDisabled" value="false" />
+        <option name="networkMode" value="bridge" />
+        <option name="portBindings">
+          <list />
+        </option>
+        <option name="publishAllPorts" value="false" />
+        <option name="runCliOptions" value="--entrypoint= --rm --net=host" />
+        <option name="version" value="2" />
+        <option name="volumeBindings">
+          <list>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/opt/project" />
+              <option name="editable" value="true" />
+              <option name="hostPath" value="$PROJECT_DIR$" />
+              <option name="readOnly" value="false" />
+            </DockerVolumeBindingImpl>
+          </list>
+        </option>
+      </EXTENSION>
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/PDSp/utils.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
       <deployment type="dockerfile">
         <settings />
@@ -335,18 +333,18 @@
     </configuration>
     <list>
       <item itemvalue="Docker.dockerfile" />
+      <item itemvalue="Python.utils" />
       <item itemvalue="Python.config" />
       <item itemvalue="Python.Distance Sampler" />
-      <item itemvalue="Python.pretty_plot" />
       <item itemvalue="Python.test" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.Distance Sampler" />
-        <item itemvalue="Python.config" />
+        <item itemvalue="Python.utils" />
         <item itemvalue="Docker.dockerfile" />
+        <item itemvalue="Python.config" />
         <item itemvalue="Python.test" />
-        <item itemvalue="Python.pretty_plot" />
       </list>
     </recent_temporary>
   </component>
@@ -366,6 +364,8 @@
       <workItem from="1688600278227" duration="10687000" />
       <workItem from="1688688302546" duration="25764000" />
       <workItem from="1688779459692" duration="4514000" />
+      <workItem from="1689113610852" duration="3945000" />
+      <workItem from="1689118330244" duration="10736000" />
     </task>
     <task id="LOCAL-00001" summary="First commit">
       <option name="closed" value="true" />
@@ -437,9 +437,11 @@
     <option name="LAST_COMMIT_MESSAGE" value="Fixed bug" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/PDSp$pretty_plot.coverage" NAME="pretty_plot Coverage Results" MODIFIED="1687889430014" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
-    <SUITE FILE_PATH="coverage/PDSp$test.coverage" NAME="test Coverage Results" MODIFIED="1688091399806" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
+    <SUITE FILE_PATH="coverage/active_phase$Distance_Sampler.coverage" NAME="Distance Sampler Coverage Results" MODIFIED="1689183317570" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
     <SUITE FILE_PATH="coverage/PDSp$config.coverage" NAME="config Coverage Results" MODIFIED="1688781881600" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
+    <SUITE FILE_PATH="coverage/PDSp$test.coverage" NAME="test Coverage Results" MODIFIED="1688091399806" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
+    <SUITE FILE_PATH="coverage/PDSp$pretty_plot.coverage" NAME="pretty_plot Coverage Results" MODIFIED="1687889430014" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
     <SUITE FILE_PATH="coverage/PDSp$Distance_Sampler.coverage" NAME="Distance Sampler Coverage Results" MODIFIED="1688785179367" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
+    <SUITE FILE_PATH="coverage/active_phase$utils.coverage" NAME="utils Coverage Results" MODIFIED="1689183284855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
   </component>
 </project>
