@@ -4,34 +4,13 @@ import time
 import scipy
 from matplotlib import pyplot as plt
 
-from utils import ObsHolder, make_grid, plot_scale
+from utils import ObsHolder, make_grid, plot_scale, new_save_folder
 from config import Config
 
 np.set_printoptions(precision=2)
 cfg = Config()
 N_phases = 3
-
-
-# # Test phase diagram.
-# def tri_pd(X):
-#     x, y = X[:, 0], X[:, 1]
-#
-#     theta = np.arctan2(x, y)
-#     a = -4
-#     b = -1
-#     c = 1
-#     d = 4
-#
-#     conditions = [
-#         (theta > a) & (theta < b),
-#         (theta >= b) & (theta < c),
-#         (theta >= c) & (theta < d)
-#     ]
-#     values = range(N_phases)
-#     phase_diagram = np.select(conditions, values, default=0)
-#
-#     return phase_diagram
-
+save_dir = "./saves"
 
 # Sample phase diagrams from models.
 def gen_pd(models: list[GPy.core.GP], xs, sample=None):
@@ -163,7 +142,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
     return pds
 
 
-def acquisition(models, new_Xs, plot=True):
+def acquisition(models, new_Xs):
     # Grid over which to compute distances
     X, _, _ = make_grid(cfg.N_dist, xmin=cfg.xmin, xmax=cfg.xmax)
 
@@ -182,42 +161,50 @@ def acquisition(models, new_Xs, plot=True):
         avg_dist = dist2(pd_old_repeat, pd_new_tile)
         avg_dists.append(avg_dist)
 
-    if plot:
-        # Plot current P_{n}
-        xs_train, ys_train = plot_scale(models[0].X, cfg.N_dist,
-                                        cfg.xmin, cfg.xmax, cfg.ymin, cfg.ymax)
 
-        plt.title("Current PD")
-        plt.imshow(pd_old[0].reshape(cfg.N_dist, cfg.N_dist))
-        plt.scatter(xs_train, ys_train, marker="x", s=40)
-        plt.xlim([0, cfg.N_dist - 1]), plt.ylim([0, cfg.N_dist - 1])
-
-        plt.show()
-
-    return avg_dists
+    return pd_old[0], avg_dists
 
 
 def main():
     obs_holder = ObsHolder(Config())
-    X_train, _, _ = make_grid(cfg.N_train)
-    for xs in X_train:
+    save_path = new_save_folder(save_dir)
+
+    # Init observations to start off
+    X_init, _, _ = make_grid(cfg.N_init)
+    for xs in X_init:
         obs_holder.make_obs(xs)
 
-    for _ in range(25):
+    for i in range(30):
+        st = time.time()
+
+        # Fit to existing observations
         models = fit_gp(obs_holder)
 
+        # Find max_x A(x)
         new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)  # Points to test for aquisition
-        # new_Xs = np.array([[i, -1.25] for i in np.linspace(-1, 1, 19)])
-        avg_dists = acquisition(models, new_Xs, plot=True)
 
+        pd_old, avg_dists = acquisition(models, new_Xs)
         max_pos = np.argmax(avg_dists)
         new_point = new_Xs[max_pos]
+        obs_holder.make_obs(new_point)
+
         print()
         print()
         print("New point to sample from:", new_point)
-        obs_holder.make_obs(new_point)
 
-        avg_dists = np.array(avg_dists).reshape(cfg.N_eval, cfg.N_eval)
+        # Plot current phase diagram and next sample point
+        xs_train, ys_train = models[0].X[:, 0], models[0].X[:, 1]
+        plt.title(f"PD and sample points {i}")
+        plt.imshow(pd_old.reshape(cfg.N_dist, cfg.N_dist), extent=(-2, 2, -2, 2), origin="lower")   # Phase diagram
+        plt.scatter(xs_train, ys_train, marker="x", s=40)   # Existing observations
+        plt.scatter(new_point[0], new_point[1], s=100)      # New observations
+
+        plt.savefig(f'{save_path}/{i}.png', bbox_inches="tight")
+        plt.show()
+
+        print(f'Iter: {i}, Time: {time.time() - st:.3g}s ' )
+        print()
+        # avg_dists = np.array(avg_dists).reshape(cfg.N_eval, cfg.N_eval)
 
         # plt.imshow(avg_dists)
         # plt.xlim([0, cfg.N_eval - 1]), plt.ylim([0, cfg.N_eval - 1])

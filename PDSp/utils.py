@@ -3,6 +3,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from config import Config
 import scipy
+import os
+import cv2
 
 class ObsHolder:
     def __init__(self, cfg:Config):
@@ -11,8 +13,6 @@ class ObsHolder:
         self.obs_phase = []
 
     def make_obs(self, X):
-        print(X, self.tri_pd(X))
-
         self.obs_pos.append(X)
         self.obs_phase.append(self.tri_pd(X))
 
@@ -41,21 +41,19 @@ class ObsHolder:
         else:
             return 2
 
-    def plot_samples(self):
+    def plot_samples(self, show_obs=False):
         Xs = np.array(self.obs_pos)
         obs = np.array(self.obs_phase)
-        cmap = plt.cm.plasma
 
-        plt.scatter(Xs[:, 0], Xs[:,1], s=20)
-        # plt.xlim(self.cfg.xmin, self.cfg.xmax)
-        # plt.ylim(self.cfg.ymin, self.cfg.ymax)
+        if show_obs:
+            plt.scatter(Xs[:, 0], Xs[:,1], s=20)
 
-
-
+        # Interpolate points onto a grid
         xi = np.linspace(-2, 2, 100)  # x-coordinate of regular grid
         yi = np.linspace(-2, 2, 100)  # y-coordinate of regular grid
         xi, yi = np.meshgrid(xi, yi)  # Create grid mesh
         zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
+
         plt.imshow(zi, origin="lower", extent=(-2, 2, -2, 2))
         #print(Xs[:, 0], Xs[:,1])
         #plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
@@ -168,7 +166,57 @@ def plot_scale(points, N, xmin, xmax, ymin, ymax):
     ys = ys * (N / (ymax - ymin)) + (N / 2) - 0.5
     return  xs, ys
 
+
+def new_save_folder(save_dir):
+    # Specify the directory path to search for folders
+
+    # Get a list of all folders in the specified directory
+    folders = [f for f in os.listdir(save_dir) if os.path.isdir(os.path.join(save_dir, f))]
+
+    # Filter out folders with non-integer names
+    integer_folders = [int(folder) for folder in folders if folder.isdigit()]
+
+    if len(integer_folders) == 0:
+        # No folders present, create folder "1"
+        new_folder_path = os.path.join(save_dir, '1')
+    else:
+        # Sort the integer folder names in ascending order
+        integer_folders.sort()
+        # Find the last folder name in the sorted list
+        last_folder = integer_folders[-1]
+
+        # Get the next folder name by incrementing the last folder name
+        next_folder = str(int(last_folder) + 1)
+
+        # Create the new folder path
+        new_folder_path = os.path.join(save_dir, next_folder)
+
+    # Create the new folder
+    os.makedirs(new_folder_path)
+
+
+    return new_folder_path
+
+def images_to_video(image_folder, fps):
+    video_name = f'{image_folder}/vid.mp4'
+    images = [img for img in os.listdir(image_folder) if img.endswith(".png") or img.endswith(".jpg")]
+    images.sort(key=lambda x: int(os.path.splitext(x)[0]))
+
+    # read the first image to get the shape
+    frame = cv2.imread(os.path.join(image_folder, images[0]))
+    height, width, layers = frame.shape
+
+    video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width,height))
+
+    for image in images:
+        video.write(cv2.imread(os.path.join(image_folder, image)))
+
+    cv2.destroyAllWindows()
+    video.release()
+
 if __name__ == "__main__":
+    images_to_video('./saves/2', fps=3)
+
     sampler = ObsHolder(Config())
 
     grid, _, _ = make_grid(25)
