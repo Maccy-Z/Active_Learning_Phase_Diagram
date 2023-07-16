@@ -85,7 +85,7 @@ def max_1(mu_1, sigma_1, mus, sigmas, hermite_roots):
 
 # Probability each y is observed
 def sample_new_y(models, x_new):
-    """Need to find phase at x_{n+1}. Everything is gaussian, so this is finding the max of gaussians."""
+    """Probability of observing each phase at x_{n+1}. Everything is gaussian, so this is finding the max of gaussians."""
     mus, vars = [], []
     for model in models:
         mu, var = model.predict(x_new.reshape(-1, 2))
@@ -119,28 +119,16 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
 
         new_models = []
         for phase_i, model in enumerate(models):
-            kern_var, kern_len = model.kern.variance, model.kern.lengthscale
-            print()
-            print()
-            print()
-
-            #print(np.show_config())
+            kern_var, kern_len = float(model.kern.variance), float(model.kern.lengthscale)
             X, Y = model.X, model.Y
 
             y_new = 2 * int(phase_i == obs_phase) - 1
             X_new, Y_new = np.vstack([X, x_new, x_new]), np.vstack([Y, y_new, y_new])
 
             kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
-
-            print()
-            A = model.kern.K(X_new)
-            print(A)
-            print()
-
             model = GPy.models.GPRegression(X_new, Y_new, kernel, noise_var=0.01)
-            #model.optimize()
+            # model.optimize()
             new_models.append(model)
-            exit(5)
 
         # Sample new phase diagrams, weighted to probability model is observed
         if sample is None:

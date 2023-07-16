@@ -178,7 +178,7 @@ def new_save_folder(save_dir):
 
     if len(integer_folders) == 0:
         # No folders present, create folder "1"
-        new_folder_path = os.path.join(save_dir, '1')
+        new_folder_path = os.path.join(save_dir, '0')
     else:
         # Sort the integer folder names in ascending order
         integer_folders.sort()
@@ -197,7 +197,12 @@ def new_save_folder(save_dir):
 
     return new_folder_path
 
-def images_to_video(image_folder, fps):
+def images_to_video(save_no, fps):
+    save_dir = "./saves"
+    image_folders = [f for f in os.listdir(save_dir) if os.path.isdir(os.path.join(save_dir, f)) and f.isdigit()]
+    image_folder = f'{save_dir}/{image_folders[save_no]}'
+
+
     video_name = f'{image_folder}/vid.mp4'
     images = [img for img in os.listdir(image_folder) if img.endswith(".png") or img.endswith(".jpg")]
     images.sort(key=lambda x: int(os.path.splitext(x)[0]))
@@ -215,7 +220,7 @@ def images_to_video(image_folder, fps):
     video.release()
 
 if __name__ == "__main__":
-    images_to_video('./saves/2', fps=3)
+    images_to_video(-1, fps=3)
 
     sampler = ObsHolder(Config())
 
