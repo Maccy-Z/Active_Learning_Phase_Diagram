@@ -4,368 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="08105d9d-84db-46d1-9faa-e1ea6c98732d" name="Changes" comment="Add .gitignore">
-      <change afterPath="$PROJECT_DIR$/PDSp/edit_source_files.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/.appveyor_twine_upload.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/.coveragerc" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/.gitchangelog.rc" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/.readthedocs.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/.travis.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/AUTHORS.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/CHANGELOG.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/__version__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/gp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/gp_grid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/mapping.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/parameterization/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/parameterization/param.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/parameterization/parameterized.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/parameterization/priorizable.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/parameterization/priors.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/parameterization/transformations.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/parameterization/variational.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/sparse_gp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/sparse_gp_mpi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/svgp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/core/symbolic.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/defaults.cfg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/examples/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/examples/classification.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/examples/dimensionality_reduction.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/examples/non_gaussian.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/examples/regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/examples/state_space.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/dtc.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/exact_gaussian_inference.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/exact_studentt_inference.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/expectation_propagation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/fitc.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/gaussian_grid_inference.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/grid_posterior.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/inferenceX.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/laplace.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/pep.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/posterior.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/svgp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/var_dtc.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/var_dtc_parallel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/var_gauss.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/vardtc_md.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/vardtc_svi_multiout.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/latent_function_inference/vardtc_svi_multiout_miss.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/mcmc/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/mcmc/hmc.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/mcmc/samplers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/optimization/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/inference/optimization/stochastics.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/installation.cfg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/ODE_UY.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/ODE_UYC.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/ODE_st.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/ODE_t.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/add.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/basis_funcs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/brownian.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/coregionalize.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/coregionalize_cython.pyx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/diff_kern.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/eq_ode1.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/eq_ode2.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/grid_kerns.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/independent_outputs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/integral.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/integral_limits.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/kern.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/kernel_slice_operations.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/linear.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/mlp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/multidimensional_integral_limits.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/multioutput_derivative_kern.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/multioutput_kern.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/periodic.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/poly.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/prod.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/gaussherm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/linear_psi_comp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/rbf_psi_comp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/rbf_psi_gpucomp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/sslinear_psi_comp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/ssrbf_psi_comp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/psi_comp/ssrbf_psi_gpucomp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/rbf.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sde_brownian.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sde_linear.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sde_matern.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sde_standard_periodic.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sde_static.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sde_stationary.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/spline.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/splitKern.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/standard_periodic.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/static.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/stationary.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/stationary_cython.pyx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/stationary_utils.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/stationary_utils.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/symbolic.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/symmetric.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sympy_helpers.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/sympy_helpers.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/ODE_1.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/eq_ode1.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/finite_dimensional.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/fixed.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/gibbs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/hetero.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/odekern1.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/poly.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/rbf_inv.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/spline.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/todo/symmetric.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/kern/src/trunclinear.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/bernoulli.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/binomial.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/exponential.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/gamma.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/gaussian.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/likelihood.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/link_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/loggaussian.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/loglogistic.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/mixed_noise.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/multioutput_likelihood.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/poisson.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/student_t.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/likelihoods/weibull.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/additive.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/compound.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/constant.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/identity.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/kernel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/linear.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/mlp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/mlpext.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/mappings/piecewise_linear.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/bayesian_gplvm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/bayesian_gplvm_minibatch.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/bcgplvm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/dpgplvm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_classification.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_coregionalized_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_grid_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_heteroscedastic_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_kronecker_gaussian_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_multiout_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_multiout_regression_md.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_offset_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gp_var_gauss.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gplvm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/gradient_checker.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/ibp_lfm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/input_warped_gp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/mrd.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/multioutput_gp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/one_vs_all_classification.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/one_vs_all_sparse_classification.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/sparse_gp_classification.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/sparse_gp_coregionalized_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/sparse_gp_minibatch.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/sparse_gp_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/sparse_gp_regression_md.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/sparse_gplvm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/ss_gplvm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/ss_mrd.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/state_space.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/state_space_cython.pyx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/state_space_main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/state_space_model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/state_space_setup.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/tp_regression.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/models/warped_gp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/bcgplvm_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/cgd_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/gp_transformation_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/gplvm_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/mapping_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/psi_stat_expectation_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/psi_stat_gradient_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/old_tests/sparse_gplvm_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/Tango.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/abstract_plotting_library.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/gpy_plot/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/gpy_plot/data_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/gpy_plot/gp_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/gpy_plot/inference_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/gpy_plot/kernel_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/gpy_plot/latent_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/gpy_plot/plot_util.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/base_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/controllers/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/controllers/axis_event_controller.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/controllers/imshow_controller.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/defaults.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/img_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/mapping_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/maps.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/plot_definitions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/priors_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/ssgplvm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/svig_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/util.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/variational_plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/matplot_dep/visualize.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/plotly_dep/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/plotly_dep/defaults.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/plotting/plotly_dep/plot_definitions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/b-gplvm-save.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/bayesian_gplvm_gradient.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/bayesian_gplvm_inducing.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/bayesian_gplvm_inducing_3d.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/bayesian_gplvm_latent.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/bayesian_gplvm_latent_3d.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/bayesian_gplvm_magnification.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/coverage_3d_plot.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/coverage_annotation_interact.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/coverage_gradient.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/coverage_imshow_interact.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_2d_data.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_2d_in_error.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_2d_inducing.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_2d_mean.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_3d_data.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_3d_inducing.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_3d_mean.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_class_likelihood.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_class_raw.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_class_raw_link.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_conf.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_data.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_density.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_in_error.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_mean.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_out_error.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gp_samples.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gplvm_gradient.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gplvm_latent.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gplvm_latent_3d.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/gplvm_magnification.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/kern_ARD.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/kern_cov_1d.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/kern_cov_2d.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/kern_cov_3d.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/kern_cov_no_lim.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/sparse_gp_class_likelihood.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/sparse_gp_class_raw.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/sparse_gp_class_raw_link.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/baseline/sparse_gp_data_error.npz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/cython_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/ep_likelihood_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/examples_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/fitc.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/gp_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/gpy_kernels_state_space_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/grid_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/inference_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/kernel_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/likelihood_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/linalg_test.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/link_function_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/mapping_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/meanfunc_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/minibatch_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/misc_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/model_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/mpi_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/pep_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/pickle_test.pickle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/pickle_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/plotting_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/prior_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/quadrature_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/run_coverage.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/rv_transformation_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/serialization_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/state_space_main_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/svgp_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/tp_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/util_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/testing/variational_tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/block_matrices.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/choleskies.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/choleskies_cython.pyx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/classification.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/cluster_with_offset.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/data_resources.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/datasets.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/debug.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/decorators.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/diag.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/football_teams.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/gpu_init.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/initialization.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/input_warping_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/linalg.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/linalg_cython.pyx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/linalg_gpu.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/ln_diff_erfs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/misc.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/mocap.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/multioutput.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/netpbmfile.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/normalizer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/parallel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/pca.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/quad_integrate.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/squashers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/subarray_and_sorting.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/univariate_Gaussian.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/GPy/util/warping_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/LICENSE.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/MANIFEST.in" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/appveyor.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/benchmarks/regression/evaluation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/benchmarks/regression/methods.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/benchmarks/regression/outputs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/benchmarks/regression/run.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/benchmarks/regression/tasks.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/codecov.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/Makefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/conf.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/index.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/modules.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/tuto_creating_new_kernels.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/tuto_creating_new_models.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/tuto_parameterized.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/doc/source/tuto_plotting.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/setup.cfg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/setup.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SheffieldML-GPy-e91799a/travis_tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.dockerignore" beforeDir="false" afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="08105d9d-84db-46d1-9faa-e1ea6c98732d" name="Changes" comment="Include GPy for python3.11">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PDSp/Distance Sampler.py" beforeDir="false" afterPath="$PROJECT_DIR$/PDSp/Distance_Sampler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PDSp/Distance_Sampler.py" beforeDir="false" afterPath="$PROJECT_DIR$/PDSp/Distance_Sampler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PDSp/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/PDSp/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -444,7 +86,7 @@
           <list />
         </option>
         <option name="publishAllPorts" value="false" />
-        <option name="runCliOptions" value="--entrypoint= --rm " />
+        <option name="runCliOptions" value="--entrypoint= --rm --network=host" />
         <option name="version" value="2" />
         <option name="volumeBindings">
           <list>
@@ -628,6 +270,7 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="/usr/local/bin/python3" />
+      <option name="SDK_NAME" value="phase_311" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/PDSp" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -697,9 +340,9 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.Distance_Sampler" />
+        <item itemvalue="Python.utils" />
         <item itemvalue="Python.edit_source_files" />
         <item itemvalue="Docker.dockerfile" />
-        <item itemvalue="Python.utils" />
         <item itemvalue="Python.config" />
       </list>
     </recent_temporary>
@@ -725,7 +368,7 @@
       <workItem from="1689470858195" duration="245000" />
       <workItem from="1689471108840" duration="229000" />
       <workItem from="1689471342736" duration="6739000" />
-      <workItem from="1689520261781" duration="494000" />
+      <workItem from="1689520261781" duration="4156000" />
     </task>
     <task id="LOCAL-00001" summary="First commit">
       <option name="closed" value="true" />
@@ -831,7 +474,15 @@
       <option name="project" value="LOCAL" />
       <updated>1689463324392</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Include GPy for python3.11">
+      <option name="closed" value="true" />
+      <created>1689520766047</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1689520766047</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -844,16 +495,17 @@
     <MESSAGE value="Fixed bug" />
     <MESSAGE value="Add .dockerignore" />
     <MESSAGE value="Add .gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add .gitignore" />
+    <MESSAGE value="Include GPy for python3.11" />
+    <option name="LAST_COMMIT_MESSAGE" value="Include GPy for python3.11" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/active_phase$Distance_Sampler.coverage" NAME="Distance Sampler Coverage Results" MODIFIED="1689183317570" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
-    <SUITE FILE_PATH="coverage/PDSp$utils.coverage" NAME="utils Coverage Results" MODIFIED="1689518800866" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
+    <SUITE FILE_PATH="coverage/PDSp$utils.coverage" NAME="utils Coverage Results" MODIFIED="1689525457230" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
     <SUITE FILE_PATH="coverage/PDSp$test2.coverage" NAME="edit_source_files Coverage Results" MODIFIED="1689520656254" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
     <SUITE FILE_PATH="coverage/PDSp$pretty_plot.coverage" NAME="pretty_plot Coverage Results" MODIFIED="1687889430014" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
     <SUITE FILE_PATH="coverage/PDSp$test.coverage" NAME="test Coverage Results" MODIFIED="1688091399806" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
     <SUITE FILE_PATH="coverage/PDSp$config.coverage" NAME="config Coverage Results" MODIFIED="1688781881600" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
     <SUITE FILE_PATH="coverage/active_phase$utils.coverage" NAME="utils Coverage Results" MODIFIED="1689183284855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
-    <SUITE FILE_PATH="coverage/PDSp$Distance_Sampler.coverage" NAME="Distance_Sampler Coverage Results" MODIFIED="1689520719285" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
+    <SUITE FILE_PATH="coverage/PDSp$Distance_Sampler.coverage" NAME="Distance_Sampler Coverage Results" MODIFIED="1689525729682" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/PDSp" />
   </component>
 </project>
