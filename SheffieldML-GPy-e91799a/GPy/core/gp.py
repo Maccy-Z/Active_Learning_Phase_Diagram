@@ -107,6 +107,8 @@ class GP(Model):
         self.link_parameter(self.likelihood)
         self.posterior = None
 
+        self.rng = np.random.default_rng()
+
     def to_dict(self, save_data=True):
         """
         Convert the object into a json serializable dictionary.
@@ -598,7 +600,7 @@ class GP(Model):
                 mag[n] = np.sqrt(np.linalg.det(G[n, :, :]))
         return mag
 
-    def posterior_samples_f(self,X, size=10, **predict_kwargs):
+    def posterior_samples_f(self,X, size=10, method='svd', **predict_kwargs):
         """
         Samples the posterior GP at the points X.
 
@@ -609,16 +611,17 @@ class GP(Model):
         :returns: set of simulations
         :rtype: np.ndarray (Nnew x D x samples)
         """
+
         predict_kwargs["full_cov"] = True  # Always use the full covariance for posterior samples.
         m, v = self._raw_predict(X,  **predict_kwargs)
         if self.normalizer is not None:
             m, v = self.normalizer.inverse_mean(m), self.normalizer.inverse_variance(v)
-
         def sim_one_dim(m, v):
-            return np.random.multivariate_normal(m, v, size).T
+            return self.rng.multivariate_normal(m, v, size, method=method).T
 
         if self.output_dim == 1:
-            return sim_one_dim(m.flatten(), v)[:, np.newaxis, :]
+            ret_val = sim_one_dim(m.flatten(), v)[:, np.newaxis, :]
+            return ret_val
         else:
             fsim = np.empty((X.shape[0], self.output_dim, size))
             for d in range(self.output_dim):

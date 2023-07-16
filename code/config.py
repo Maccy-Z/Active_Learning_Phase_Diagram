@@ -12,10 +12,14 @@ class Config:
     N_eval: int = 15  # Candidate points for new sample
 
     sample_old: int = None  # Samples for P_{n}
-    sample_new: int = None  # Samples for P_{n+1}
+    sample_new: int = 1000  # Samples for P_{n+1}
+    prob_threshold: float = 0.005 # Min prob to sample distance function
 
     N_phases: int = 3
 
+    optim_step: bool = False #  Optimise MLE when sampling x_{n+1}
+
+    normal_sample: str = 'cholesky' # Modify generation of random normals for speed up
 if __name__ == "__main__":
     print(Config())
 
