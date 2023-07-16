@@ -1,3 +1,4 @@
+# import edit_source_files
 import GPy
 import numpy as np
 import time
@@ -118,16 +119,28 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
 
         new_models = []
         for phase_i, model in enumerate(models):
+            kern_var, kern_len = model.kern.variance, model.kern.lengthscale
+            print()
+            print()
+            print()
+
+            #print(np.show_config())
             X, Y = model.X, model.Y
 
             y_new = 2 * int(phase_i == obs_phase) - 1
-            X_new, Y_new = np.vstack([X, x_new, x_new+0.01]), np.vstack([Y, y_new, y_new])
+            X_new, Y_new = np.vstack([X, x_new, x_new]), np.vstack([Y, y_new, y_new])
 
-            kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
+            kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
+
+            print()
+            A = model.kern.K(X_new)
+            print(A)
+            print()
+
             model = GPy.models.GPRegression(X_new, Y_new, kernel, noise_var=0.01)
-            model.optimize()
-
+            #model.optimize()
             new_models.append(model)
+            exit(5)
 
         # Sample new phase diagrams, weighted to probability model is observed
         if sample is None:
@@ -221,6 +234,7 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
 
 
