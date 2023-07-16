@@ -1,4 +1,4 @@
-# import edit_source_files
+import edit_source_files
 import GPy
 import numpy as np
 import time
@@ -24,13 +24,12 @@ def gen_pd(models: list[GPy.core.GP], xs, sample=None):
     y_preds = []
     for phase_i, pd_model in enumerate(models):
         if sample is None:
-            y_pred, _ = pd_model.predict(xs, full_cov=True)  # m.shape = [n**2, 1]
+            y_pred, _ = pd_model.predict(xs)  # m.shape = [n**2, 1]
         else:
-            y_pred = pd_model.posterior_samples_f(xs, full_cov=True, size=sample).squeeze(axis=1)
+            y_pred = pd_model.posterior_samples_f(xs, size=sample, method=cfg.normal_sample).squeeze(axis=1)
         y_preds.append(y_pred)
 
     y_preds = np.stack(y_preds)
-
     sample_pds = np.argmax(y_preds, axis=0).T
     return sample_pds
 
@@ -108,6 +107,7 @@ def sample_new_y(models, x_new):
 def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
     """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming a new observation is taken at x_new.
     Returns: Phase diagrams"""
+    st = time.time()
 
     # First sample P_{n}(y_{n+1})
     pd_probs = sample_new_y(models, x_new)
@@ -115,7 +115,12 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
     # Sample new models for each possible observation
     pds = []
     for obs_phase, obs_prob in enumerate(pd_probs):
-        #print(f'Prob observe phase {obs_phase}: {obs_prob:.3f}')
+        # Ignore very unlikely observations that will have 0 samples
+        if obs_prob < cfg.prob_threshold:
+            # print(f'Prob observe phase {obs_phase}: {obs_prob:.3f}')
+            pds.append(np.empty((0, 361)))
+            continue
+
 
         new_models = []
         for phase_i, model in enumerate(models):
@@ -127,7 +132,10 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
 
             kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
             model = GPy.models.GPRegression(X_new, Y_new, kernel, noise_var=0.01)
-            # model.optimize()
+
+            if cfg.optim_step:
+                model.optimize()
+
             new_models.append(model)
 
         # Sample new phase diagrams, weighted to probability model is observed
@@ -137,7 +145,9 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
             pd_new = np.repeat(pd_new, count, axis=0)
         else:
             pd_new = gen_pd(new_models, sample_xs, sample= round(sample * obs_prob)) # Note, rounding here.
+
         pds.append(pd_new)
+
 
     pds = np.concatenate(pds)
     return pds
@@ -154,6 +164,7 @@ def acquisition(models, new_Xs):
     avg_dists = []
     for new_X in new_Xs:
         print(new_X, end=" ")
+
         pd_new = gen_pd_new_point(models, new_X, sample_xs=X, sample=cfg.sample_new)
 
         # Expected distance between PD1 and PD2 averaged over all pairs
@@ -163,12 +174,12 @@ def acquisition(models, new_Xs):
         avg_dists.append(avg_dist)
 
 
-    return pd_old[0], avg_dists
+    return pd_old[0], np.array(avg_dists)
 
 
 def main():
     obs_holder = ObsHolder(Config())
-    save_path = new_save_folder(save_dir)
+    # save_path = new_save_folder(save_dir)
 
     # Init observations to start off
     X_init, _, _ = make_grid(cfg.N_init)
@@ -193,9 +204,16 @@ def main():
         print()
         print("New point to sample from:", new_point)
 
+        print(avg_dists.shape)
+        # Plot acquisition function
+        plt.subplot(1, 2, 1)
+        plt.title(f'Step {i}:  Acquisition function')
+        plt.imshow(avg_dists.reshape(cfg.N_eval, cfg.N_eval), extent=(-2, 2, -2, 2), origin="lower")   # Phase diagram
+
         # Plot current phase diagram and next sample point
         xs_train, ys_train = models[0].X[:, 0], models[0].X[:, 1]
-        plt.title(f"PD and sample points {i}")
+        plt.subplot(1, 2, 2)
+        plt.title(f"PD and sample points")
         plt.imshow(pd_old.reshape(cfg.N_dist, cfg.N_dist), extent=(-2, 2, -2, 2), origin="lower")   # Phase diagram
         plt.scatter(xs_train, ys_train, marker="x", s=40)   # Existing observations
         plt.scatter(new_point[0], new_point[1], s=100)      # New observations
