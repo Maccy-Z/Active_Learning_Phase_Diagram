@@ -13,7 +13,8 @@ class Config:
 
     sample_old: int = None  # Samples for P_{n}
     sample_new: int = 1000  # Samples for P_{n+1}
-    prob_threshold: float = 0.005 # Min prob to sample distance function
+    skip_point: float = 0.99  # Min prob to entirely skip a point
+    skip_phase: float = 0.005 # Min prob to skip sampling a phase
 
     N_phases: int = 3
 

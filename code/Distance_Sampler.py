@@ -38,8 +38,6 @@ def gen_pd(models: list[GPy.core.GP], xs, sample=None):
 def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
     "Trains a model for each phase."
     X, Y = obs_holder.get_obs()
-    # X, _, _ = make_grid(cfg.N_train)
-    # true_pd = tri_pd(X)
 
     models = []
     for i in range(N_phases):
@@ -107,20 +105,21 @@ def sample_new_y(models, x_new):
 def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
     """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming a new observation is taken at x_new.
     Returns: Phase diagrams"""
-    st = time.time()
 
     # First sample P_{n}(y_{n+1})
     pd_probs = sample_new_y(models, x_new)
+    # Skip sampling a point if certainty is already very high
+    if max(pd_probs) > cfg.skip_point:
+        return None
 
     # Sample new models for each possible observation
     pds = []
     for obs_phase, obs_prob in enumerate(pd_probs):
         # Ignore very unlikely observations that will have 0 samples
-        if obs_prob < cfg.prob_threshold:
+        if obs_prob < cfg.skip_phase:
             # print(f'Prob observe phase {obs_phase}: {obs_prob:.3f}')
-            pds.append(np.empty((0, 361)))
+            pds.append(np.empty((0, sample_xs.shape[0])))
             continue
-
 
         new_models = []
         for phase_i, model in enumerate(models):
@@ -166,7 +165,9 @@ def acquisition(models, new_Xs):
         print(new_X, end=" ")
 
         pd_new = gen_pd_new_point(models, new_X, sample_xs=X, sample=cfg.sample_new)
-
+        if pd_new is None:  # Skipped sampling point
+            avg_dists.append(0)
+            continue
         # Expected distance between PD1 and PD2 averaged over all pairs
         pd_old_repeat = np.repeat(pd_old, pd_new.shape[0], axis=0)
         pd_new_tile = np.tile(pd_new, (pd_old.shape[0], 1))
@@ -179,7 +180,7 @@ def acquisition(models, new_Xs):
 
 def main():
     obs_holder = ObsHolder(Config())
-    # save_path = new_save_folder(save_dir)
+    save_path = new_save_folder(save_dir)
 
     # Init observations to start off
     X_init, _, _ = make_grid(cfg.N_init)
@@ -199,6 +200,9 @@ def main():
         max_pos = np.argmax(avg_dists)
         new_point = new_Xs[max_pos]
         obs_holder.make_obs(new_point)
+
+        print()
+        print(f'Iter: {i}, Time: {time.time() - st:.3g}s ' )
 
         print()
         print()
@@ -221,8 +225,7 @@ def main():
         plt.savefig(f'{save_path}/{i}.png', bbox_inches="tight")
         plt.show()
 
-        print(f'Iter: {i}, Time: {time.time() - st:.3g}s ' )
-        print()
+
         # avg_dists = np.array(avg_dists).reshape(cfg.N_eval, cfg.N_eval)
 
         # plt.imshow(avg_dists)

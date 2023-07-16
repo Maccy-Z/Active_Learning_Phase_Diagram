@@ -10,10 +10,11 @@ from .. import kern
 from ..inference.latent_function_inference import exact_gaussian_inference, expectation_propagation
 from ..util.normalizer import Standardize
 from paramz import ObsAr
-
+import time
 import logging
 import warnings
 logger = logging.getLogger("GP")
+RNG = np.random.default_rng(seed=np.random.SFC64())
 
 class GP(Model):
     """
@@ -107,7 +108,8 @@ class GP(Model):
         self.link_parameter(self.likelihood)
         self.posterior = None
 
-        self.rng = np.random.default_rng()
+        self.rng = RNG
+
 
     def to_dict(self, save_data=True):
         """
