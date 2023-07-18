@@ -1,7 +1,6 @@
 import os
 import cv2
-from config import Config
-from utils import ObsHolder, make_grid
+
 
 def images_to_video(save_no, fps):
     save_dir = "./saves"
@@ -28,10 +27,4 @@ def images_to_video(save_no, fps):
 if __name__ == "__main__":
     images_to_video(-1, fps=3)
 
-    sampler = ObsHolder(Config())
 
-    grid, _, _ = make_grid(25)
-
-    for xs in grid:
-        sampler.make_obs(xs)
-    sampler.plot_samples()

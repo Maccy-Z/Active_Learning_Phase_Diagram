@@ -5,7 +5,7 @@ import time
 import scipy
 from matplotlib import pyplot as plt
 
-from utils import ObsHolder, make_grid, plot_scale, new_save_folder
+from utils import ObsHolder, make_grid, plot_scale, new_save_folder, array_scale
 from config import Config
 
 np.set_printoptions(precision=2)
@@ -44,7 +44,7 @@ def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
         phase_i = (Y == i) * 2 - 1  # Between -1 and 1
 
         kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
-        model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=0.01)
+        model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
         model.optimize()
 
         models.append(model)
@@ -110,7 +110,8 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
     pd_probs = sample_new_y(models, x_new)
     # Skip sampling a point if certainty is already very high
     if max(pd_probs) > cfg.skip_point:
-        return None
+        pass
+        #return None
 
     # Sample new models for each possible observation
     pds = []
@@ -130,7 +131,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
             X_new, Y_new = np.vstack([X, x_new, x_new]), np.vstack([Y, y_new, y_new])
 
             kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
-            model = GPy.models.GPRegression(X_new, Y_new, kernel, noise_var=0.01)
+            model = GPy.models.GPRegression(X_new, Y_new, kernel, noise_var=cfg.noise_var)
 
             if cfg.optim_step:
                 model.optimize()
@@ -154,34 +155,57 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
 
 def acquisition(models, new_Xs):
     # Grid over which to compute distances
-    X, _, _ = make_grid(cfg.N_dist, xmin=cfg.xmin, xmax=cfg.xmax)
+    X_dist, X1_dist, X2_dist = make_grid(cfg.N_dist)
 
     # P_n
-    pd_old = gen_pd(models, X, sample=cfg.sample_old)
+    pd_old = gen_pd(models, X_dist, sample=cfg.sample_old)
 
     # P_{n+1}
     avg_dists = []
     for new_X in new_Xs:
         print(new_X, end=" ")
 
-        pd_new = gen_pd_new_point(models, new_X, sample_xs=X, sample=cfg.sample_new)
+        if cfg.sample_dist is not None:
+            # Sample distance a region around selected point only
+            X_min = new_X - cfg.sample_dist / 2
+            X_max = X_min + cfg.sample_dist
+
+            X_min = np.maximum(X_min, cfg.xmin)
+            X_max = np.minimum(X_max, cfg.xmax)
+
+            # Create a mask of wanted points
+            mask = (X_dist[:, 0] >= X_min[0]) & (X_dist[:, 0] <= X_max[0]) & (X_dist[:, 1] >= X_min[1]) & (X_dist[:, 1] <= X_max[1])
+
+            pd_old_want = pd_old[:, mask]
+            X_dist_region = X_dist[mask]
+
+        else:
+            X_dist_region = X_dist
+            pd_old_want = pd_old
+
+        pd_new = gen_pd_new_point(models, new_X, sample_xs=X_dist_region, sample=cfg.sample_new)
+        #print(pd_new.shape, pd_old.shape)
+
         if pd_new is None:  # Skipped sampling point
             avg_dists.append(0)
             continue
         # Expected distance between PD1 and PD2 averaged over all pairs
-        pd_old_repeat = np.repeat(pd_old, pd_new.shape[0], axis=0)
-        pd_new_tile = np.tile(pd_new, (pd_old.shape[0], 1))
+        pd_old_repeat = np.repeat(pd_old_want, pd_new.shape[0], axis=0)
+        pd_new_tile = np.tile(pd_new, (pd_old_want.shape[0], 1))
         avg_dist = dist2(pd_old_repeat, pd_new_tile)
         avg_dists.append(avg_dist)
 
-
-    return pd_old[0], np.array(avg_dists)
+    X_display, _, _ = make_grid(cfg.N_display, xmin=cfg.xmin, xmax=cfg.xmax)
+    pd_old_mean = gen_pd(models, X_display, sample=None)[0]
+    return pd_old_mean, np.array(avg_dists)
 
 
 def main():
     obs_holder = ObsHolder(Config())
     save_path = new_save_folder(save_dir)
-
+    print()
+    print(save_path)
+    print()
     # Init observations to start off
     X_init, _, _ = make_grid(cfg.N_init)
     for xs in X_init:
@@ -202,38 +226,39 @@ def main():
         obs_holder.make_obs(new_point)
 
         print()
+        print()
         print(f'Iter: {i}, Time: {time.time() - st:.3g}s ' )
 
         print()
-        print()
         print("New point to sample from:", new_point)
 
-        print(avg_dists.shape)
         # Plot acquisition function
         plt.subplot(1, 2, 1)
         plt.title(f'Step {i}:  Acquisition function')
-        plt.imshow(avg_dists.reshape(cfg.N_eval, cfg.N_eval), extent=(-2, 2, -2, 2), origin="lower")   # Phase diagram
+
+        sec_low = np.sort(np.unique(avg_dists))[1]
+        try:
+            plt.imshow(avg_dists.reshape(cfg.N_eval, cfg.N_eval), extent=(-2, 2, -2, 2),
+                       origin="lower", vmin=sec_low)   # Phase diagram
+        except ValueError:
+            print(sec_low)
+            pass
 
         # Plot current phase diagram and next sample point
-        xs_train, ys_train = models[0].X[:, 0], models[0].X[:, 1]
+        X_obs, Y_obs = obs_holder.get_obs()
+        xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
+
         plt.subplot(1, 2, 2)
         plt.title(f"PD and sample points")
-        plt.imshow(pd_old.reshape(cfg.N_dist, cfg.N_dist), extent=(-2, 2, -2, 2), origin="lower")   # Phase diagram
-        plt.scatter(xs_train, ys_train, marker="x", s=40)   # Existing observations
-        plt.scatter(new_point[0], new_point[1], s=100)      # New observations
+
+        plt.imshow(pd_old.reshape(cfg.N_display, cfg.N_display), extent=(-2, 2, -2, 2), origin="lower")   # Phase diagram
+        plt.scatter(xs_train, ys_train, marker="x", s=40, c=Y_obs, cmap='bwr')   # Existing observations
+        plt.scatter(new_point[0], new_point[1], s=100, c='tab:orange')      # New observations
 
         plt.savefig(f'{save_path}/{i}.png', bbox_inches="tight")
         plt.show()
 
-
-        # avg_dists = np.array(avg_dists).reshape(cfg.N_eval, cfg.N_eval)
-
-        # plt.imshow(avg_dists)
-        # plt.xlim([0, cfg.N_eval - 1]), plt.ylim([0, cfg.N_eval - 1])
-        #
-        # plt.title(new_point)
-        # plt.colorbar()
-        # plt.show()
+        obs_holder.save(save_path)
 
     obs_holder.plot_samples()
     # with open("./saves/both_sample", "wb") as f:
