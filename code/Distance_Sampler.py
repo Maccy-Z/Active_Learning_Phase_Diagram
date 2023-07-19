@@ -43,9 +43,9 @@ def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
     for i in range(N_phases):
         phase_i = (Y == i) * 2 - 1  # Between -1 and 1
 
-        kernel = GPy.kern.Matern52(input_dim=2, variance=1., lengthscale=1.)
+        kernel = GPy.kern.Matern52(input_dim=2, variance=4, lengthscale=1.)
         model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
-        model.optimize()
+        #model.optimize(max_iters=1)
 
         models.append(model)
     return models
@@ -108,10 +108,11 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
 
     # First sample P_{n}(y_{n+1})
     pd_probs = sample_new_y(models, x_new)
+    max_prob = max(pd_probs)
+
     # Skip sampling a point if certainty is already very high
-    if max(pd_probs) > cfg.skip_point:
-        pass
-        #return None
+    if max_prob > cfg.skip_point:
+        return None, max_prob
 
     # Sample new models for each possible observation
     pds = []
@@ -150,7 +151,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample):
 
 
     pds = np.concatenate(pds)
-    return pds
+    return pds, max_prob
 
 
 def acquisition(models, new_Xs):
@@ -161,7 +162,7 @@ def acquisition(models, new_Xs):
     pd_old = gen_pd(models, X_dist, sample=cfg.sample_old)
 
     # P_{n+1}
-    avg_dists = []
+    avg_dists, max_probs = [], []
     for new_X in new_Xs:
         print(new_X, end=" ")
 
@@ -183,12 +184,13 @@ def acquisition(models, new_Xs):
             X_dist_region = X_dist
             pd_old_want = pd_old
 
-        pd_new = gen_pd_new_point(models, new_X, sample_xs=X_dist_region, sample=cfg.sample_new)
-        #print(pd_new.shape, pd_old.shape)
+        pd_new, max_prob = gen_pd_new_point(models, new_X, sample_xs=X_dist_region, sample=cfg.sample_new)
+        max_probs.append(max_prob)
 
         if pd_new is None:  # Skipped sampling point
             avg_dists.append(0)
             continue
+
         # Expected distance between PD1 and PD2 averaged over all pairs
         pd_old_repeat = np.repeat(pd_old_want, pd_new.shape[0], axis=0)
         pd_new_tile = np.tile(pd_new, (pd_old_want.shape[0], 1))
@@ -197,7 +199,7 @@ def acquisition(models, new_Xs):
 
     X_display, _, _ = make_grid(cfg.N_display, xmin=cfg.xmin, xmax=cfg.xmax)
     pd_old_mean = gen_pd(models, X_display, sample=None)[0]
-    return pd_old_mean, np.array(avg_dists)
+    return pd_old_mean, np.array(avg_dists), np.array(max_probs)
 
 
 def main():
@@ -220,7 +222,7 @@ def main():
         # Find max_x A(x)
         new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)  # Points to test for aquisition
 
-        pd_old, avg_dists = acquisition(models, new_Xs)
+        pd_old, avg_dists, max_probs = acquisition(models, new_Xs)
         max_pos = np.argmax(avg_dists)
         new_point = new_Xs[max_pos]
         obs_holder.make_obs(new_point)
@@ -232,9 +234,15 @@ def main():
         print()
         print("New point to sample from:", new_point)
 
+        # Plot probability of observaion
+        plt.subplot(1, 3, 1)
+        plt.title("P(obs) ")
+        plt.imshow(1 - max_probs.reshape(cfg.N_eval, cfg.N_eval), extent=(-2, 2, -2, 2),
+                       origin="lower", vmax=1, vmin=0)
+
         # Plot acquisition function
-        plt.subplot(1, 2, 1)
-        plt.title(f'Step {i}:  Acquisition function')
+        plt.subplot(1, 3, 2)
+        plt.title(f'Step {i}:  Acq. fn')
 
         sec_low = np.sort(np.unique(avg_dists))[1]
         try:
@@ -248,19 +256,22 @@ def main():
         X_obs, Y_obs = obs_holder.get_obs()
         xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
 
-        plt.subplot(1, 2, 2)
-        plt.title(f"PD and sample points")
+        plt.subplot(1, 3, 3)
+        plt.title(f"PD and points")
 
         plt.imshow(pd_old.reshape(cfg.N_display, cfg.N_display), extent=(-2, 2, -2, 2), origin="lower")   # Phase diagram
-        plt.scatter(xs_train, ys_train, marker="x", s=40, c=Y_obs, cmap='bwr')   # Existing observations
-        plt.scatter(new_point[0], new_point[1], s=100, c='tab:orange')      # New observations
+        plt.scatter(xs_train, ys_train, marker="x", s=30, c=Y_obs, cmap='bwr')   # Existing observations
+        plt.scatter(new_point[0], new_point[1], s=80, c='tab:orange')      # New observations
+
+        #plt.colorbar()
 
         plt.savefig(f'{save_path}/{i}.png', bbox_inches="tight")
         plt.show()
 
         obs_holder.save(save_path)
 
-    obs_holder.plot_samples()
+
+    obs_holder.plot_mean()
     # with open("./saves/both_sample", "wb") as f:
     #     pickle.dump(dists, f)
 
