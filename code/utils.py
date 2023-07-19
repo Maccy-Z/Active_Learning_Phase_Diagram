@@ -5,6 +5,10 @@ from config import Config
 import scipy
 import os
 import pickle
+import shutil
+import math
+import GPy
+
 
 class ObsHolder:
     def __init__(self, cfg:Config):
@@ -41,17 +45,18 @@ class ObsHolder:
         else:
             return 2
 
-    def plot_samples(self, show_obs=False):
+    def plot_mean(self, show_obs=False):
         Xs = np.array(self.obs_pos)
         obs = np.array(self.obs_phase)
 
         if show_obs:
-            plt.scatter(Xs[:, 0], Xs[:,1], s=20)
+            plt.scatter(Xs[:, 0], Xs[:,1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
 
         # Interpolate points onto a grid
         xi = np.linspace(-2, 2, 100)  # x-coordinate of regular grid
         yi = np.linspace(-2, 2, 100)  # y-coordinate of regular grid
         xi, yi = np.meshgrid(xi, yi)  # Create grid mesh
+
         zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
 
         plt.imshow(zi, origin="lower", extent=(-2, 2, -2, 2))
@@ -62,12 +67,14 @@ class ObsHolder:
         plt.ylim(self.cfg.ymin, self.cfg.ymax)
         plt.show()
 
+
+
     def save(self, save_file):
         with open(f'{save_file}/obs_holder', "wb") as f:
             pickle.dump(self, f)
 
 
-
+# Make nxn grid
 def make_grid(n, xmin=-2, xmax=2, ymin=-2, ymax=2) -> (np.ndarray, np.ndarray, np.ndarray):
     "very commonly used test to make a n x n grid or points"
     X1 = np.linspace(xmin, xmax, n)
@@ -75,14 +82,6 @@ def make_grid(n, xmin=-2, xmax=2, ymin=-2, ymax=2) -> (np.ndarray, np.ndarray, n
     x1, x2 = np.meshgrid(X1, X2)
     X = np.hstack((x1.reshape(n ** 2, 1), x2.reshape(n ** 2, 1)))
     return X, X1, X2
-
-
-def test_fn_boundary(theta):
-    xs = np.cos(theta)
-    ys = np.sin(theta)
-
-    return np.array([xs, ys])
-
 
 
 # Rescale from physical coords to plot coords
@@ -95,7 +94,6 @@ def plot_scale(points, N, xmin, xmax, ymin, ymax):
 def array_scale(X, N, min, max):
     n = (N-1) * (X - min) / (max - min)
     return n
-
 
 
 def new_save_folder(save_dir):
@@ -124,6 +122,9 @@ def new_save_folder(save_dir):
 
     # Create the new folder
     os.makedirs(new_folder_path)
+
+    # Copy config file to save folder
+    shutil.copy2("./config.py", new_folder_path)
 
 
     return new_folder_path
