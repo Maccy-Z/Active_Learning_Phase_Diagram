@@ -43,7 +43,7 @@ def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
     for i in range(N_phases):
         phase_i = (Y == i) * 2 - 1  # Between -1 and 1
 
-        kernel = GPy.kern.Matern52(input_dim=2, variance=4, lengthscale=1.)
+        kernel = GPy.kern.Matern52(input_dim=2, variance=0.1, lengthscale=0.75)
         model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
         #model.optimize(max_iters=1)
 
