@@ -1,7 +1,6 @@
 # Helpful functions
 from matplotlib import pyplot as plt
 import numpy as np
-from config import Config
 import scipy
 import os
 import pickle
@@ -9,21 +8,24 @@ import shutil
 import math
 import GPy
 
+from config import Config
+
 
 class ObsHolder:
-    def __init__(self, cfg:Config):
+    def __init__(self, cfg: Config):
         self.cfg = cfg
         self.obs_pos = []
         self.obs_phase = []
+
+        self.step = 0
 
     def make_obs(self, X):
         self.obs_pos.append(X)
         self.obs_phase.append(self.tri_pd(X))
 
-    def get_obs(self) ->[np.ndarray, np.ndarray]:
+    def get_obs(self) -> [np.ndarray, np.ndarray]:
 
         return np.array(self.obs_pos), np.array(self.obs_phase)
-
 
     # Test function, representing making a observation
     def tri_pd(self, X):
@@ -45,12 +47,13 @@ class ObsHolder:
         else:
             return 2
 
-    def plot_mean(self, show_obs=False):
+    # Nearest-neighbour plot
+    def plot_mean(self, show_obs=True):
         Xs = np.array(self.obs_pos)
         obs = np.array(self.obs_phase)
 
         if show_obs:
-            plt.scatter(Xs[:, 0], Xs[:,1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
+            plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
 
         # Interpolate points onto a grid
         xi = np.linspace(-2, 2, 100)  # x-coordinate of regular grid
@@ -60,18 +63,26 @@ class ObsHolder:
         zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
 
         plt.imshow(zi, origin="lower", extent=(-2, 2, -2, 2))
-        #print(Xs[:, 0], Xs[:,1])
-        #plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
+        # print(Xs[:, 0], Xs[:,1])
+        # plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
 
         plt.xlim(self.cfg.xmin, self.cfg.xmax)
         plt.ylim(self.cfg.ymin, self.cfg.ymax)
         plt.show()
 
-
-
     def save(self, save_file):
         with open(f'{save_file}/obs_holder', "wb") as f:
             pickle.dump(self, f)
+
+    def get_kern_param(self, t=None):
+        if t is None:
+            step = self.step
+        else:
+            step = t
+        var = 0.001 / (np.sqrt(step + 2))
+        r = 3. / (np.sqrt(step + 16))
+
+        return var, r
 
 
 # Make nxn grid
@@ -89,10 +100,11 @@ def plot_scale(points, N, xmin, xmax, ymin, ymax):
     xs, ys = points[:, 0], points[:, 1]
     xs = xs * (N / (xmax - xmin)) + (N / 2) - 0.5
     ys = ys * (N / (ymax - ymin)) + (N / 2) - 0.5
-    return  xs, ys
+    return xs, ys
+
 
 def array_scale(X, N, min, max):
-    n = (N-1) * (X - min) / (max - min)
+    n = (N - 1) * (X - min) / (max - min)
     return n
 
 
@@ -125,16 +137,13 @@ def new_save_folder(save_dir):
 
     # Copy config file to save folder
     shutil.copy2("./config.py", new_folder_path)
-
+    shutil.copy2("./utils.py", new_folder_path)
+    cfg = Config()
+    with open (f'{new_folder_path}/cfg.pkl', "wb") as f:
+        pickle.dump(cfg, f)
 
     return new_folder_path
 
+
 if __name__ == "__main__":
-    sampler = ObsHolder(Config())
-
-    grid, _, _ = make_grid(25)
-
-    for xs in grid:
-        sampler.make_obs(xs)
-    sampler.plot_samples()
-
+    pass
