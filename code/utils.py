@@ -74,13 +74,14 @@ class ObsHolder:
         with open(f'{save_file}/obs_holder', "wb") as f:
             pickle.dump(self, f)
 
-    def get_kern_param(self, t=None):
+    def get_kern_param(self, k_var, k_r, t=None):
         if t is None:
             step = self.step
         else:
             step = t
-        var = 0.001 / (np.sqrt(step + 2))
-        r = 3. / (np.sqrt(step + 16))
+
+        var = k_var + (step * .5 / 50)
+        r = k_r #  / (np.sqrt(step + 16)) + 0.25
 
         return var, r
 
