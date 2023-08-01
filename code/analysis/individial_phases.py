@@ -1,3 +1,4 @@
+import copy
 import sys
 import os
 
@@ -25,12 +26,8 @@ def single_pds(models: list[GPy.core.GP], xs, sample=None):
     """
     y_preds, y_vars = [], []
     for phase_i, pd_model in enumerate(models):
-        if sample is None:
-            y_pred, var = pd_model.predict(xs, include_likelihood=True)  # m.shape = [n**2, 1]
-        else:
-            s = sample // 3
-            y_pred = pd_model.posterior_samples_f(xs, size=s, method=cfg.normal_sample).squeeze(axis=1)
-            var = 0.
+        y_pred, var = pd_model.predict(xs, include_likelihood=True)  # m.shape = [n**2, 1]
+
 
         y_preds.append(y_pred)
         y_vars.append(var)
@@ -39,8 +36,9 @@ def single_pds(models: list[GPy.core.GP], xs, sample=None):
     y_vars = np.stack(y_vars)
 
     # sample_pds = np.argmax(y_preds, axis=0).T
-    sample_pds = y_preds.swapaxes(1, 2).reshape(-1, 625)
-    sample_vars = y_vars.swapaxes(1, 2).reshape(-1, 625)
+    # print(y_preds.shape)
+    sample_pds = y_preds.swapaxes(1, 2).reshape(-1, y_preds.shape[1])
+    sample_vars = y_vars.swapaxes(1, 2).reshape(-1, y_preds.shape[1])
     return sample_pds, sample_vars
 
 
@@ -49,16 +47,14 @@ def fit_gp(obs_holder, t) -> list[GPy.core.GP]:
     "Trains a model for each phase."
     X, Y = obs_holder.get_obs()
 
-    var = 1 / (np.sqrt(t + 2))
-    r = 1. / (np.sqrt(t+1))
-    # var = 1 #/ (t + 2)
-    # r = 1 / (np.sqrt(t+1))
-    # var, r = 1, 1
+    var, r = obs_holder.get_kern_param(cfg.kern_var, cfg.kern_r)
+    #var, r = 10, 2
+
     print(f'{var = }, {r = }')
 
     models = []
     for i in range(3):
-        phase_i = (Y == i) * 2 - 1  # Between -1 and 1
+        phase_i = ((Y == i) - 0.5) * 0.01  # Between -1 and 1
 
         kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
         model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
@@ -84,14 +80,22 @@ def plot_samples(obs_holder, points=25, t=None):
     pds, vars = single_pds(models, plot_Xs, sample=None)
     pds = np.concatenate([pds, vars], axis=0)
 
+
     n_img = len(pds)
     num_rows = math.isqrt(n_img)
     num_cols = math.ceil(n_img / num_rows)
     fig, axes = plt.subplots(num_rows, num_cols, figsize=(8, 8))
+
+    # x, y = (1, -1.5)
+    # point = np.array([[x, y]])
+    # print(single_pds(models, point))
+
     for i, ax in enumerate(axes.flatten()):
         if i < n_img // 2:
+            #ax.scatter(x, y, c="black")
+
             pd = pds[i]
-            c = ax.imshow(pd.reshape(points, points), extent=(-2, 2, -2, 2), origin="lower", vmin=-1, vmax=1)  # Phase diagram
+            c = ax.imshow(pd.reshape(points, points), extent=(-2, 2, -2, 2), origin="lower", vmin=-0.01, vmax=0.01)  # Phase diagram
             ax.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
             ax.axis("off")
             ax.set_title(f'Phase {i}')
@@ -118,15 +122,17 @@ def plot_samples(obs_holder, points=25, t=None):
     plt.show()
 
 if __name__ == "__main__":
-    save_name = "35"
+    save_name = "41"
+    with open(f'./saves/{save_name}/obs_holder', "rb") as f:
+        obs_h: ObsHolder = pickle.load(f)
 
-    for t in range(0, 51, 5):
+
+    for t in [44]:
         print()
 
         print("t =", t + 16)
-        with open(f'./saves/{save_name}/obs_holder', "rb") as f:
-            obs_holder: ObsHolder = pickle.load(f)
-            plot_samples(obs_holder, t=t)
+        obs_holder = copy.deepcopy(obs_h)
+        plot_samples(obs_holder, t=t, points=50)
 #
 # import GPy
 # import numpy as np

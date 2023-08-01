@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import numpy as np
 
 @dataclass
 class Config:
@@ -11,12 +12,12 @@ class Config:
 
     N_init: int = 4
     N_dist: int = 25  # Points distance function is evaluated at
-    N_eval: int = 15  # Candidate points for new sample
+    N_eval: int = 24  # Candidate points for new sample
     N_display: int = 25 # Number of points to visualise
 
     sample_old: int = None  # Samples for P_{n}
     sample_new: int = None  # Samples for P_{n+1}
-    skip_point: float = 0.999  # Min prob to entirely skip a point
+    skip_point: float = 0.995 # Min prob to entirely skip a point
     skip_phase: float = 0.0005 # Min prob to skip sampling a phase
     sample_dist: float = 3  # Size of region to sample P_{n+1} over.
 
@@ -26,7 +27,11 @@ class Config:
 
     normal_sample: str = 'cholesky' # Modify generation of random normals for speed up
 
-    noise_var: float = 1e-6 # Variance for observations
+    noise_var: float = 1e-1 # Variance for observations2
+    kern_var: float = 0.1
+    kern_r: float = 0.6
+
+
 
 
 if __name__ == "__main__":

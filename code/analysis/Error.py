@@ -4,6 +4,9 @@ import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
+cwd = os.getcwd()
+os.chdir(os.path.dirname(cwd))
+
 import code.edit_source_files
 import pickle
 import GPy
@@ -12,10 +15,7 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-#from code.config import Config
 from code.utils import make_grid, ObsHolder
-
-#cfg = Config()
 
 
 # Sample phase diagrams from models.
@@ -42,7 +42,8 @@ def fit_gp(obs_holder, t, *, cfg) -> list[GPy.core.GP]:
     "Trains a model for each phase."
     X, Y = obs_holder.get_obs()
 
-    var, r = obs_holder.get_kern_param(t)
+    k_var, k_r = cfg.kern_var, cfg.kern_r
+    var, r = obs_holder.get_kern_param(k_var, k_r, t=t)
 
     models = []
     for i in range(3):
@@ -78,19 +79,21 @@ def plot_samples(obs_holder, *, cfg, points=25, t=None):
     diff = np.not_equal(pds, true_pd)
     diff_mean = np.mean(diff)
 
-    # plt.imshow(diff)
-    # plt.show()
-
     return diff_mean
 
 
 def main():
-    save_name = "9"
+    f = sorted([int(s) for s in os.listdir("./saves")])
+
+    save_name = f[-1]
+    print(f'{save_name = }')
+
     with open(f'./saves/{save_name}/obs_holder', "rb") as f:
         og_obs: ObsHolder = pickle.load(f)
 
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
         cfg = pickle.load(f)
+
 
     errors = []
     for t in range(og_obs.step):

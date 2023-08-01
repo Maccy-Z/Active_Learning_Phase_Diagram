@@ -40,9 +40,10 @@ def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
     "Trains a model for each phase."
     X, Y = obs_holder.get_obs()
 
-    var, r = obs_holder.get_kern_param()
+    k_var, k_r = cfg.kern_var, cfg.kern_r
+    var, r = obs_holder.get_kern_param(k_var, k_r)
 
-    print(f'{var = }, {r = }')
+    print(f'{var = :.2g}, {r = :.2g}')
 
     models = []
     for i in range(N_phases):
@@ -56,12 +57,22 @@ def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
     return models
 
 
-def dist2(pd1s: np.ndarray, pd2s: np.ndarray):
+def dist2(pd1s: np.ndarray, pd2s: np.ndarray, weights=None):
     # n_diagrams, n_points = pd1s.shape
-    diffs = np.not_equal(pd1s, pd2s)
-    mean_diffs = np.mean(diffs, axis=1)
 
-    return np.mean(mean_diffs)
+    diffs = np.not_equal(pd1s, pd2s)
+    mean_diffs = np.mean(diffs, axis=1)     # Mean over each phase diagram
+
+    if weights is not None:
+        #mean_diffs = np.mean(mean_diffs)
+
+        mean_diffs *= weights
+        mean_diffs = np.sum(mean_diffs)
+        # print(np.mean(mean_diffs))
+    else:
+        mean_diffs = np.mean(mean_diffs)
+
+    return mean_diffs
 
 
 # Probability single gaussian is larger than the rest by integral of form f(x) exp(-x^2) where f(x) is product of CDFs.
@@ -107,7 +118,7 @@ def sample_new_y(models, x_new):
 
 
 # Predict new observaion and phase diagram
-def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample, holder: ObsHolder):
+def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs):
     """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming a new observation is taken at x_new.
     Returns: Phase diagrams, maximum probability of observing"""
 
@@ -117,14 +128,13 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample, holder
 
     # Skip sampling a point if certainty is already very high
     if max_prob > cfg.skip_point:
-        return None, max_prob
+        return None, max_prob, None
 
     # Sample new models for each possible observation
-    pds = []
+    pds, weights = [], []
     for obs_phase, obs_prob in enumerate(pd_probs):
         # Ignore very unlikely observations that will have 0 samples
         if obs_prob < cfg.skip_phase:
-            # print(f'Prob observe phase {obs_phase}: {obs_prob:.3f}')
             pds.append(np.empty((0, sample_xs.shape[0])))
             continue
 
@@ -144,18 +154,26 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, sample, holder
 
             new_models.append(model)
 
-        # Sample new phase diagrams, weighted to probability model is observed
-        if sample is None:
-            count = round(1000 * obs_prob)
+        # Sample new phase diagrams, weighted to probability model is observed.
+        if cfg.sample_new is None:
+            # Use probability weighting
             pd_new = gen_pd(new_models, sample_xs, sample=None)
-            pd_new = np.repeat(pd_new, count, axis=0)
+            weights.append(obs_prob)
+
+            # count = round(10000 * obs_prob)
+            # pd_new = gen_pd(new_models, sample_xs, sample=None)
+            # pd_new = np.repeat(pd_new, count, axis=0)
+
+
         else:
-            pd_new = gen_pd(new_models, sample_xs, sample=round(sample * obs_prob))  # Note, rounding here.
+            # Use number of phase diagrams as weighting
+            pd_new = gen_pd(new_models, sample_xs, sample=round(cfg.sample_new * obs_prob))  # Note, rounding here.
 
         pds.append(pd_new)
 
     pds = np.concatenate(pds)
-    return pds, max_prob
+
+    return pds, max_prob, weights
 
 
 def acquisition(models, new_Xs, holder):
@@ -168,7 +186,8 @@ def acquisition(models, new_Xs, holder):
     # P_{n+1}
     avg_dists, max_probs = [], []
     for new_X in new_Xs:
-        print(new_X, end=" ")
+        # print(new_X)
+        # print(new_X, end=" ")
 
         if cfg.sample_dist is not None:
             # Sample distance a region around selected point only
@@ -188,7 +207,7 @@ def acquisition(models, new_Xs, holder):
             X_dist_region = X_dist
             pd_old_want = pd_old
 
-        pd_new, max_prob = gen_pd_new_point(models, new_X, sample_xs=X_dist_region, sample=cfg.sample_new, holder=holder)
+        pd_new, max_prob, weights = gen_pd_new_point(models, new_X, sample_xs=X_dist_region)
         max_probs.append(max_prob)
 
         if pd_new is None:  # Skipped sampling point
@@ -198,7 +217,12 @@ def acquisition(models, new_Xs, holder):
         # Expected distance between PD1 and PD2 averaged over all pairs
         pd_old_repeat = np.repeat(pd_old_want, pd_new.shape[0], axis=0)
         pd_new_tile = np.tile(pd_new, (pd_old_want.shape[0], 1))
-        avg_dist = dist2(pd_old_repeat, pd_new_tile)
+
+        if cfg.sample_new is None:
+            weights = np.tile(weights, pd_old_want.shape[0])
+            avg_dist = dist2(pd_old_repeat, pd_new_tile, weights=weights)
+        else:
+            avg_dist = dist2(pd_old_repeat, pd_new_tile)
         avg_dists.append(avg_dist)
 
     X_display, _, _ = make_grid(cfg.N_display, xmin=cfg.xmin, xmax=cfg.xmax)
