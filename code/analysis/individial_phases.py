@@ -122,12 +122,12 @@ def plot_samples(obs_holder, points=25, t=None):
     plt.show()
 
 if __name__ == "__main__":
-    save_name = "41"
+    save_name = "7"
     with open(f'./saves/{save_name}/obs_holder', "rb") as f:
         obs_h: ObsHolder = pickle.load(f)
 
 
-    for t in [44]:
+    for t in [50]:
         print()
 
         print("t =", t + 16)

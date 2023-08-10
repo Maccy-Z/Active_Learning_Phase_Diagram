@@ -19,9 +19,14 @@ class ObsHolder:
 
         self.step = 0
 
-    def make_obs(self, X):
+    def make_obs(self, X, phase:int=None):
         self.obs_pos.append(X)
-        self.obs_phase.append(self.tri_pd(X))
+
+        # Test or use real data
+        if phase is None:
+            self.obs_phase.append(self.tri_pd(X))
+        else:
+            self.obs_phase.append(phase)
 
     def get_obs(self) -> [np.ndarray, np.ndarray]:
 
@@ -76,11 +81,11 @@ class ObsHolder:
 
     def get_kern_param(self, k_var, k_r, t=None):
         if t is None:
-            step = self.step
+            step = len(self.obs_phase)
         else:
             step = t
 
-        var = k_var + (step * .5 / 50)
+        var = k_var + ((step - 16) * .75 / 50)
         r = k_r #  / (np.sqrt(step + 16)) + 0.25
 
         return var, r

@@ -9,13 +9,11 @@ from utils import ObsHolder, make_grid, new_save_folder
 from config import Config
 
 np.set_printoptions(precision=2)
-cfg = Config()
 N_phases = 3
-save_dir = "./saves"
 
 
 # Sample phase diagrams from models.
-def gen_pd(models: list[GPy.core.GP], xs, sample=None):
+def gen_pd(models: list[GPy.core.GP], xs, cfg, sample=None):
     """
     @param models: List of models for each phase
     @param xs: Points to sample from
@@ -36,7 +34,7 @@ def gen_pd(models: list[GPy.core.GP], xs, sample=None):
 
 
 # Fit model to existing observations
-def fit_gp(obs_holder: ObsHolder) -> list[GPy.core.GP]:
+def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
     "Trains a model for each phase."
     X, Y = obs_holder.get_obs()
 
@@ -64,11 +62,8 @@ def dist2(pd1s: np.ndarray, pd2s: np.ndarray, weights=None):
     mean_diffs = np.mean(diffs, axis=1)     # Mean over each phase diagram
 
     if weights is not None:
-        #mean_diffs = np.mean(mean_diffs)
-
         mean_diffs *= weights
         mean_diffs = np.sum(mean_diffs)
-        # print(np.mean(mean_diffs))
     else:
         mean_diffs = np.mean(mean_diffs)
 
@@ -118,7 +113,7 @@ def sample_new_y(models, x_new):
 
 
 # Predict new observaion and phase diagram
-def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs):
+def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
     """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming a new observation is taken at x_new.
     Returns: Phase diagrams, maximum probability of observing"""
 
@@ -157,13 +152,8 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs):
         # Sample new phase diagrams, weighted to probability model is observed.
         if cfg.sample_new is None:
             # Use probability weighting
-            pd_new = gen_pd(new_models, sample_xs, sample=None)
+            pd_new = gen_pd(new_models, sample_xs, sample=None, cfg=cfg)
             weights.append(obs_prob)
-
-            # count = round(10000 * obs_prob)
-            # pd_new = gen_pd(new_models, sample_xs, sample=None)
-            # pd_new = np.repeat(pd_new, count, axis=0)
-
 
         else:
             # Use number of phase diagrams as weighting
@@ -176,18 +166,16 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs):
     return pds, max_prob, weights
 
 
-def acquisition(models, new_Xs, holder):
+def acquisition(models, new_Xs, cfg):
     # Grid over which to compute distances
     X_dist, X1_dist, X2_dist = make_grid(cfg.N_dist)
 
     # P_n
-    pd_old = gen_pd(models, X_dist, sample=cfg.sample_old)
+    pd_old = gen_pd(models, X_dist, sample=cfg.sample_old, cfg=cfg)
 
     # P_{n+1}
     avg_dists, max_probs = [], []
     for new_X in new_Xs:
-        # print(new_X)
-        # print(new_X, end=" ")
 
         if cfg.sample_dist is not None:
             # Sample distance a region around selected point only
@@ -200,6 +188,7 @@ def acquisition(models, new_Xs, holder):
             # Create a mask of wanted points
             mask = (X_dist[:, 0] >= X_min[0]) & (X_dist[:, 0] <= X_max[0]) & (X_dist[:, 1] >= X_min[1]) & (X_dist[:, 1] <= X_max[1])
 
+
             pd_old_want = pd_old[:, mask]
             X_dist_region = X_dist[mask]
 
@@ -207,7 +196,7 @@ def acquisition(models, new_Xs, holder):
             X_dist_region = X_dist
             pd_old_want = pd_old
 
-        pd_new, max_prob, weights = gen_pd_new_point(models, new_X, sample_xs=X_dist_region)
+        pd_new, max_prob, weights = gen_pd_new_point(models, new_X, sample_xs=X_dist_region, cfg=cfg)
         max_probs.append(max_prob)
 
         if pd_new is None:  # Skipped sampling point
@@ -226,11 +215,12 @@ def acquisition(models, new_Xs, holder):
         avg_dists.append(avg_dist)
 
     X_display, _, _ = make_grid(cfg.N_display, xmin=cfg.xmin, xmax=cfg.xmax)
-    pd_old_mean = gen_pd(models, X_display, sample=None)[0]
+    pd_old_mean = gen_pd(models, X_display, sample=None, cfg=cfg)[0]
     return pd_old_mean, np.array(avg_dists), np.array(max_probs)
 
 
-def main():
+def main(save_dir):
+    cfg = Config()
     obs_holder = ObsHolder(Config())
     print(save_dir)
     save_path = new_save_folder(save_dir)
@@ -247,12 +237,12 @@ def main():
         obs_holder.step = i
 
         # Fit to existing observations
-        models = fit_gp(obs_holder)
+        models = fit_gp(obs_holder, cfg=cfg)
 
         # Find max_x A(x)
         new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)  # Points to test for aquisition
 
-        pd_old, avg_dists, max_probs = acquisition(models, new_Xs, obs_holder)
+        pd_old, avg_dists, max_probs = acquisition(models, new_Xs, cfg)
         max_pos = np.argmax(avg_dists)
         new_point = new_Xs[max_pos]
         obs_holder.make_obs(new_point)
@@ -304,4 +294,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    save_dir = "./saves"
+
+    main(save_dir)
