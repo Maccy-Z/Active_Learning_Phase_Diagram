@@ -17,11 +17,8 @@ class ObsHolder:
         self.obs_pos = []
         self.obs_phase = []
 
-        self.step = 0
-
     def make_obs(self, X, phase:int=None):
         self.obs_pos.append(X)
-
         # Test or use real data
         if phase is None:
             self.obs_phase.append(self.tri_pd(X))
