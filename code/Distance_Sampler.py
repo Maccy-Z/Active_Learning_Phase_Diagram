@@ -219,6 +219,19 @@ def acquisition(models, new_Xs, cfg):
     return pd_old_mean, np.array(avg_dists), np.array(max_probs)
 
 
+def suggest_point(obs_holder, cfg):
+    # Fit to existing observations
+    models = fit_gp(obs_holder, cfg=cfg)
+
+    # Find max_x A(x)
+    new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)  # Points to test for aquisition
+
+    pd_old, avg_dists, max_probs = acquisition(models, new_Xs, cfg)
+    max_pos = np.argmax(avg_dists)
+    new_point = new_Xs[max_pos]
+
+    return new_point, (pd_old, avg_dists, max_probs)
+
 def main(save_dir):
     cfg = Config()
     obs_holder = ObsHolder(Config())
@@ -227,24 +240,17 @@ def main(save_dir):
     print()
     print(save_path)
     print()
+
     # Init observations to start off
     X_init, _, _ = make_grid(cfg.N_init)
     for xs in X_init:
+        print(xs)
         obs_holder.make_obs(xs)
 
     for i in range(cfg.steps):
         st = time.time()
-        obs_holder.step = i
 
-        # Fit to existing observations
-        models = fit_gp(obs_holder, cfg=cfg)
-
-        # Find max_x A(x)
-        new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)  # Points to test for aquisition
-
-        pd_old, avg_dists, max_probs = acquisition(models, new_Xs, cfg)
-        max_pos = np.argmax(avg_dists)
-        new_point = new_Xs[max_pos]
+        new_point, (pd_old, avg_dists, max_probs) = suggest_point(obs_holder, cfg)
         obs_holder.make_obs(new_point)
 
         print()

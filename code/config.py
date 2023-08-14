@@ -17,7 +17,7 @@ class Config:
 
     sample_old: int = None  # Samples for P_{n}
     sample_new: int = None  # Samples for P_{n+1}
-    skip_point: float = 0.995 # Min prob to entirely skip a point
+    skip_point: float = 0.90 # Min prob to entirely skip a point
     skip_phase: float = 0.005 # Min prob to skip sampling a phase
     sample_dist: float = 3  # Size of region to sample P_{n+1} over.
 
