@@ -3,10 +3,10 @@ import numpy as np
 
 @dataclass
 class Config:
-    steps: int = 51
+    steps: int = 31
 
-    xmin: int = -2
-    xmax: int = 2
+    xmin: int = -3
+    xmax: int = 3
     ymin: int = -2
     ymax: int = 2
 
@@ -31,7 +31,16 @@ class Config:
     kern_var: float = 0.25
     kern_r: float = 0.9
 
+    def get_kern_param(self, k_var, k_r, t=None):
+        if t is None:
+            step = len(self.obs_phase)
+        else:
+            step = t
 
+        var = k_var + ((step - 16) * .75 / 50)
+        r = k_r #  / (np.sqrt(step + 16)) + 0.25
+
+        return var, r
 
 if __name__ == "__main__":
     print(Config())

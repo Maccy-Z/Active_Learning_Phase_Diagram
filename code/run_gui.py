@@ -17,12 +17,17 @@ from PyQt6.QtWidgets import QVBoxLayout
 from PyQt6.QtGui import QIntValidator, QDoubleValidator
 
 from Distance_Sampler import suggest_point
-from utils import make_grid, Config, ObsHolder
+from utils import make_grid, Config, ObsHolder, new_save_folder
 
 class GUIToSampler:
     def __init__(self, init_phases, init_Xs):
+        save_dir = "./saves"
+        save_path = new_save_folder(save_dir)
+        print(f'{save_path = }')
+        print()
+
         self.cfg = Config()
-        self.obs_holder = ObsHolder(self.cfg)
+        self.obs_holder = ObsHolder(self.cfg, save_path=save_path)
 
         # X_init, _, _ = make_grid(self.cfg.N_init)
         # for xs in X_init:
@@ -50,23 +55,24 @@ class GUIToSampler:
         avg_dists = avg_dists.reshape((side_length, side_length))
         side_length = int(np.sqrt(len(max_probs)))
         max_probs = max_probs.reshape((side_length, side_length))
+        extent = (self.cfg.xmin, self.cfg.xmax, self.cfg.ymin, self.cfg.ymax)
 
         # Plot probability of observaion
         self.p_obs_ax.set_title("P(obs)")
-        self.p_obs_ax.imshow(1 - max_probs, extent=(-2, 2, -2, 2),
+        self.p_obs_ax.imshow(1 - max_probs, extent=extent,
                    origin="lower", vmax=1, vmin=0)
 
         # Plot acquisition function
         self.acq_ax.set_title(f'Acq. fn')
         sec_low = np.sort(np.unique(avg_dists))[1]
-        self.acq_ax.imshow(avg_dists, extent=(-2, 2, -2, 2),
+        self.acq_ax.imshow(avg_dists, extent=extent,
                    origin="lower", vmin=sec_low)  # Phase diagram
 
         # Plot current phase diagram and next sample point
         X_obs, phase_obs = self.obs_holder.get_obs()
         xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
         self.pd_ax.set_title(f"PD and points")
-        self.pd_ax.imshow(pd_old, extent=(-2, 2, -2, 2), origin="lower")  # Phase diagram
+        self.pd_ax.imshow(pd_old, extent=extent, origin="lower")  # Phase diagram
         self.pd_ax.scatter(xs_train, ys_train, marker="x", s=30, c=phase_obs, cmap='bwr')  # Existing observations
         self.pd_ax.scatter(new_point[0], new_point[1], s=80, c='tab:orange')  # New observations
         # plt.colorbar()
@@ -224,7 +230,6 @@ class InputWindow(QDialog):
         # First Input Box
         self.label1 = QLabel("Phases:", self)
         self.input_phase = QLineEdit(self)
-        self.input_phase.setText("Hi")
 
         # Second Input Box
         self.label2 = QLabel("X coordinates:", self)

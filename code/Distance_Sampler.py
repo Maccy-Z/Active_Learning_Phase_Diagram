@@ -38,8 +38,7 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
     "Trains a model for each phase."
     X, Y = obs_holder.get_obs()
 
-    k_var, k_r = cfg.kern_var, cfg.kern_r
-    var, r = obs_holder.get_kern_param(k_var, k_r)
+    var, r = obs_holder.get_kern_param()
 
     print(f'{var = :.2g}, {r = :.2g}')
 
@@ -233,10 +232,11 @@ def suggest_point(obs_holder, cfg):
     return new_point, (pd_old, avg_dists, max_probs)
 
 def main(save_dir):
-    cfg = Config()
-    obs_holder = ObsHolder(Config())
+
     print(save_dir)
     save_path = new_save_folder(save_dir)
+    cfg = Config()
+    obs_holder = ObsHolder(cfg, save_path)
     print()
     print(save_path)
     print()
@@ -294,9 +294,8 @@ def main(save_dir):
         plt.savefig(f'{save_path}/{i}.png', bbox_inches="tight")
         plt.show()
 
-        obs_holder.save(save_path)
-
-    obs_holder.plot_mean()
+        obs_holder.save()
+        #save(obs_holder)
 
 
 if __name__ == "__main__":

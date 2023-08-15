@@ -16,5 +16,7 @@ RUN apt install libxcb-cursor0 -y
 RUN apt install -y python3-pyqt6
 RUN pip install pyqt6
 
+RUN pip install dill
+
 # docker run -it --net=host --entrypoint /bin/bash -v /mnt/storage_ssd/PDSp:/opt/project -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix phase_sample:py311
 

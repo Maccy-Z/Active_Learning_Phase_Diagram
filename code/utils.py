@@ -3,17 +3,17 @@ from matplotlib import pyplot as plt
 import numpy as np
 import scipy
 import os
-import pickle
+import pickle, dill
 import shutil
-import math
-import GPy
+import importlib.util
 
 from config import Config
 
 
 class ObsHolder:
-    def __init__(self, cfg: Config):
+    def __init__(self, cfg: Config, save_path):
         self.cfg = cfg
+        self.save_path = save_path
         self.obs_pos = []
         self.obs_phase = []
 
@@ -29,7 +29,7 @@ class ObsHolder:
 
         return np.array(self.obs_pos), np.array(self.obs_phase)
 
-    # Test function, representing making a observation
+    # Test function, representing making an observation
     def tri_pd(self, X):
         x, y = X[0], X[1]
 
@@ -49,43 +49,70 @@ class ObsHolder:
         else:
             return 2
 
-    # Nearest-neighbour plot
-    def plot_mean(self, show_obs=True):
-        Xs = np.array(self.obs_pos)
-        obs = np.array(self.obs_phase)
-
-        if show_obs:
-            plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
-
-        # Interpolate points onto a grid
-        xi = np.linspace(-2, 2, 100)  # x-coordinate of regular grid
-        yi = np.linspace(-2, 2, 100)  # y-coordinate of regular grid
-        xi, yi = np.meshgrid(xi, yi)  # Create grid mesh
-
-        zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
-
-        plt.imshow(zi, origin="lower", extent=(-2, 2, -2, 2))
-        # print(Xs[:, 0], Xs[:,1])
-        # plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
-
-        plt.xlim(self.cfg.xmin, self.cfg.xmax)
-        plt.ylim(self.cfg.ymin, self.cfg.ymax)
-        plt.show()
-
-    def save(self, save_file):
-        with open(f'{save_file}/obs_holder', "wb") as f:
-            pickle.dump(self, f)
-
-    def get_kern_param(self, k_var, k_r, t=None):
+    def get_kern_param(self, t=None):
         if t is None:
             step = len(self.obs_phase)
         else:
             step = t
 
-        var = k_var + ((step - 16) * .75 / 50)
-        r = k_r #  / (np.sqrt(step + 16)) + 0.25
+        kern_v, kern_r = self.cfg.kern_var, self.cfg.kern_r
+
+        var = kern_v + ((step - 16) * .75 / 50)
+        r = kern_r #  / (np.sqrt(step + 16)) + 0.25
 
         return var, r
+
+    @staticmethod
+    def load(save_path):
+        # Load exactly from a save location, including functions
+        # First load class functions. Then add in save history.
+        spec = importlib.util.spec_from_file_location("module.name", f'{save_path}/utils.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        Cls = getattr(module, "ObsHolder")
+
+        with open(f'{save_path}/obs_holder.pkl', "rb") as f:
+            obs_holder = pickle.load(f)
+
+        cls = Cls(obs_holder.cfg, obs_holder.save_path)
+        cls.obs_pos = obs_holder.obs_pos
+        cls.obs_phase = obs_holder.obs_phase
+
+        return cls
+
+    def save(self):
+        with open(f'{self.save_path}/obs_holder.pkl', "wb") as f:
+            pickle.dump(self, f)
+
+# def load(save_path, class_name):
+#     spec = importlib.util.spec_from_file_location("module.name", save_path)
+#     module = importlib.util.module_from_spec(spec)
+#     spec.loader.exec_module(module)
+#
+#     return getattr(module, class_name)
+
+# Nearest-neighbour plot
+def plot_mean(obs_holder, show_obs=True):
+    Xs = np.array(obs_holder.obs_pos)
+    obs = np.array(obs_holder.obs_phase)
+
+    if show_obs:
+        plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
+
+    # Interpolate points onto a grid
+    xi = np.linspace(-2, 2, 100)  # x-coordinate of regular grid
+    yi = np.linspace(-2, 2, 100)  # y-coordinate of regular grid
+    xi, yi = np.meshgrid(xi, yi)  # Create grid mesh
+
+    zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
+
+    plt.imshow(zi, origin="lower", extent=(-2, 2, -2, 2))
+    # print(Xs[:, 0], Xs[:,1])
+    # plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
+
+    plt.xlim(obs_holder.cfg.xmin, obs_holder.cfg.xmax)
+    plt.ylim(obs_holder.cfg.ymin, obs_holder.cfg.ymax)
+    plt.show()
 
 
 # Make nxn grid
@@ -148,5 +175,11 @@ def new_save_folder(save_dir):
     return new_folder_path
 
 
-if __name__ == "__main__":
-    pass
+# H = ObsHolder(Config(), "./")
+#
+# with open(f'./obs_holder_data.dill', "wb") as f:
+#     dill.dump(H, f)
+
+# if __name__ == "__main__":
+#     H = load("./utils.py", "ObsHolder")
+#     print(H)
