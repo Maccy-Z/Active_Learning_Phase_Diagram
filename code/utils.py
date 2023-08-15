@@ -84,13 +84,6 @@ class ObsHolder:
         with open(f'{self.save_path}/obs_holder.pkl', "wb") as f:
             pickle.dump(self, f)
 
-# def load(save_path, class_name):
-#     spec = importlib.util.spec_from_file_location("module.name", save_path)
-#     module = importlib.util.module_from_spec(spec)
-#     spec.loader.exec_module(module)
-#
-#     return getattr(module, class_name)
-
 # Nearest-neighbour plot
 def plot_mean(obs_holder, show_obs=True):
     Xs = np.array(obs_holder.obs_pos)
@@ -106,7 +99,7 @@ def plot_mean(obs_holder, show_obs=True):
 
     zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
 
-    plt.imshow(zi, origin="lower", extent=(-2, 2, -2, 2))
+    plt.imshow(zi, origin="lower", extent=obs_holder.cfg.extent)
     # print(Xs[:, 0], Xs[:,1])
     # plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
 
@@ -116,8 +109,9 @@ def plot_mean(obs_holder, show_obs=True):
 
 
 # Make nxn grid
-def make_grid(n, xmin=-2, xmax=2, ymin=-2, ymax=2) -> (np.ndarray, np.ndarray, np.ndarray):
-    "very commonly used test to make a n x n grid or points"
+def make_grid(n, extent) -> (np.ndarray, np.ndarray, np.ndarray):
+    "Make a n x n grid or points"
+    xmin, xmax, ymin, ymax = extent
     X1 = np.linspace(xmin, xmax, n)
     X2 = np.linspace(ymin, ymax, n)
     x1, x2 = np.meshgrid(X1, X2)

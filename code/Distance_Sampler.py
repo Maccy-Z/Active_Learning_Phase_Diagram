@@ -167,8 +167,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
 
 def acquisition(models, new_Xs, cfg):
     # Grid over which to compute distances
-    X_dist, X1_dist, X2_dist = make_grid(cfg.N_dist)
-
+    X_dist, X1_dist, X2_dist = make_grid(cfg.N_dist, cfg.extent)
     # P_n
     pd_old = gen_pd(models, X_dist, sample=cfg.sample_old, cfg=cfg)
 
@@ -213,7 +212,7 @@ def acquisition(models, new_Xs, cfg):
             avg_dist = dist2(pd_old_repeat, pd_new_tile)
         avg_dists.append(avg_dist)
 
-    X_display, _, _ = make_grid(cfg.N_display, xmin=cfg.xmin, xmax=cfg.xmax)
+    X_display, _, _ = make_grid(cfg.N_display, cfg.extent)
     pd_old_mean = gen_pd(models, X_display, sample=None, cfg=cfg)[0]
     return pd_old_mean, np.array(avg_dists), np.array(max_probs)
 
@@ -223,7 +222,7 @@ def suggest_point(obs_holder, cfg):
     models = fit_gp(obs_holder, cfg=cfg)
 
     # Find max_x A(x)
-    new_Xs, _, _ = make_grid(cfg.N_eval, xmin=cfg.xmin, xmax=cfg.xmax)  # Points to test for aquisition
+    new_Xs, _, _ = make_grid(cfg.N_eval, cfg.extent)  # Points to test for aquisition
 
     pd_old, avg_dists, max_probs = acquisition(models, new_Xs, cfg)
     max_pos = np.argmax(avg_dists)
@@ -242,7 +241,7 @@ def main(save_dir):
     print()
 
     # Init observations to start off
-    X_init, _, _ = make_grid(cfg.N_init)
+    X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
     for xs in X_init:
         print(xs)
         obs_holder.make_obs(xs)

@@ -42,6 +42,9 @@ class Config:
 
         return var, r
 
+    def __post_init__(self):
+        self.extent = (self.xmin, self.xmax, self.ymin, self.ymax)
+
 if __name__ == "__main__":
     print(Config())
 
