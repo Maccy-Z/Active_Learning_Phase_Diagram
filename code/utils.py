@@ -169,11 +169,3 @@ def new_save_folder(save_dir):
     return new_folder_path
 
 
-# H = ObsHolder(Config(), "./")
-#
-# with open(f'./obs_holder_data.dill', "wb") as f:
-#     dill.dump(H, f)
-
-# if __name__ == "__main__":
-#     H = load("./utils.py", "ObsHolder")
-#     print(H)
