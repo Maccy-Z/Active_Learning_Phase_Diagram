@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import numpy as np
+
 
 @dataclass
 class Config:
@@ -12,7 +12,7 @@ class Config:
 
     N_init: int = 4
     N_dist: int = 25  # Points distance function is evaluated at
-    N_eval: int = 24  # Candidate points for new sample
+    N_eval: int = 19  # Candidate points for new sample
     N_display: int = 25 # Number of points to visualise
 
     sample_old: int = None  # Samples for P_{n}
