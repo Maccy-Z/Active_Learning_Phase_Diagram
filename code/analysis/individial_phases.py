@@ -11,10 +11,13 @@ import GPy
 import numpy as np
 import math
 from matplotlib import pyplot as plt
+import scipy.stats as stats
 
 from code.config import Config
 from code.utils import make_grid, ObsHolder
+
 cfg = Config()
+
 
 # Sample phase diagrams from models.
 def single_pds(models: list[GPy.core.GP], xs, sample=None):
@@ -26,8 +29,10 @@ def single_pds(models: list[GPy.core.GP], xs, sample=None):
     """
     y_preds, y_vars = [], []
     for phase_i, pd_model in enumerate(models):
-        y_pred, var = pd_model.predict(xs, include_likelihood=True)  # m.shape = [n**2, 1]
-
+        # Base
+        y_pred, var = pd_model.predict(xs, include_likelihood=False)
+        # liklyhooded
+        y_pred = pd_model.likelihood.predictive_mean(y_pred, var)
 
         y_preds.append(y_pred)
         y_vars.append(var)
@@ -47,17 +52,16 @@ def fit_gp(obs_holder, t) -> list[GPy.core.GP]:
     "Trains a model for each phase."
     X, Y = obs_holder.get_obs()
 
-    var, r = obs_holder.get_kern_param(cfg.kern_var, cfg.kern_r)
-    #var, r = 10, 2
+    var, r = obs_holder.get_kern_param()
+    # var, r = 10, 2
 
     print(f'{var = }, {r = }')
 
     models = []
     for i in range(3):
-        phase_i = ((Y == i) - 0.5) * 0.01  # Between -1 and 1
-
+        phase_i = (Y == i)   # Between -1 and 1
         kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
-        model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
+        model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
 
         models.append(model)
     return models
@@ -74,12 +78,11 @@ def plot_samples(obs_holder, points=25, t=None):
     Xs = np.array(obs_holder.obs_pos)
     obs = np.array(obs_holder.obs_phase)
 
-    plot_Xs, X1, X2 = make_grid(points)
+    plot_Xs, X1, X2 = make_grid(points, cfg.extent)
 
     models = fit_gp(obs_holder, t=t)
     pds, vars = single_pds(models, plot_Xs, sample=None)
-    pds = np.concatenate([pds, vars], axis=0)
-
+    pds = np.concatenate([pds, np.sqrt(vars)], axis=0)
 
     n_img = len(pds)
     num_rows = math.isqrt(n_img)
@@ -92,16 +95,19 @@ def plot_samples(obs_holder, points=25, t=None):
 
     for i, ax in enumerate(axes.flatten()):
         if i < n_img // 2:
-            #ax.scatter(x, y, c="black")
+            # ax.scatter(x, y, c="black")
 
             pd = pds[i]
-            c = ax.imshow(pd.reshape(points, points), extent=(-2, 2, -2, 2), origin="lower", vmin=-0.01, vmax=0.01)  # Phase diagram
+            print(pd)
+            ax.imshow(pd.reshape(points, points), extent=(-2, 2, -2, 2), origin="lower", vmin=0, vmax=1)  # Phase diagram
             ax.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
             ax.axis("off")
             ax.set_title(f'Phase {i}')
         elif i < n_img:
             pd = pds[i]
-            c = ax.imshow(pd.reshape(points, points), extent=(-2, 2, -2, 2), origin="lower", vmin=0, vmax=1)  # Phase diagram
+
+            print(pd)
+            ax.imshow(pd.reshape(points, points), extent=(-2, 2, -2, 2), origin="lower", vmin=0, vmax=1.5)  # Phase diagram
             ax.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
             ax.axis("off")
             ax.set_title(f'STD {i - n_img // 2}')
@@ -110,10 +116,10 @@ def plot_samples(obs_holder, points=25, t=None):
             print("Removing")
             ax.set_axis_off()
 
-    #plt.subplots_adjust(hspace=0.3)
+    # plt.subplots_adjust(hspace=0.3)
     plt.tight_layout()
 
-    #fig.colorbar(c)
+    # fig.colorbar(c)
 
     if t is not None:
         fig.suptitle(f"Samples of phase diagrams after {T} samples")
@@ -121,11 +127,12 @@ def plot_samples(obs_holder, points=25, t=None):
         fig.suptitle(f'Samples of phase diagrams')
     plt.show()
 
-if __name__ == "__main__":
-    save_name = "7"
-    with open(f'./saves/{save_name}/obs_holder', "rb") as f:
-        obs_h: ObsHolder = pickle.load(f)
 
+if __name__ == "__main__":
+    save_name = "21"
+    obs_h: ObsHolder = ObsHolder.load(f'./saves/{save_name}')
+    obs_h.cfg.kern_r = 0.7
+    obs_h.cfg.kern_var = 1
 
     for t in [50]:
         print()

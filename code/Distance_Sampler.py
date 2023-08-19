@@ -23,7 +23,7 @@ def gen_pd(models: list[GPy.core.GP], xs, cfg, sample=None):
     y_preds = []
     for phase_i, pd_model in enumerate(models):
         if sample is None:
-            y_pred, _ = pd_model.predict(xs)  # m.shape = [n**2, 1]
+            y_pred, _ = pd_model.predict(xs, include_likelihood=False)  # m.shape = [n**2, 1]
         else:
             y_pred = pd_model.posterior_samples_f(xs, size=sample, method=cfg.normal_sample).squeeze(axis=1)
         y_preds.append(y_pred)
@@ -44,10 +44,11 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
 
     models = []
     for i in range(N_phases):
-        phase_i = (Y == i) * 2 - 1  # Between -1 and 1
+        phase_i = (Y == i) #* 2 - 1  # Between 0 and 1
 
         kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
-        model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
+        # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
+        model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
         # model.optimize(max_iters=1)
 
         models.append(model)
@@ -95,7 +96,7 @@ def sample_new_y(models, x_new):
     """Probability of observing each phase at x_{n+1}. Everything is gaussian, so this is finding the max of gaussians."""
     mus, vars = [], []
     for model in models:
-        mu, var = model.predict(x_new.reshape(-1, 2))
+        mu, var = model.predict(x_new.reshape(-1, 2), include_likelihood=False)
         mus.append(mu.squeeze()), vars.append(var.squeeze())
 
     sigmas = np.sqrt(vars).tolist()
@@ -137,11 +138,12 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
             kern_var, kern_len = float(model.kern.variance), float(model.kern.lengthscale)
             X, Y = model.X, model.Y
 
-            y_new = 2 * int(phase_i == obs_phase) - 1
+            y_new = int(phase_i == obs_phase)
             X_new, Y_new = np.vstack([X, x_new, x_new]), np.vstack([Y, y_new, y_new])
 
             kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
-            model = GPy.models.GPRegression(X_new, Y_new, kernel, noise_var=cfg.noise_var)
+            # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
+            model = GPy.models.GPClassification(X_new, Y_new, kernel)
 
             if cfg.optim_step:
                 model.optimize()
@@ -243,7 +245,7 @@ def main(save_dir):
     # Init observations to start off
     X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
     for xs in X_init:
-        print(xs)
+        #print(xs)
         obs_holder.make_obs(xs)
 
     for i in range(cfg.steps):
