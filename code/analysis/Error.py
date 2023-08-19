@@ -43,7 +43,7 @@ def fit_gp(obs_holder, t, *, cfg) -> list[GPy.core.GP]:
     X, Y = obs_holder.get_obs()
 
     k_var, k_r = cfg.kern_var, cfg.kern_r
-    var, r = obs_holder.get_kern_param(k_var, k_r, t=t)
+    var, r = obs_holder.get_kern_param(t=t)
 
     models = []
     for i in range(3):
@@ -64,7 +64,7 @@ def plot_samples(obs_holder, *, cfg, points=25, t=None):
         obs_holder.obs_pos = obs_holder.obs_pos[:T]
         obs_holder.obs_phase = obs_holder.obs_phase[:T]
 
-    plot_Xs, X1, X2 = make_grid(points)
+    plot_Xs, X1, X2 = make_grid(points, cfg.extent)
 
     models = fit_gp(obs_holder, cfg=cfg, t=t)
     pds = single_pds(models, plot_Xs).reshape(points, points)
@@ -88,15 +88,13 @@ def main():
     save_name = f[-1]
     print(f'{save_name = }')
 
-    with open(f'./saves/{save_name}/obs_holder', "rb") as f:
-        og_obs: ObsHolder = pickle.load(f)
+    og_obs = ObsHolder.load(f'./saves/{save_name}')
 
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
         cfg = pickle.load(f)
 
-
     errors = []
-    for t in range(og_obs.step):
+    for t in range(len(og_obs.obs_phase) - 16):
         obs_holder = copy.deepcopy(og_obs)
         error = plot_samples(obs_holder, points=50, t=t, cfg=cfg)
         errors.append(error)

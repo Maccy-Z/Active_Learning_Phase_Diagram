@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 @dataclass
 class Config:
-    steps: int = 31
+    steps: int = 51
 
-    xmin: int = -3
-    xmax: int = 3
+    xmin: int = -2
+    xmax: int = 2
     ymin: int = -2
     ymax: int = 2
 
@@ -17,8 +17,8 @@ class Config:
 
     sample_old: int = None  # Samples for P_{n}
     sample_new: int = None  # Samples for P_{n+1}
-    skip_point: float = 0.90 # Min prob to entirely skip a point
-    skip_phase: float = 0.005 # Min prob to skip sampling a phase
+    skip_point: float = 0.7 # Min prob to entirely skip a point
+    skip_phase: float = 0.05 # Min prob to skip sampling a phase
     sample_dist: float = 3  # Size of region to sample P_{n+1} over.
 
     N_phases: int = 3
@@ -28,19 +28,8 @@ class Config:
     normal_sample: str = 'cholesky' # Modify generation of random normals for speed up
 
     noise_var: float = 5e-2 # Variance for observations2
-    kern_var: float = 0.25
-    kern_r: float = 0.9
-
-    def get_kern_param(self, k_var, k_r, t=None):
-        if t is None:
-            step = len(self.obs_phase)
-        else:
-            step = t
-
-        var = k_var + ((step - 16) * .75 / 50)
-        r = k_r #  / (np.sqrt(step + 16)) + 0.25
-
-        return var, r
+    kern_var: float = 4
+    kern_r: float = 0.8
 
     def __post_init__(self):
         self.extent = (self.xmin, self.xmax, self.ymin, self.ymax)

@@ -57,7 +57,7 @@ class ObsHolder:
 
         kern_v, kern_r = self.cfg.kern_var, self.cfg.kern_r
 
-        var = kern_v + ((step - 16) * .75 / 50)
+        var = kern_v # + ((step - 16) * .75 / 50)
         r = kern_r #  / (np.sqrt(step + 16)) + 0.25
 
         return var, r
