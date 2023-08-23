@@ -21,33 +21,13 @@ class ObsHolder:
         self.obs_pos.append(X)
         # Test or use real data
         if phase is None:
-            self.obs_phase.append(self.tri_pd(X))
+            self.obs_phase.append(tri_pd(X))
         else:
             self.obs_phase.append(phase)
 
     def get_obs(self) -> [np.ndarray, np.ndarray]:
-
         return np.array(self.obs_pos), np.array(self.obs_phase)
 
-    # Test function, representing making an observation
-    def tri_pd(self, X):
-        x, y = X[0], X[1]
-
-        theta = np.arctan2(x, y) + 0.4
-        theta = np.mod(theta, 2 * np.pi) - np.pi
-
-        r = np.sqrt(x ** 2 + y ** 2)
-        a = -np.pi
-        b = -np.pi / 3
-        c = np.pi / 3
-        d = np.pi
-
-        if theta < b or r < 1:
-            return 0
-        elif theta < c:
-            return 1
-        else:
-            return 2
 
     def get_kern_param(self, t=None):
         if t is None:
@@ -83,6 +63,27 @@ class ObsHolder:
     def save(self):
         with open(f'{self.save_path}/obs_holder.pkl', "wb") as f:
             pickle.dump(self, f)
+
+
+# Test function, representing making an observation
+def tri_pd(X):
+    x, y = X[0], X[1]
+
+    theta = np.arctan2(x, y) + 0.4
+    theta = np.mod(theta, 2 * np.pi) - np.pi
+
+    r = np.sqrt(x ** 2 + y ** 2)
+    a = -np.pi
+    b = -np.pi / 3
+    c = np.pi / 3
+    d = np.pi
+
+    if theta < b or r < 1:
+        return 0
+    elif theta < c:
+        return 1
+    else:
+        return 2
 
 # Nearest-neighbour plot
 def plot_mean(obs_holder, show_obs=True):
