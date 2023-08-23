@@ -14,99 +14,20 @@ from PyQt6.QtWidgets import QLineEdit, QLabel, QHBoxLayout
 from PyQt6.QtWidgets import QVBoxLayout
 from PyQt6.QtGui import QIntValidator, QDoubleValidator
 
-from Distance_Sampler import suggest_point
+from Distance_Sampler import DistanceSampler
 from utils import Config, ObsHolder, new_save_folder
-
-class GUIToSampler:
-    def __init__(self, init_phases, init_Xs, cfg):
-        save_dir = "./saves"
-        save_path = new_save_folder(save_dir)
-        print(f'{save_path = }')
-        print()
-
-        self.cfg = cfg
-        self.obs_holder = ObsHolder(self.cfg, save_path=save_path)
-
-        # Check if initial inputs are within allowed area
-        vectors = np.array(init_Xs)
-        xmin, xmax, ymin, ymax = self.cfg.extent
-        inside_x = np.logical_and(vectors[:, 0] >= xmin, vectors[:, 0] <= xmax)
-        inside_y = np.logical_and(vectors[:, 1] >= ymin, vectors[:, 1] <= ymax)
-        in_area = np.all(inside_x & inside_y)
-        if not in_area:
-            print("\033[31mWarning: Observations are outside search area\033[0m")
-
-        # Check phases are allowed
-
-        for phase, X in zip(init_phases, init_Xs, strict=True):
-            self.obs_holder.make_obs(X, phase=phase)
-
-
-    # Load in axes for plotting
-    def set_plots(self, axs):
-        self.p_obs_ax: Axes = axs[0]
-        self.acq_ax: Axes = axs[1]
-        self.pd_ax: Axes = axs[2]
-
-    def plot(self, new_point, pd_old, avg_dists, max_probs):
-        self.p_obs_ax.clear()
-        self.acq_ax.clear()
-        self.pd_ax.clear()
-
-        # Reshape 1d array to 2d
-        side_length = int(np.sqrt(len(pd_old)))
-        pd_old = pd_old.reshape((side_length, side_length))
-        side_length = int(np.sqrt(len(avg_dists)))
-        avg_dists = avg_dists.reshape((side_length, side_length))
-        side_length = int(np.sqrt(len(max_probs)))
-        max_probs = max_probs.reshape((side_length, side_length))
-
-        # Plot probability of observaion
-        self.p_obs_ax.set_title("P(obs)")
-        self.p_obs_ax.imshow(1 - max_probs, extent=cfg.extent,
-                   origin="lower", vmax=1, vmin=0)
-
-        # Plot acquisition function
-        self.acq_ax.set_title(f'Acq. fn')
-        sec_low = np.sort(np.unique(avg_dists))[1]
-        self.acq_ax.imshow(avg_dists, extent=cfg.extent,
-                   origin="lower", vmin=sec_low)  # Phase diagram
-
-        # Plot current phase diagram and next sample point
-        X_obs, phase_obs = self.obs_holder.get_obs()
-        xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
-        self.pd_ax.set_title(f"PD and points")
-        self.pd_ax.imshow(pd_old, extent=cfg.extent, origin="lower")  # Phase diagram
-        self.pd_ax.scatter(xs_train, ys_train, marker="x", s=30, c=phase_obs, cmap='bwr')  # Existing observations
-        self.pd_ax.scatter(new_point[0], new_point[1], s=80, c='tab:orange')  # New observations
-        # plt.colorbar()
-
-    def get_input(self, phase:int, X:np.ndarray):
-        self.obs_holder.make_obs(X, phase=phase)
-        self.obs_holder.save()
-
-        new_point, (pd_old, avg_dists, max_probs) = suggest_point(self.obs_holder, self.cfg)
-        self.plot(new_point, pd_old, avg_dists, max_probs)
-
-        return new_point
-
-    def init_plot(self):
-        new_point, (pd_old, avg_dists, max_probs) = suggest_point(self.obs_holder, self.cfg)
-        self.plot(new_point, pd_old, avg_dists, max_probs)
-
-        return new_point
 
 
 class MplCanvas(FigureCanvas):
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, parent=None, width=15, height=5, dpi=100):
         fig = plt.Figure(figsize=(width, height), dpi=dpi)
 
         # Create three subplots
         self.axes1 = fig.add_subplot(131)
         self.axes2 = fig.add_subplot(132)
         self.axes3 = fig.add_subplot(133)
-
+        fig.tight_layout()
 
         super(MplCanvas, self).__init__(fig)
         self.setParent(parent)
@@ -116,21 +37,19 @@ class MplCanvas(FigureCanvas):
                                    QSizePolicy.Policy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-
     def get_axes(self):
         return self.axes1, self.axes2, self.axes3
 
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, gui_to_sampler: GUIToSampler, *args, **kwargs):
+    def __init__(self, gui_to_sampler: DistanceSampler, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
         self.gui_to_sampler = gui_to_sampler
         self.canvas = MplCanvas(self, width=8, height=4, dpi=100)
         self.gui_to_sampler.set_plots(self.canvas.get_axes())
         self.toolbar = NavigationToolbar(self.canvas, self)
-
 
         # Create the informational label
         self.infoLabel = QLabel("Enter your new observation point and phase")
@@ -149,7 +68,6 @@ class MainWindow(QMainWindow):
         self.text_y = QLineEdit(self)
         self.text_y.setValidator(QDoubleValidator())
 
-
         # Layout for the text boxes and labels
         hbox1 = QHBoxLayout()
         hbox1.addWidget(self.label1)
@@ -162,7 +80,6 @@ class MainWindow(QMainWindow):
         hbox3 = QHBoxLayout()
         hbox3.addWidget(self.label3)
         hbox3.addWidget(self.text_y)
-
 
         # Add a button to update the plot
         self.button = QPushButton("Update Plot")
@@ -195,8 +112,8 @@ class MainWindow(QMainWindow):
         y = float(self.text_y.text().replace(',', '.'))
 
         # Draw updated plots
-
-        new_point = self.gui_to_sampler.get_input(phase, np.array([x, y]))
+        new_point, prob_at_point = self.gui_to_sampler.make_obs(phase, np.array([x, y]))
+        self.infoLabel.setText(f'Predicted probabilities: {prob_at_point}')
         self.canvas.draw()
 
         x, y = new_point
@@ -211,7 +128,7 @@ class MainWindow(QMainWindow):
         self.dynamicLabel.setText("Initialising ... ")
         self.dynamicLabel.repaint()
 
-        new_point = self.gui_to_sampler.init_plot()
+        new_point, prob_at_point = self.gui_to_sampler.first_obs()
         self.canvas.draw()
 
         x, y = new_point
@@ -323,6 +240,7 @@ def initial_obs(cfg):
 
     return initialDialog.phases, initialDialog.Xs
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
@@ -330,7 +248,7 @@ if __name__ == "__main__":
 
     phases, Xs = initial_obs(cfg)
 
-    passer = GUIToSampler(init_phases=phases, init_Xs=Xs, cfg=cfg)
+    passer = DistanceSampler(init_phases=phases, init_Xs=Xs, cfg=cfg)
     window = MainWindow(passer)
 
     app.exec()
