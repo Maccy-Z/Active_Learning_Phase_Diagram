@@ -37,7 +37,6 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
     X, Y = obs_holder.get_obs()
 
     var, r = obs_holder.get_kern_param()
-    print(f'{var = :.2g}, {r = :.2g}')
 
     models = []
     for i in range(cfg.N_phases):
@@ -46,7 +45,12 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
         kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
         # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
         model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
-        # model.optimize(max_iters=1)
+
+        if cfg.optim_step:
+            model.optimize(max_iters=2)
+            var, r = float(kernel.variance), float(kernel.lengthscale)
+            print(f'{var = :.2g}, {r = :.2g}')
+
         models.append(model)
 
     return models
@@ -140,8 +144,8 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
             # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
             model = GPy.models.GPClassification(X_new, Y_new, kernel)
 
-            if cfg.optim_step:
-                model.optimize()
+            # if cfg.optim_step:
+            #     model.optimize()
 
             new_models.append(model)
 
@@ -235,4 +239,3 @@ def suggest_two_points(obs_holder, cfg):
     sec_point, _, _ = suggest_point(obs_holder, cfg)
 
     return new_point, sec_point, plot_probs
-

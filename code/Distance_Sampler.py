@@ -82,7 +82,9 @@ class DistanceSampler:
 
         return new_point, prob_at_point
 
-    def first_obs(self):
+    def single_obs(self):
+        self.obs_holder.save()
+
         new_point, (pd_old, avg_dists, pd_probs), prob_at_point = suggest_point(self.obs_holder, self.cfg)
         self.plot(new_point, pd_old, avg_dists, pd_probs)
 
@@ -93,8 +95,6 @@ class DistanceSampler:
         self.plot(first_point, pd_old, avg_dists, pd_probs, sec_point=sec_point)
 
         return first_point, sec_point
-
-
 
 
 def main(save_dir):
@@ -116,14 +116,15 @@ def main(save_dir):
 
     distance_sampler.set_plots([axes1, axes2, axes3])
 
-    for _ in range(cfg.steps):
-        new_points = distance_sampler.dual_obs()
+    for i in range(cfg.steps):
+        print("Step:", i)
+        new_points, _ = distance_sampler.single_obs()
         fig.show()
 
+        new_points = np.array(new_points).reshape(-1, 2)
         for p in new_points:
             obs_phase = tri_pd(p)
             distance_sampler.obs_holder.make_obs(p, obs_phase)
-
 
 
 if __name__ == "__main__":
