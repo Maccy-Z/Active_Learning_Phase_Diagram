@@ -1,6 +1,5 @@
 import sys
 import os
-
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
@@ -15,7 +14,7 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-from code.utils import make_grid, ObsHolder
+from code.utils import make_grid, ObsHolder, tri_pd
 
 
 # Sample phase diagrams from models.
@@ -50,7 +49,8 @@ def fit_gp(obs_holder, t, *, cfg) -> list[GPy.core.GP]:
         phase_i = (Y == i) * 2 - 1  # Between -1 and 1
 
         kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
-        model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
+        model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
+        #model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
 
         models.append(model)
     return models
@@ -71,7 +71,7 @@ def plot_samples(obs_holder, *, cfg, points=25, t=None):
 
     true_pd = []
     for X in plot_Xs:
-        true_phase = obs_holder.tri_pd(X)
+        true_phase = tri_pd(X)
         true_pd.append(true_phase)
 
     true_pd = np.stack(true_pd).reshape(points, points)

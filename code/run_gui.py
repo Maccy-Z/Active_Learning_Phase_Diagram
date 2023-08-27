@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
         self.dynamicLabel.setText("Initialising ... ")
         self.dynamicLabel.repaint()
 
-        new_point, prob_at_point = self.gui_to_sampler.first_obs()
+        new_point, prob_at_point = self.gui_to_sampler.single_obs()
         self.canvas.draw()
 
         x, y = new_point
