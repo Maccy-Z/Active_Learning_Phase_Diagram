@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib import axes as Axes
 import numpy as np
 
-from utils import ObsHolder, make_grid, new_save_folder, tri_pd
+from utils import ObsHolder, make_grid, new_save_folder, tri_pd, bin_pd
 from config import Config
 
 
@@ -31,10 +31,11 @@ class DistanceSampler:
             self.obs_holder.make_obs(X, phase=phase)
 
     # Load in axes for plotting
-    def set_plots(self, axs):
+    def set_plots(self, axs, fig):
         self.p_obs_ax: Axes = axs[0]
         self.acq_ax: Axes = axs[1]
         self.pd_ax: Axes = axs[2]
+        self.fig: plt.Figure = fig
 
     def plot(self, first_point, pd_old, avg_dists, pd_probs, sec_point=None):
         self.p_obs_ax.clear()
@@ -57,9 +58,10 @@ class DistanceSampler:
 
         # Plot acquisition function
         self.acq_ax.set_title(f'Acq. fn')
-        sec_low = np.sort(np.unique(avg_dists))[1]
+        #sec_low = np.sort(np.unique(avg_dists))[1]
         self.acq_ax.imshow(avg_dists, extent=self.cfg.extent,
-                           origin="lower", vmin=sec_low)  # Phase diagram
+                           origin="lower")# , vmin=sec_low)  # Phase diagram
+        #self.acq_ax._colorbars()
 
         # Plot current phase diagram and next sample point
         X_obs, phase_obs = self.obs_holder.get_obs()
@@ -102,9 +104,12 @@ def main(save_dir):
     cfg = Config()
 
     # Init observations to start off
-    X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    phase_init = [None for _ in X_init]
-
+    # X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
+    X_init = [[0, 0]]
+    phase_init = [bin_pd(X) for X in X_init]
+    #
+    # X_init = np.concatenate((X_init, [[-1.78, 1.58]]))
+    # phase_init.append(0)
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)
 
     fig = plt.figure(figsize=(10, 3.3))
@@ -114,7 +119,7 @@ def main(save_dir):
     axes2 = fig.add_subplot(132)
     axes3 = fig.add_subplot(133)
 
-    distance_sampler.set_plots([axes1, axes2, axes3])
+    distance_sampler.set_plots([axes1, axes2, axes3], fig)
 
     for i in range(cfg.steps):
         print("Step:", i)
@@ -123,7 +128,7 @@ def main(save_dir):
 
         new_points = np.array(new_points).reshape(-1, 2)
         for p in new_points:
-            obs_phase = tri_pd(p)
+            obs_phase = bin_pd(p)
             distance_sampler.obs_holder.make_obs(p, obs_phase)
 
 

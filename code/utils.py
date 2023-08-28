@@ -17,7 +17,7 @@ class ObsHolder:
         self.obs_pos = []
         self.obs_phase = []
 
-    def make_obs(self, X, phase:int=None):
+    def make_obs(self, X, phase: int = None):
         self.obs_pos.append(X)
         # Test or use real data
         if phase is None:
@@ -28,7 +28,6 @@ class ObsHolder:
     def get_obs(self) -> [np.ndarray, np.ndarray]:
         return np.array(self.obs_pos), np.array(self.obs_phase)
 
-
     def get_kern_param(self, t=None):
         if t is None:
             step = len(self.obs_phase)
@@ -37,8 +36,8 @@ class ObsHolder:
 
         kern_v, kern_r = self.cfg.kern_var, self.cfg.kern_r
 
-        var = kern_v # + ((step - 16) * .75 / 50)
-        r = kern_r #  / (np.sqrt(step + 16)) + 0.25
+        var = kern_v  # + ((step - 16) * .75 / 50)
+        r = kern_r  # / (np.sqrt(step + 16)) + 0.25
 
         return var, r
 
@@ -84,6 +83,15 @@ def tri_pd(X):
         return 1
     else:
         return 2
+
+
+def bin_pd(X):
+    x, y = X[0], X[1]
+    if y > 1 * np.sin(0.5 * np.pi * x):
+        return 1
+    else:
+        return 0
+
 
 # Nearest-neighbour plot
 def plot_mean(obs_holder, show_obs=True):
@@ -164,9 +172,7 @@ def new_save_folder(save_dir):
     shutil.copy2("./config.py", new_folder_path)
     shutil.copy2("./utils.py", new_folder_path)
     cfg = Config()
-    with open (f'{new_folder_path}/cfg.pkl', "wb") as f:
+    with open(f'{new_folder_path}/cfg.pkl', "wb") as f:
         pickle.dump(cfg, f)
 
     return new_folder_path
-
-
