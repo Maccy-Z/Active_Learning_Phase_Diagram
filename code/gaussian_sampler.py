@@ -6,6 +6,7 @@ import scipy
 
 from utils import ObsHolder, make_grid
 from config import Config
+from matplotlib import pyplot as plt
 
 np.set_printoptions(precision=2)
 
@@ -47,7 +48,7 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
         model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
 
         if cfg.optim_step:
-            model.optimize(max_iters=2)
+            model.optimize()
             var, r = float(kernel.variance), float(kernel.lengthscale)
             print(f'{var = :.2g}, {r = :.2g}')
 
@@ -61,6 +62,7 @@ def dist2(pd1s: np.ndarray, pd2s: np.ndarray, weights=None):
 
     diffs = np.not_equal(pd1s, pd2s)
     mean_diffs = np.mean(diffs, axis=1)  # Mean over each phase diagram
+    pd_diffs = mean_diffs
 
     if weights is not None:
         mean_diffs *= weights
@@ -138,8 +140,8 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
             X, Y = model.X, model.Y
 
             y_new = int(phase_i == obs_phase)
-            X_new, Y_new = np.vstack([X, x_new, x_new]), np.vstack([Y, y_new, y_new])
-
+            X_new, Y_new = np.vstack([X, x_new]), np.vstack([Y, y_new])
+            #print(X_new, Y_new)
             kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
             # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
             model = GPy.models.GPClassification(X_new, Y_new, kernel)
@@ -148,6 +150,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
             #     model.optimize()
 
             new_models.append(model)
+
 
         # Sample new phase diagrams, weighted to probability model is observed.
         if cfg.sample_new is None:
@@ -210,6 +213,19 @@ def acquisition(models, new_Xs, cfg):
         else:
             avg_dist = dist2(pd_old_repeat, pd_new_tile)
         avg_dists.append(avg_dist)
+
+        # if (new_X[1] < 1.59) & (new_X[1] > 1.5):
+        #     if (new_X[0] < -1.7) & (new_X[0] > -1.8):
+        #         #print(mask.shape)
+        #         for i in range(3):
+        #             plt.subplot(1, 3, i+1)
+        #             plt.imshow(pd_new[i].reshape(25, 25), extent=cfg.extent, origin="lower" )
+        #             #plt.scatter(1, 23)
+        #
+        #         plt.show()
+        #
+        #         print(f'{new_X = }')
+        #         print(diffs, pd_probs, avg_dist)
 
     X_display, _, _ = make_grid(cfg.N_display, cfg.extent)
     pd_old_mean = gen_pd(models, X_display, sample=None, cfg=cfg)[0]
