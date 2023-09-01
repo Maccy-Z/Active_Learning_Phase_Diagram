@@ -50,6 +50,14 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
         if cfg.optim_step:
             model.optimize()
             var, r = float(kernel.variance), float(kernel.lengthscale)
+            if r > 10:
+                kernel.lengthscale = 10
+            if r < 0.1:
+                kernel.lengthscale = 0.1
+            if var < 1:
+                kernel.var = 1
+
+            var, r = float(kernel.variance), float(kernel.lengthscale)
             print(f'{var = :.2g}, {r = :.2g}')
 
         models.append(model)
@@ -245,6 +253,7 @@ def suggest_point(obs_holder, cfg):
     max_pos = np.argmax(avg_dists)
     new_point = new_Xs[max_pos]
     prob_at_point = pd_probs[max_pos]
+
     return new_point, (pd_old, avg_dists, pd_probs), prob_at_point
 
 

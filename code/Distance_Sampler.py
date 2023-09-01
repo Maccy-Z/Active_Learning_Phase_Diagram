@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib import axes as Axes
 import numpy as np
 
-from utils import ObsHolder, make_grid, new_save_folder, tri_pd, bin_pd
+from utils import ObsHolder, make_grid, new_save_folder, tri_pd, bin_pd, quad_pd
 from config import Config
 
 
@@ -72,7 +72,6 @@ class DistanceSampler:
         self.pd_ax.scatter(first_point[0], first_point[1], s=80, c='tab:orange')  # New observations
         if sec_point is not None:
             self.pd_ax.scatter(sec_point[0], sec_point[1], s=80, c='r')  # New observations
-
         # plt.colorbar()
 
     def make_obs(self, phase: int, X: np.ndarray):
@@ -100,16 +99,16 @@ class DistanceSampler:
 
 
 def main(save_dir):
+    pd_fn = bin_pd
+
     print(save_dir)
     cfg = Config()
 
     # Init observations to start off
-    # X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    X_init = [[0, 0]]
-    phase_init = [bin_pd(X) for X in X_init]
-    #
-    # X_init = np.concatenate((X_init, [[-1.78, 1.58]]))
-    # phase_init.append(0)
+    #X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
+    X_init = [[0, -1.2], [0, 1]]
+    phase_init = [pd_fn(X) for X in X_init]
+
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)
 
     fig = plt.figure(figsize=(10, 3.3))
@@ -123,12 +122,13 @@ def main(save_dir):
 
     for i in range(cfg.steps):
         print("Step:", i)
-        new_points, _ = distance_sampler.single_obs()
+        new_points, prob = distance_sampler.single_obs()
+        print(f'{new_points =}, {prob = }')
         fig.show()
 
         new_points = np.array(new_points).reshape(-1, 2)
         for p in new_points:
-            obs_phase = bin_pd(p)
+            obs_phase = pd_fn(p)
             distance_sampler.obs_holder.make_obs(p, obs_phase)
 
 

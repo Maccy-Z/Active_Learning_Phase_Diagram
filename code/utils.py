@@ -85,12 +85,35 @@ def tri_pd(X):
         return 2
 
 
-def bin_pd(X):
+def bin_pd(X, train=True):
     x, y = X[0], X[1]
+
+    if train:
+        x += (np.random.rand()-0.5) * 0.4
+        y += (np.random.rand()-0.5) * 0.4
+
     if y > 1 * np.sin(0.5 * np.pi * x):
         return 1
     else:
         return 0
+
+
+def quad_pd(X):
+    x, y = X[0], X[1]
+
+    # Critical
+    if x > 0.75 and y > 0.:
+        return 3
+
+    # Solid
+    if x <= -0.6 and y >= 0.5 / 1.4 * x - 9 / 7:
+        return 0
+
+    if -0.6 <= x <= 0.75 and y >= (10 / 27 * x ** 2 + 19 / 18 * x - 1):
+        return 1
+
+    # Gas
+    return 2
 
 
 # Nearest-neighbour plot
@@ -176,3 +199,16 @@ def new_save_folder(save_dir):
         pickle.dump(cfg, f)
 
     return new_folder_path
+
+
+if __name__ == "__main__":
+    Xs, _, _ = make_grid(19, (-2, 2, -2, 2))
+
+    p = [bin_pd(X) for X in Xs]
+    p = np.array(p).reshape(19, 19)
+
+    plt.imshow(p, origin="lower", extent=(-2, 2, -2, 2))
+    plt.yticks(np.linspace(-2, 2, 5))
+    plt.xticks(np.linspace(-2, 2, 5))
+    plt.tight_layout()
+    plt.show()

@@ -16,7 +16,7 @@ import copy
 
 from code.utils import make_grid, ObsHolder, tri_pd, bin_pd
 from code.config import Config
-
+from code.gaussian_sampler import fit_gp
 
 # Sample phase diagrams from models.
 def single_pds(models: list[GPy.core.GP], xs):
@@ -37,25 +37,25 @@ def single_pds(models: list[GPy.core.GP], xs):
     return _, _, sample_pds
 
 
-# Fit model to existing observations
-def fit_gp(obs_holder, t, *, cfg: Config) -> list[GPy.core.GP]:
-    "Trains a model for each phase."
-    X, Y = obs_holder.get_obs()
-
-    k_var, k_r = cfg.kern_var, cfg.kern_r
-    var, r = obs_holder.get_kern_param(t=t)
-
-    models = []
-    for i in range(cfg.N_phases):
-        phase_i = (Y == i) * 2 - 1  # Between -1 and 1
-
-        kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
-        model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
-        #model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
-        model.optimize()
-
-        models.append(model)
-    return models
+# # Fit model to existing observations
+# def fit_gp(obs_holder, t, *, cfg: Config) -> list[GPy.core.GP]:
+#     "Trains a model for each phase."
+#     X, Y = obs_holder.get_obs()
+#
+#     k_var, k_r = cfg.kern_var, cfg.kern_r
+#     var, r = obs_holder.get_kern_param(t=t)
+#
+#     models = []
+#     for i in range(cfg.N_phases):
+#         phase_i = (Y == i) * 2 - 1  # Between -1 and 1
+#
+#         kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
+#         model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
+#         #model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
+#         model.optimize()
+#
+#         models.append(model)
+#     return models
 
 # Sample phase diagrams from models.
 def gen_pd(models: list[GPy.core.GP], xs):
@@ -74,18 +74,18 @@ def gen_pd(models: list[GPy.core.GP], xs):
 def dist(obs_holder, *, cfg, points=25, t=None):
     # Observations up to time t
     if t is not None:
-        T = t + 1
+        T = t + 2
         obs_holder.obs_pos = obs_holder.obs_pos[:T]
         obs_holder.obs_phase = obs_holder.obs_phase[:T]
 
     plot_Xs, X1, X2 = make_grid(points, cfg.extent)
 
-    models = fit_gp(obs_holder, cfg=cfg, t=t)
+    models = fit_gp(obs_holder, cfg=cfg)
     pds = single_pds(models, plot_Xs)[2].reshape(points, points)
 
     true_pd = []
     for X in plot_Xs:
-        true_phase = bin_pd(X)
+        true_phase = bin_pd(X, train=False)
         true_pd.append(true_phase)
 
     true_pd = np.stack(true_pd).reshape(points, points)
@@ -117,13 +117,15 @@ def main():
     plt.show()
 
     print()
-    for s in [9, 19, 29, 39, 49]:
+    for s in [10, 20, 30, 40, 50]:
         print(f'{errors[s]}')
+
+    print(errors)
 
 
 if __name__ == "__main__":
-    if True:
-        from code.baseline import fit_gp
-        from code.baseline import gen_pd as single_pds
+    # if True:
+    #     from code.baseline import fit_gp
+    #     from code.baseline import gen_pd as single_pds
 
     main()
