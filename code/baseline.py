@@ -13,11 +13,14 @@ def fit_gp(obs_holder: ObsHolder, cfg=None, t=None) -> list[GPy.core.GP]:
 
     Y = Y * 2 - 1
     kernel = GPy.kern.Matern52(input_dim=2)
-    model = GPy.models.GPRegression(X, Y.reshape(-1, 1), kernel, noise_var=4)
+    model = GPy.models.GPRegression(X, Y.reshape(-1, 1), kernel, noise_var=2)
 
     model.optimize()
     var, r = float(kernel.variance), float(kernel.lengthscale)
-    print(f'{var = :.2g}, {r = :.2g}')
+
+    if r < 0.1:
+        kernel.lengthscale = 0.1
+    # print(f'{var = :.2g}, {r = :.2g}')
 
     return model
 
@@ -61,7 +64,7 @@ def suggest_point(obs_holder, cfg):
 
 
 def plot(new_point, plots, obs_holder, cfg):
-    print(f'{new_point = }')
+    # print(f'{new_point = }')
 
     fig, axs = plt.subplots(1, 3, figsize=(9, 3))
     axs[0].set_title("Acquisition")
@@ -84,29 +87,49 @@ def plot(new_point, plots, obs_holder, cfg):
     plt.show()
 
 
+def error(pred_pd):
+    plot_Xs, X1, X2 = make_grid(pred_pd.shape[0], Config().extent)
+    true_pd = []
+    for X in plot_Xs:
+        true_phase = bin_pd(X, train=False)
+        true_pd.append(true_phase)
+
+    true_pd = np.stack(true_pd).reshape(pred_pd.shape)
+
+    diff = np.not_equal(pred_pd, true_pd)
+    diff_mean = np.mean(diff)
+    return diff_mean
+
+
 def main():
     cfg = Config()
-    save_path = new_save_folder("./saves")
-    obs_holder = ObsHolder(cfg, save_path)
+    # save_path = new_save_folder("./saves")
+    obs_holder = ObsHolder(cfg, "./tmp")
 
-    #X_init, _, _ = make_grid(4, cfg.extent)
-    X_init = [[0, 0]]
+    # X_init, _, _ = make_grid(4, cfg.extent)
+    X_init = [[0, -1.2], [0, 1]]
     phase_init = np.array([bin_pd(X) for X in X_init])
 
     for X, Y in zip(X_init, phase_init):
         obs_holder.make_obs(X, phase=Y)
 
+    errors = []
     for i in range(51):
-        print("Step", i)
+        # print("Step", i)
         new_point, plots = suggest_point(obs_holder, cfg)
         obs_holder.make_obs(new_point, phase=bin_pd(new_point))
 
-        if i % 5 == 0:
-            plot(new_point, plots, obs_holder, cfg)
+        y_pred = plots[1] > 0
+        e = error(y_pred)
+        errors.append(e)
+        if i % 10 == 0:
+            #plot(new_point, plots, obs_holder, cfg)
+
+            print(e)
+
+    print(errors)
 
     obs_holder.save()
-
-
 
 
 if __name__ == "__main__":
