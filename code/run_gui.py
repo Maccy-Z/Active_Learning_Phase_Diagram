@@ -21,15 +21,15 @@ from utils import Config, ObsHolder, new_save_folder
 class MplCanvas(FigureCanvas):
 
     def __init__(self, parent=None, width=15, height=5, dpi=100):
-        fig = plt.Figure(figsize=(width, height), dpi=dpi)
+        self.fig = plt.Figure(figsize=(width, height), dpi=dpi)
 
         # Create three subplots
-        self.axes1 = fig.add_subplot(131)
-        self.axes2 = fig.add_subplot(132)
-        self.axes3 = fig.add_subplot(133)
-        fig.tight_layout()
+        self.axes1 = self.fig.add_subplot(131)
+        self.axes2 = self.fig.add_subplot(132)
+        self.axes3 = self.fig.add_subplot(133)
+        self.fig.tight_layout()
 
-        super(MplCanvas, self).__init__(fig)
+        super(MplCanvas, self).__init__(self.fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self,
@@ -38,7 +38,7 @@ class MplCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
 
     def get_axes(self):
-        return self.axes1, self.axes2, self.axes3
+        return self.axes1, self.axes2, self.axes3,
 
 
 class MainWindow(QMainWindow):
@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
 
         self.gui_to_sampler = gui_to_sampler
         self.canvas = MplCanvas(self, width=8, height=4, dpi=100)
-        self.gui_to_sampler.set_plots(self.canvas.get_axes())
+        self.gui_to_sampler.set_plots(self.canvas.get_axes(), self.canvas.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Create the informational label
