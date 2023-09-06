@@ -149,13 +149,10 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
 
             y_new = int(phase_i == obs_phase)
             X_new, Y_new = np.vstack([X, x_new]), np.vstack([Y, y_new])
-            #print(X_new, Y_new)
             kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
             # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
             model = GPy.models.GPClassification(X_new, Y_new, kernel)
 
-            # if cfg.optim_step:
-            #     model.optimize()
 
             new_models.append(model)
 
