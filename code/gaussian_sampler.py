@@ -1,10 +1,10 @@
-import edit_source_files
+#import edit_source_files
 import GPy
 import numpy as np
 import time
 import scipy
 
-from utils import ObsHolder, make_grid
+from utils import ObsHolder, make_grid, to_real_scale
 from config import Config
 from matplotlib import pyplot as plt
 
@@ -178,7 +178,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
 # Compute A(x) over all points
 def acquisition(models, new_Xs, cfg):
     # Grid over which to compute distances
-    X_dist, X1_dist, X2_dist = make_grid(cfg.N_dist, cfg.extent)
+    X_dist, X1_dist, X2_dist = make_grid(cfg.N_dist, [0, 1, 0, 1])
     # P_n
     pd_old = gen_pd(models, X_dist, sample=cfg.sample_old, cfg=cfg)
 
@@ -222,20 +222,7 @@ def acquisition(models, new_Xs, cfg):
             avg_dist = dist2(pd_old_repeat, pd_new_tile)
         avg_dists.append(avg_dist)
 
-        # if (new_X[1] < 1.59) & (new_X[1] > 1.5):
-        #     if (new_X[0] < -1.7) & (new_X[0] > -1.8):
-        #         #print(mask.shape)
-        #         for i in range(3):
-        #             plt.subplot(1, 3, i+1)
-        #             plt.imshow(pd_new[i].reshape(25, 25), extent=cfg.extent, origin="lower" )
-        #             #plt.scatter(1, 23)
-        #
-        #         plt.show()
-        #
-        #         print(f'{new_X = }')
-        #         print(diffs, pd_probs, avg_dist)
-
-    X_display, _, _ = make_grid(cfg.N_display, cfg.extent)
+    X_display, _, _ = make_grid(cfg.N_display, [0, 1, 0, 1])
     pd_old_mean = gen_pd(models, X_display, sample=None, cfg=cfg)[0]
 
     return pd_old_mean, np.array(avg_dists), np.stack(full_probs)
@@ -247,12 +234,15 @@ def suggest_point(obs_holder, cfg):
     models = fit_gp(obs_holder, cfg=cfg)
 
     # Find max_x A(x)
-    new_Xs, _, _ = make_grid(cfg.N_eval, cfg.extent)  # Points to test for aquisition
+    new_Xs, _, _ = make_grid(cfg.N_eval, [0, 1, 0, 1])  # Points to test for aquisition
 
     pd_old, avg_dists, pd_probs = acquisition(models, new_Xs, cfg)
     max_pos = np.argmax(avg_dists)
     new_point = new_Xs[max_pos]
     prob_at_point = pd_probs[max_pos]
+
+    # Rescale new point to real coordiantes
+    new_point = to_real_scale(new_point, cfg.extent)
 
     return new_point, (pd_old, avg_dists, pd_probs), prob_at_point
 
