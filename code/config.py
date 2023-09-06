@@ -6,8 +6,8 @@ class Config:
 
     xmin: int = -2
     xmax: int = 2
-    ymin: int = -2
-    ymax: int = 2
+    ymin: int = -1
+    ymax: int = 0.5
 
     N_init: int = 6
     N_dist: int = 19  # Points distance function is evaluated at
@@ -17,7 +17,7 @@ class Config:
     sample_old: int = None  # Samples for P_{n}
     sample_new: int = None  # Samples for P_{n+1}
     skip_point: float = 0.90  # Min prob to entirely skip a point
-    skip_phase: float = 0.02  # Min prob to skip sampling a phase
+    skip_phase: float = 0.01  # Min prob to skip sampling a phase
     sample_dist: float = 1  # Size of region to sample P_{n+1} over.
 
     N_phases: int = 3

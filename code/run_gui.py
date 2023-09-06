@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
 
         self.gui_to_sampler = gui_to_sampler
-        self.canvas = MplCanvas(self, width=8, height=4, dpi=100)
+        self.canvas = MplCanvas(self, width=12, height=5, dpi=100)
         self.gui_to_sampler.set_plots(self.canvas.get_axes(), self.canvas.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
 
