@@ -54,20 +54,20 @@ class DistanceSampler:
         # Plot probability of observaion
         self.p_obs_ax.set_title("P(obs)")
         self.p_obs_ax.imshow(1 - max_probs, extent=self.cfg.extent,
-                             origin="lower", vmax=1, vmin=0)
+                             origin="lower", vmax=1, vmin=0, aspect='auto')
 
         # Plot acquisition function
         self.acq_ax.set_title(f'Acq. fn')
         #sec_low = np.sort(np.unique(avg_dists))[1]
-        self.acq_ax.imshow(avg_dists, extent=self.cfg.extent,
-                           origin="lower")# , vmin=sec_low)  # Phase diagram
-        #self.acq_ax._colorbars()
+        im = self.acq_ax.imshow(avg_dists, extent=self.cfg.extent,
+                           origin="lower", aspect='auto')# , vmin=sec_low)  # Phase diagram
+        # self.fig.colorbar(im=im, ax=self.ac)
 
         # Plot current phase diagram and next sample point
         X_obs, phase_obs = self.obs_holder.get_obs()
         xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
         self.pd_ax.set_title(f"PD and points")
-        self.pd_ax.imshow(pd_old, extent=self.cfg.extent, origin="lower")  # Phase diagram
+        self.pd_ax.imshow(pd_old, extent=self.cfg.extent, origin="lower", aspect='auto')  # Phase diagram
         self.pd_ax.scatter(xs_train, ys_train, marker="x", s=30, c=phase_obs, cmap='bwr')  # Existing observations
         self.pd_ax.scatter(first_point[0], first_point[1], s=80, c='tab:orange')  # New observations
         if sec_point is not None:
@@ -99,14 +99,14 @@ class DistanceSampler:
 
 
 def main(save_dir):
-    pd_fn = bin_pd
+    pd_fn = tri_pd
 
     print(save_dir)
     cfg = Config()
 
     # Init observations to start off
     #X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    X_init = [[0, -1.2], [0, 1]]
+    X_init = [[0.1, 0.05], [0.2, 0.05]]
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)
