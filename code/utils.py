@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import scipy
 import os
-import pickle, dill
+import pickle
 import shutil
 import importlib.util
 
@@ -14,11 +14,11 @@ class ObsHolder:
     def __init__(self, cfg: Config, save_path):
         self.cfg = cfg
         self.save_path = save_path
-        self.obs_pos = []
+        self._obs_pos = []
         self.obs_phase = []
 
     def make_obs(self, X, phase: int = None):
-        self.obs_pos.append(X)
+        self._obs_pos.append(X)
         # Test or use real data
         if phase is None:
             self.obs_phase.append(tri_pd(X))
@@ -26,7 +26,19 @@ class ObsHolder:
             self.obs_phase.append(phase)
 
     def get_obs(self) -> [np.ndarray, np.ndarray]:
-        return np.array(self.obs_pos), np.array(self.obs_phase)
+        # Rescale observations to [0, 1] on inference
+        obs_pos = np.array(self._obs_pos)
+        xmin, xmax, ymin, ymax = self.cfg.extent
+        mins = np.array([xmin, ymin])
+        maxs = np.array([xmax, ymax])
+
+        X_range = maxs - mins
+
+        obs_pos = (obs_pos - mins) / X_range
+        return obs_pos, np.array(self.obs_phase)
+
+    def get_og_obs(self):
+        return np.array(self._obs_pos), np.array(self.obs_phase)
 
     def get_kern_param(self, t=None):
         if t is None:
@@ -54,7 +66,7 @@ class ObsHolder:
             obs_holder = pickle.load(f)
 
         cls = Cls(obs_holder.cfg, obs_holder.save_path)
-        cls.obs_pos = obs_holder.obs_pos
+        cls._obs_pos = obs_holder._obs_pos
         cls.obs_phase = obs_holder.obs_phase
 
         return cls
@@ -89,8 +101,8 @@ def bin_pd(X, train=True):
     x, y = X[0], X[1]
 
     if train:
-        x += (np.random.rand()-0.5) * 0.4
-        y += (np.random.rand()-0.5) * 0.4
+        x += (np.random.rand() - 0.5) * 0.4
+        y += (np.random.rand() - 0.5) * 0.4
 
     if y > 1 * np.sin(0.5 * np.pi * x):
         return 1
@@ -109,6 +121,7 @@ def quad_pd(X):
     if x <= -0.6 and y >= 0.5 / 1.4 * x - 9 / 7:
         return 0
 
+    # Liquid
     if -0.6 <= x <= 0.75 and y >= (10 / 27 * x ** 2 + 19 / 18 * x - 1):
         return 1
 
@@ -152,16 +165,15 @@ def make_grid(n, extent) -> (np.ndarray, np.ndarray, np.ndarray):
 
 
 # Rescale from physical coords to plot coords
-def plot_scale(points, N, xmin, xmax, ymin, ymax):
-    xs, ys = points[:, 0], points[:, 1]
-    xs = xs * (N / (xmax - xmin)) + (N / 2) - 0.5
-    ys = ys * (N / (ymax - ymin)) + (N / 2) - 0.5
-    return xs, ys
+def to_real_scale(X, extent):
+    xmin, xmax, ymin, ymax = extent
+    mins = np.array([xmin, ymin])
+    maxs = np.array([xmax, ymax])
 
+    X_range = maxs - mins
 
-def array_scale(X, N, min, max):
-    n = (N - 1) * (X - min) / (max - min)
-    return n
+    X = X * X_range + mins
+    return X
 
 
 def new_save_folder(save_dir):

@@ -1,8 +1,9 @@
-from gaussian_sampler import suggest_point, suggest_two_points
 from matplotlib import pyplot as plt
 from matplotlib import axes as Axes
+from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 
+from gaussian_sampler import suggest_point, suggest_two_points
 from utils import ObsHolder, make_grid, new_save_folder, tri_pd, bin_pd, quad_pd
 from config import Config
 
@@ -37,7 +38,28 @@ class DistanceSampler:
         self.pd_ax: Axes = axs[2]
         self.fig: plt.Figure = fig
 
+        self.cbs = []
+
+    def _clear_cb(self):
+        for cb in self.cbs:
+            cb.remove()
+        self.cbs = []
+
+    def _show_cb(self, im, ax):
+        # cbar_ax = self.fig.add_axes([0.92, 0.15, 0.02, 0.7])
+        #fig.colorbar(im, cax=cbar_ax)
+
+        vmin, vmax = im.get_clim()
+        ticks = np.linspace(vmin, vmax, 3)
+        fmt = FormatStrFormatter('%.1g')
+        cb = self.fig.colorbar(im, ax=ax, ticks=ticks, aspect=30)
+        cb.ax.yaxis.set_major_formatter(fmt)
+        cb.ax.tick_params(labelsize=8)
+
+        self.cbs.append(cb)
+
     def plot(self, first_point, pd_old, avg_dists, pd_probs, sec_point=None):
+        self._clear_cb()
         self.p_obs_ax.clear()
         self.acq_ax.clear()
         self.pd_ax.clear()
@@ -53,18 +75,19 @@ class DistanceSampler:
 
         # Plot probability of observaion
         self.p_obs_ax.set_title("P(obs)")
-        self.p_obs_ax.imshow(1 - max_probs, extent=self.cfg.extent,
+        im = self.p_obs_ax.imshow(1 - max_probs, extent=self.cfg.extent,
                              origin="lower", vmax=1, vmin=0, aspect='auto')
+        self._show_cb(im, self.p_obs_ax)
 
         # Plot acquisition function
         self.acq_ax.set_title(f'Acq. fn')
-        #sec_low = np.sort(np.unique(avg_dists))[1]
         im = self.acq_ax.imshow(avg_dists, extent=self.cfg.extent,
                            origin="lower", aspect='auto')# , vmin=sec_low)  # Phase diagram
-        # self.fig.colorbar(im=im, ax=self.ac)
+
+        self._show_cb(im, self.acq_ax)
 
         # Plot current phase diagram and next sample point
-        X_obs, phase_obs = self.obs_holder.get_obs()
+        X_obs, phase_obs = self.obs_holder.get_og_obs()
         xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
         self.pd_ax.set_title(f"PD and points")
         self.pd_ax.imshow(pd_old, extent=self.cfg.extent, origin="lower", aspect='auto')  # Phase diagram
@@ -73,6 +96,8 @@ class DistanceSampler:
         if sec_point is not None:
             self.pd_ax.scatter(sec_point[0], sec_point[1], s=80, c='r')  # New observations
         # plt.colorbar()
+
+
 
     def make_obs(self, phase: int, X: np.ndarray):
         self.obs_holder.make_obs(X, phase=phase)
@@ -105,13 +130,13 @@ def main(save_dir):
     cfg = Config()
 
     # Init observations to start off
-    #X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    X_init = [[0.1, 0.05], [0.2, 0.05]]
+    X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
+    #X_init = [[0.1, 0.05], [0.2, 0.05]]
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)
 
-    fig = plt.figure(figsize=(10, 3.3))
+    fig = plt.figure(figsize=(11, 3.3))
 
     # Create three subplots
     axes1 = fig.add_subplot(131)
@@ -121,6 +146,7 @@ def main(save_dir):
     distance_sampler.set_plots([axes1, axes2, axes3], fig)
 
     for i in range(cfg.steps):
+        print()
         print("Step:", i)
         new_points, prob = distance_sampler.single_obs()
         print(f'{new_points =}, {prob = }')

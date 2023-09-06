@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class Config:
     steps: int = 51
@@ -19,9 +18,9 @@ class Config:
     sample_new: int = None  # Samples for P_{n+1}
     skip_point: float = 0.90  # Min prob to entirely skip a point
     skip_phase: float = 0.02  # Min prob to skip sampling a phase
-    sample_dist: float = 4  # Size of region to sample P_{n+1} over.
+    sample_dist: float = 1  # Size of region to sample P_{n+1} over.
 
-    N_phases: int = 2
+    N_phases: int = 3
 
     optim_step: bool = True  # Optimise MLE when sampling x_{n+1}
 
@@ -29,7 +28,7 @@ class Config:
 
     # noise_var: float = 5e-2  # Variance for observations2
     kern_var: float = 10
-    kern_r: float = 2
+    kern_r: float = 0.5
 
     def __post_init__(self):
         self.extent = (self.xmin, self.xmax, self.ymin, self.ymax)
