@@ -182,14 +182,13 @@ def acquisition(models, new_Xs, cfg):
     # P_{n+1}
     avg_dists, full_probs = [], []
     for new_X in new_Xs:
-
         if cfg.sample_dist is not None:
             # Sample distance a region around selected point only
             X_min = new_X - cfg.sample_dist / 2
             X_max = X_min + cfg.sample_dist
 
-            X_min = np.maximum(X_min, cfg.xmin)
-            X_max = np.minimum(X_max, cfg.xmax)
+            X_min = np.maximum(X_min, [0, 0])
+            X_max = np.minimum(X_max, [1, 1])
 
             # Create a mask of wanted points
             mask = (X_dist[:, 0] >= X_min[0]) & (X_dist[:, 0] <= X_max[0]) & (X_dist[:, 1] >= X_min[1]) & (X_dist[:, 1] <= X_max[1])

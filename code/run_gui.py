@@ -103,6 +103,7 @@ class MainWindow(QMainWindow):
         self.show()
 
     def update_plot(self):
+        print()
         self.dynamicLabel.setText("Calculating ... ")
         self.dynamicLabel.setStyleSheet("color: red;")
         self.dynamicLabel.repaint()
@@ -181,9 +182,9 @@ class InputWindow(QDialog):
         self.okButton.clicked.connect(self.check_input)
 
     def check_input(self):
-        phases = self.input_phase.text()
         self.instruction_box.setStyleSheet("color: red;")
 
+        phases = self.input_phase.text()
         xs = self.input_x.text()
         ys = self.input_y.text()
 
