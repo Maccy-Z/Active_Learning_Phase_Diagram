@@ -236,7 +236,8 @@ def initial_obs(cfg):
     initialDialog = InputWindow(cfg)
     dialog_result = initialDialog.exec()
 
-    if dialog_result == QDialog.rejected:
+    if dialog_result == QDialog.DialogCode.Rejected:
+        print("\033[31mNothing entered, exiting\033[0m")
         sys.exit()
 
     return initialDialog.phases, initialDialog.Xs
@@ -252,5 +253,5 @@ if __name__ == "__main__":
     passer = DistanceSampler(init_phases=phases, init_Xs=Xs, cfg=cfg)
     window = MainWindow(passer)
 
-    app.exec()
+    #app.exec()
     sys.exit(app.exec())
