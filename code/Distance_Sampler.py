@@ -46,8 +46,6 @@ class DistanceSampler:
         self.cbs = []
 
     def _show_cb(self, im, ax):
-        # cbar_ax = self.fig.add_axes([0.92, 0.15, 0.02, 0.7])
-        #fig.colorbar(im, cax=cbar_ax)
 
         vmin, vmax = im.get_clim()
         ticks = np.linspace(vmin, vmax, 3)
@@ -76,13 +74,13 @@ class DistanceSampler:
         # Plot probability of observaion
         self.p_obs_ax.set_title("P(obs)")
         im = self.p_obs_ax.imshow(1 - max_probs, extent=self.cfg.extent,
-                             origin="lower", vmax=1, vmin=0, aspect='auto')
+                                  origin="lower", vmax=1, vmin=0, aspect='auto')
         self._show_cb(im, self.p_obs_ax)
 
         # Plot acquisition function
         self.acq_ax.set_title(f'Acq. fn')
         im = self.acq_ax.imshow(avg_dists, extent=self.cfg.extent,
-                           origin="lower", aspect='auto')# , vmin=sec_low)  # Phase diagram
+                                origin="lower", aspect='auto')  # , vmin=sec_low)  # Phase diagram
 
         self._show_cb(im, self.acq_ax)
 
@@ -96,8 +94,6 @@ class DistanceSampler:
         if sec_point is not None:
             self.pd_ax.scatter(sec_point[0], sec_point[1], s=80, c='r')  # New observations
         # plt.colorbar()
-
-
 
     def make_obs(self, phase: int, X: np.ndarray):
         self.obs_holder.make_obs(X, phase=phase)
@@ -131,7 +127,7 @@ def main(save_dir):
 
     # Init observations to start off
     X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    #X_init = [[0.1, 0.05], [0.2, 0.05]]
+    # X_init = [[0.1, 0.05], [0.2, 0.05]]
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)
