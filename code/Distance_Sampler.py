@@ -120,14 +120,14 @@ class DistanceSampler:
 
 
 def main(save_dir):
-    pd_fn = tri_pd
+    pd_fn = bin_pd
 
     print(save_dir)
     cfg = Config()
 
     # Init observations to start off
-    X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    # X_init = [[0.1, 0.05], [0.2, 0.05]]
+    # X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
+    X_init = [[0.0, 1.], [0, -1.25]]
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)

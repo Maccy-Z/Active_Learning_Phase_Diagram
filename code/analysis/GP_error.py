@@ -1,12 +1,13 @@
+# Evaluate error of GP model
 import sys
 import os
+
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
 cwd = os.getcwd()
 os.chdir(os.path.dirname(cwd))
 
-import code.edit_source_files
 import pickle
 import GPy
 import numpy as np
@@ -14,9 +15,10 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-from code.utils import make_grid, ObsHolder, tri_pd, bin_pd
+from code.utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
 from code.config import Config
 from code.gaussian_sampler import fit_gp
+
 
 # Sample phase diagrams from models.
 def single_pds(models: list[GPy.core.GP], xs):
@@ -37,55 +39,26 @@ def single_pds(models: list[GPy.core.GP], xs):
     return _, _, sample_pds
 
 
-# # Fit model to existing observations
-# def fit_gp(obs_holder, t, *, cfg: Config) -> list[GPy.core.GP]:
-#     "Trains a model for each phase."
-#     X, Y = obs_holder.get_obs()
-#
-#     k_var, k_r = cfg.kern_var, cfg.kern_r
-#     var, r = obs_holder.get_kern_param(t=t)
-#
-#     models = []
-#     for i in range(cfg.N_phases):
-#         phase_i = (Y == i) * 2 - 1  # Between -1 and 1
-#
-#         kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
-#         model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
-#         #model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
-#         model.optimize()
-#
-#         models.append(model)
-#     return models
-
-# Sample phase diagrams from models.
-def gen_pd(models: list[GPy.core.GP], xs):
-    """
-    @param models: List of models for each phase
-    @param xs: Points to sample from
-    @param sample: Use mean or sample from GP.
-    @return: List of possible phase diagrams.
-    """
-    y_mean, y_var = models.predict(xs)  # m.shape = [n**2, 1]
-
-    return y_mean > 0
-
-
 # Distance between true PD and prediction
-def dist(obs_holder, *, cfg, points=25, t=None):
+def dist(obs_holder, *, pd_fn, cfg, points=25, t=None):
     # Observations up to time t
     if t is not None:
         T = t + 2
-        obs_holder.obs_pos = obs_holder.obs_pos[:T]
-        obs_holder.obs_phase = obs_holder.obs_phase[:T]
+        Xs, Ys = obs_holder.get_og_obs()
+
+        obs_holder._obs_pos = Xs[:T]
+        obs_holder.obs_phase = Ys[:T]
+
+        # print(Xs[:T])
 
     plot_Xs, X1, X2 = make_grid(points, cfg.extent)
-
+    model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
     models = fit_gp(obs_holder, cfg=cfg)
-    pds = single_pds(models, plot_Xs)[2].reshape(points, points)
+    pds = single_pds(models, model_Xs)[2].reshape(points, points)
 
     true_pd = []
     for X in plot_Xs:
-        true_phase = bin_pd(X, train=False)
+        true_phase = pd_fn(X, train=False)
         true_pd.append(true_phase)
 
     true_pd = np.stack(true_pd).reshape(points, points)
@@ -97,6 +70,7 @@ def dist(obs_holder, *, cfg, points=25, t=None):
 
 
 def main():
+    pd_fn = bin_pd
     f = sorted([int(s) for s in os.listdir("./saves")])
 
     save_name = f[-1]
@@ -110,7 +84,7 @@ def main():
     errors = []
     for t in range(len(og_obs.obs_phase) - 1):
         obs_holder = copy.deepcopy(og_obs)
-        error = dist(obs_holder, points=50, t=t, cfg=cfg)
+        error = dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg)
         errors.append(error)
 
     plt.plot(errors)
@@ -120,12 +94,9 @@ def main():
     for s in [10, 20, 30, 40, 50]:
         print(f'{errors[s]}')
 
+    print()
     print(errors)
 
 
 if __name__ == "__main__":
-    # if True:
-    #     from code.baseline import fit_gp
-    #     from code.baseline import gen_pd as single_pds
-
     main()
