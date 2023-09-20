@@ -70,7 +70,6 @@ def dist2(pd1s: np.ndarray, pd2s: np.ndarray, weights=None):
 
     diffs = np.not_equal(pd1s, pd2s)
     mean_diffs = np.mean(diffs, axis=1)  # Mean over each phase diagram
-    pd_diffs = mean_diffs
 
     if weights is not None:
         mean_diffs *= weights

@@ -110,7 +110,7 @@ def bin_pd(X, train=True):
         return 0
 
 
-def quad_pd(X):
+def quad_pd(X, train=True):
     x, y = X[0], X[1]
 
     # Critical
