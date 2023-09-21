@@ -1,10 +1,10 @@
 from matplotlib import pyplot as plt
 from matplotlib import axes as Axes
-from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 import numpy as np
 
 from gaussian_sampler import suggest_point, suggest_two_points
-from utils import ObsHolder, make_grid, new_save_folder, tri_pd, bin_pd, quad_pd
+from utils import ObsHolder, new_save_folder, tri_pd, bin_pd, quad_pd, CustomScalarFormatter
 from config import Config
 
 
@@ -33,9 +33,9 @@ class DistanceSampler:
 
     # Load in axes for plotting
     def set_plots(self, axs, fig):
-        self.p_obs_ax: Axes = axs[0]
+        self.p_obs_ax: Axes = axs[2]
         self.acq_ax: Axes = axs[1]
-        self.pd_ax: Axes = axs[2]
+        self.pd_ax: Axes = axs[0]
         self.fig: plt.Figure = fig
 
         self.cbs = []
@@ -49,11 +49,14 @@ class DistanceSampler:
 
         vmin, vmax = im.get_clim()
         ticks = np.linspace(vmin, vmax, 3)
-        fmt = FormatStrFormatter('%.1g')
+
+        fmt = CustomScalarFormatter(useMathText=True)#FormatStrFormatter('%.1g')
+        fmt.set_scientific(True)
+        fmt.set_powerlimits((-1, 1))
+
         cb = self.fig.colorbar(im, ax=ax, ticks=ticks, aspect=30)
         cb.ax.yaxis.set_major_formatter(fmt)
-        cb.ax.tick_params(labelsize=8)
-
+        cb.ax.tick_params(labelsize=10)
         self.cbs.append(cb)
 
     def plot(self, first_point, pd_old, avg_dists, pd_probs, sec_point=None):
@@ -72,13 +75,13 @@ class DistanceSampler:
         max_probs = max_probs.reshape((side_length, side_length))
 
         # Plot probability of observaion
-        self.p_obs_ax.set_title("P(obs)")
+        self.p_obs_ax.set_title("Error prob (%)")
         im = self.p_obs_ax.imshow(1 - max_probs, extent=self.cfg.extent,
                                   origin="lower", vmax=1, vmin=0, aspect='auto')
         self._show_cb(im, self.p_obs_ax)
 
         # Plot acquisition function
-        self.acq_ax.set_title(f'Acq. fn')
+        self.acq_ax.set_title(f'Acquisition fn')
         im = self.acq_ax.imshow(avg_dists, extent=self.cfg.extent,
                                 origin="lower", aspect='auto')  # , vmin=sec_low)  # Phase diagram
 
@@ -120,7 +123,7 @@ class DistanceSampler:
 
 
 def main(save_dir):
-    pd_fn = bin_pd
+    pd_fn = quad_pd
 
     print(save_dir)
     cfg = Config()

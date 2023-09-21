@@ -6,6 +6,7 @@ import os
 import pickle
 import shutil
 import importlib.util
+from matplotlib import ticker
 
 from config import Config
 
@@ -212,6 +213,11 @@ def new_save_folder(save_dir):
 
     return new_folder_path
 
+
+# Custom formatter for colorbar ticks
+class CustomScalarFormatter(ticker.ScalarFormatter):
+    def _set_format(self):  # Override function that finds format to use.
+        self.format = "%1.1f"  # Give format here
 
 if __name__ == "__main__":
     Xs, _, _ = make_grid(19, (-2, 2, -2, 2))
