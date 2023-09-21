@@ -3,7 +3,7 @@ from dataclasses import dataclass
 @dataclass
 class Config:
     # Params for baseline tests
-    steps: int = 51
+    steps: int = 101
     N_init: int = 6
 
     xmin: int = -2
@@ -21,7 +21,7 @@ class Config:
     skip_phase: float = 0.05  # Min prob to skip sampling a phase
     sample_dist: float = 1  # Size of region to sample P_{n+1} over.
 
-    N_phases: int = 2
+    N_phases: int = 4
 
     optim_step: bool = True  # Optimise MLE when sampling x_{n+1}
 

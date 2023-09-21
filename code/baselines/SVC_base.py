@@ -119,12 +119,12 @@ def error(pred_pd, pd_fn):
 
 
 def main():
-    pd_fn = quad_pd
+    pd_fn = bin_pd
 
     Xs = np.array([[0, -1.25], [0, 1]])
     #Xs, _, _ = make_grid(5, (-2, 2, -2, 2))
 
-    labels = [pd_fn(X) for X in Xs]
+    labels = [pd_fn(X, train=False) for X in Xs]
 
     errors = []
     for i in range(101):
