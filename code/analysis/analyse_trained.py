@@ -1,4 +1,4 @@
-# Analyse trained GP models.
+# Analyse trained GP models. Plot predictions at given time
 import sys
 import os
 
@@ -13,7 +13,7 @@ import numpy as np
 from code.Distance_Sampler import DistanceSampler
 from code.utils import ObsHolder
 
-T = 45
+T = 100
 obs_holder = ObsHolder.load("./saves/14")
 obs_holder._obs_pos = obs_holder._obs_pos[:T]
 obs_holder.obs_phase = obs_holder.obs_phase[:T]
