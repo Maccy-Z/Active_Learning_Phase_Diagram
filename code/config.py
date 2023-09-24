@@ -6,14 +6,14 @@ class Config:
     steps: int = 101
     N_init: int = 6
 
-    xmin: int = -2
-    xmax: int = 2
-    ymin: int = -2
-    ymax: int = 2
+    xmin: int = 0
+    xmax: int = 0.5
+    ymin: int = 0
+    ymax: int = 0.25
 
-    N_dist: int = 19  # Points distance function is evaluated at
-    N_eval: int = 19  # Candidate points for new sample
-    N_display: int = 38  # Number of points to visualise
+    N_dist: int = 21  # Points distance function is evaluated at
+    N_eval: int = 21  # Candidate points for new sample
+    N_display: int = 21  # Number of points to visualise
 
     sample_old: int = None  # Samples for P_{n}
     sample_new: int = None  # Samples for P_{n+1}
@@ -21,7 +21,7 @@ class Config:
     skip_phase: float = 0.05  # Min prob to skip sampling a phase
     sample_dist: float = 1  # Size of region to sample P_{n+1} over.
 
-    N_phases: int = 4
+    N_phases: int = 3
 
     optim_step: bool = True  # Optimise MLE when sampling x_{n+1}
 

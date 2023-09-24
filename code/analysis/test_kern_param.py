@@ -8,7 +8,7 @@ r = 2
 noise = 1e-3
 
 X = np.linspace(-2, 1, 10).reshape(-1, 1)
-X = np.array([-2, -1, 0, 1, 1.4, 1.3, 1.5, 4]).reshape(-1, 1)
+X = np.array([-2, -1, 0, 1,  1.3, 1.9, 4]).reshape(-1, 1)
 Y = 2 * (X > 1).astype(int) - 1
 
 kernel = GPy.kern.Matern52(input_dim=1, variance=var, lengthscale=r)
@@ -39,7 +39,8 @@ plt.plot(plot_X, mean1)
 plt.fill_between(plot_X, (mean1-std1), (mean1+std1), color='blue', alpha=0.2)
 #plt.plot(plot_X, mean2)
 #plt.fill_between(plot_X, (mean2-std2), (mean2+std2), color='orange', alpha=0.2)
-plt.scatter(X, Y)
+plt.scatter(X, Y, color="0")
+plt.ylim(-1.5, 1.5)
 #plt.scatter(X, Y2)
 
 # Probability that Y1 > Y2, and entropy to plot
