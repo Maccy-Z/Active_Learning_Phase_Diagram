@@ -22,7 +22,7 @@ def gen_pd(models: list[GPy.core.GP], xs, cfg, sample=None):
     y_preds = []
     for phase_i, pd_model in enumerate(models):
         if sample is None:
-            y_pred, _ = pd_model.predict(xs, include_likelihood=False)  # m.shape = [n**2, 1]
+            y_pred, _ = pd_model.predict(xs, include_likelihood=True)  # m.shape = [n**2, 1]
         else:
             y_pred = pd_model.posterior_samples_f(xs, size=sample, method=cfg.normal_sample).squeeze(axis=1)
         y_preds.append(y_pred)
@@ -55,7 +55,7 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
             if r < 0.1:
                 kernel.lengthscale = 0.1
             if var < 1:
-                kernel.var = 1
+                kernel.variance = 1
 
             var, r = float(kernel.variance), float(kernel.lengthscale)
             print(f'{var = :.2g}, {r = :.2g}')
