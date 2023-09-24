@@ -89,8 +89,11 @@ def suggest_point(Xs, labels):
 def plot(Xs, labels, min_point, contours, pred_pd):
 
     # Plot the results
-    plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=30, c=labels, cmap='bwr')#, c=labels, cmap='viridis')
-    plt.scatter(min_point[0], min_point[1], c='r')
+    plt.figure(figsize=(3, 3))
+    plt.title("4-phase diagram")
+
+    #plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=30, c=labels, cmap='bwr')#, c=labels, cmap='viridis')
+    #plt.scatter(min_point[0], min_point[1], c='r')
     plt.imshow(pred_pd, extent=(-2, 2, -2, 2), origin="lower")  # Phase diagram
     # for contor in contours:
     #     plt.plot(*zip(*contor), c='k', linestyle='dashed')
@@ -100,7 +103,8 @@ def plot(Xs, labels, min_point, contours, pred_pd):
     plt.ylim([-2, 2])
     plt.yticks(np.linspace(-2, 2, 5))
     plt.xticks(np.linspace(-2, 2, 5))
-    plt.tight_layout()
+    plt.subplots_adjust(left=0.1, right=0.99, top=0.925, bottom=0.1, wspace=0.4, hspace=0.4)
+    #plt.tight_layout()
     plt.show()
 
 
@@ -115,11 +119,14 @@ def error(pred_pd, pd_fn):
 
     diff = np.not_equal(pred_pd, true_pd)
     diff_mean = np.mean(diff)
+
+    plot(plot_Xs, true_pd, [], None, true_pd)
+    exit()
     return diff_mean
 
 
 def main():
-    pd_fn = bin_pd
+    pd_fn = quad_pd
 
     Xs = np.array([[0, -1.25], [0, 1]])
     #Xs, _, _ = make_grid(5, (-2, 2, -2, 2))
@@ -134,7 +141,7 @@ def main():
         pred_error = error(full_pd, pd_fn)
         errors.append(pred_error)
 
-        if i % 10 == 0:
+        if i % 20 == 0:
             plot(Xs, labels, new_point, contors, full_pd)
             print(pred_error)
 
@@ -142,8 +149,8 @@ def main():
         Xs = np.append(Xs, [new_point], axis=0)
         labels.append(pd_fn(new_point))
 
-    plt.imshow(full_pd, origin="lower")
-    plt.show()
+    # plt.imshow(full_pd, origin="lower")
+    # plt.show()
 
     print(errors)
     print(len(errors))

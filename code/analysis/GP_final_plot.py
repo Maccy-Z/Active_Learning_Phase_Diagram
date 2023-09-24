@@ -1,4 +1,4 @@
-# Evaluate error of GP model
+# Plot final model predictions
 import sys
 import os
 
@@ -53,24 +53,12 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax):
     models = fit_gp(obs_holder, cfg=cfg)
     pds = single_pds(models, model_Xs)[2].reshape(points, points)
 
-    true_pd = []
-    for X in plot_Xs:
-        true_phase = pd_fn(X, train=False)
-        true_pd.append(true_phase)
+    ax.set_title(f'Ours', fontsize=12)
+    ax.imshow(pds, origin="lower", extent=cfg.extent)
+    ax.scatter(Xs[:T, 0], Xs[:T, 1], marker="x", s=30, c=Ys[:T], cmap='bwr')  # Existing observations
 
-    true_pd = np.stack(true_pd).reshape(points, points)
-
-    diff = np.not_equal(pds, true_pd)
-    diff_mean = np.mean(diff)
-
-    if t % 10 == 0:
-        ax.set_title(f'{t = }')
-        ax.imshow(pds, origin="lower", extent=cfg.extent)
-        ax.scatter(Xs[:T, 0], Xs[:T, 1], marker="x", s=10, c=Ys[:T], cmap='bwr')  # Existing observations
-
-        ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
-        ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
-    return diff_mean
+    ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=12)
+    ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=12)
 
 
 def main():
@@ -85,33 +73,18 @@ def main():
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
         cfg = pickle.load(f)
 
-    fig, axs = plt.subplots(2, 5, figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(3, 3))
+    plt.subplots_adjust(left=0.1, right=0.99, top=0.925, bottom=0.1, wspace=0.4, hspace=0.4)
+
     errors = []
-    for i, t in enumerate(range(10, len(og_obs.obs_phase) - 1, 10)):
-        print(t)
-        # Plot number
-        row = i // 5  # Integer division to get the row index
-        col = i % 5  # Modulo to get the column index
-        # Select the current subplot to update
-        print(i, row, col)
-        ax = axs[row, col]
+    t = len(og_obs.obs_phase)
 
-        obs_holder = copy.deepcopy(og_obs)
-        error = dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg, ax=ax)
-        errors.append(error)
-    plt.subplots_adjust(left=0.04, right=0.99, top=0.95, bottom=0.05, wspace=0.4, hspace=0.4)
-    # plt.tight_layout()
-    plt.show()
+    obs_holder = copy.deepcopy(og_obs)
+    dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg, ax=ax)
 
-    # plt.plot(errors)
-    # plt.show()
-    #
-    # print()
-    # for s in [10, 20, 30, 40, 50]:
-    #     print(f'{errors[s]}')
+    #fig.tight_layout()
 
-    print()
-    print(errors)
+    fig.show()
 
 
 if __name__ == "__main__":
