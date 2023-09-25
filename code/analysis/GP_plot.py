@@ -1,4 +1,4 @@
-# Evaluate error of GP model
+# Evaluate error of GP model and plot predictions
 import sys
 import os
 
@@ -40,7 +40,7 @@ def single_pds(models: list[GPy.core.GP], xs):
 
 
 # Distance between true PD and prediction
-def dist(obs_holder, *, pd_fn, cfg, points, t):
+def dist(obs_holder, *, pd_fn, cfg, points, t, ax):
     # Observations up to time t
     T = t + 2
     Xs, Ys = obs_holder.get_og_obs()
@@ -63,6 +63,13 @@ def dist(obs_holder, *, pd_fn, cfg, points, t):
     diff = np.not_equal(pds, true_pd)
     diff_mean = np.mean(diff)
 
+    if t % 10 == 0:
+        ax.set_title(f'{t = }')
+        ax.imshow(pds, origin="lower", extent=cfg.extent)
+        ax.scatter(Xs[:T, 0], Xs[:T, 1], marker="x", s=10, c=Ys[:T], cmap='bwr')  # Existing observations
+
+        ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
+        ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
     return diff_mean
 
 
@@ -78,13 +85,26 @@ def main():
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
         cfg = pickle.load(f)
 
+    fig, axs = plt.subplots(2, 5, figsize=(10, 4))
     errors = []
-    for t in range(len(og_obs.obs_phase)):
+    for i, t in enumerate(range(10, len(og_obs.obs_phase) - 1, 10)):
+        print(t)
+        # Plot number
+        row = i // 5  # Integer division to get the row index
+        col = i % 5  # Modulo to get the column index
+        # Select the current subplot to update
+        print(i, row, col)
+        ax = axs[row, col]
+
         obs_holder = copy.deepcopy(og_obs)
-        error = dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg)
+        error = dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg, ax=ax)
         errors.append(error)
-    plt.plot(errors)
+    plt.subplots_adjust(left=0.04, right=0.99, top=0.95, bottom=0.05, wspace=0.4, hspace=0.4)
+    # plt.tight_layout()
     plt.show()
+
+    # plt.plot(errors)
+    # plt.show()
     #
     # print()
     # for s in [10, 20, 30, 40, 50]:

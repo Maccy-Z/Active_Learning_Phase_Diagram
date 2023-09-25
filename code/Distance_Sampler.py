@@ -1,6 +1,7 @@
+# Code to plot the results. Run directly for automatic evaluation
+
 from matplotlib import pyplot as plt
 from matplotlib import axes as Axes
-from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 import numpy as np
 
 from gaussian_sampler import suggest_point, suggest_two_points
@@ -123,7 +124,7 @@ class DistanceSampler:
 
 
 def main(save_dir):
-    pd_fn = quad_pd
+    pd_fn = bin_pd
 
     print(save_dir)
     cfg = Config()
@@ -144,7 +145,7 @@ def main(save_dir):
 
     distance_sampler.set_plots([axes1, axes2, axes3], fig)
 
-    for i in range(cfg.steps):
+    for i in range(51):
         print()
         print("Step:", i)
         new_points, prob = distance_sampler.single_obs()
