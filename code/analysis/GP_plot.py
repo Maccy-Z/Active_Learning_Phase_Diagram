@@ -67,6 +67,7 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax):
         ax.imshow(pds, origin="lower", extent=cfg.extent)
         ax.scatter(Xs[:T, 0], Xs[:T, 1], marker="x", s=10, c=Ys[:T], cmap='bwr')  # Existing observations
 
+        # Here set the ticks and labels
         ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
         ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
     return diff_mean
