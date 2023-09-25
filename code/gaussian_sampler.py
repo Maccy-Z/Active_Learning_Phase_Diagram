@@ -50,8 +50,8 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
         if cfg.optim_step:
             model.optimize()
             var, r = float(kernel.variance), float(kernel.lengthscale)
-            if r > 10:
-                kernel.lengthscale = 10
+            if r > 1:
+                kernel.lengthscale = 1
             if r < 0.1:
                 kernel.lengthscale = 0.1
             if var < 1:
