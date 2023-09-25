@@ -1,7 +1,6 @@
 # Evaluate error of GP model and plot predictions
 import sys
 import os
-
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
@@ -77,6 +76,7 @@ def main():
     pd_fn = bin_pd
     f = sorted([int(s) for s in os.listdir("./saves")])
 
+    # Select which save file to load
     save_name = f[-1]
     print(f'{save_name = }')
 
@@ -103,12 +103,7 @@ def main():
     # plt.tight_layout()
     plt.show()
 
-    # plt.plot(errors)
-    # plt.show()
-    #
-    # print()
-    # for s in [10, 20, 30, 40, 50]:
-    #     print(f'{errors[s]}')
+
 
     print()
     print(errors)
