@@ -14,9 +14,9 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-from code.utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
-from code.config import Config
-from code.gaussian_sampler import fit_gp
+from utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
+from config import Config
+from gaussian_sampler import fit_gp
 
 
 # Sample phase diagrams from models.
@@ -29,8 +29,7 @@ def single_pds(models: list[GPy.core.GP], xs):
     """
     y_preds = []
     for phase_i, pd_model in enumerate(models):
-        y_pred, _ = pd_model.predict(xs, include_likelihood=True)  # m.shape = [n**2, 1]
-
+        y_pred, _ = pd_model.predict(xs, include_likelihood=False)  # m.shape = [n**2, 1]
         y_preds.append(y_pred)
 
     y_preds = np.stack(y_preds)
