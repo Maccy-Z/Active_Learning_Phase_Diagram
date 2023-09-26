@@ -63,12 +63,13 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax):
 
     if t % 10 == 0:
         ax.set_title(f'{t = }')
-        ax.imshow(pds, origin="lower", extent=cfg.extent)
+        ax.imshow(pds, origin="lower", extent=cfg.extent, aspect='auto')
         ax.scatter(Xs[:T, 0], Xs[:T, 1], marker="x", s=10, c=Ys[:T], cmap='bwr')  # Existing observations
 
         # Here set the ticks and labels
-        ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
-        ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
+        xmin, xmax, ymin, ymax = cfg.extent
+        ax.set_xticks(np.linspace(xmin, xmax, 3), labels=np.linspace(xmin, xmax, 3), fontsize=12)
+        ax.set_yticks(np.linspace(ymin, ymax, 3), labels=np.linspace(ymin, ymax, 3), fontsize=11)
     return diff_mean
 
 
@@ -85,7 +86,7 @@ def main():
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
         cfg = pickle.load(f)
 
-    fig, axs = plt.subplots(2, 5, figsize=(10, 4))
+    fig, axs = plt.subplots(3, 5, figsize=(10, 5))
     errors = []
     for i, t in enumerate(range(10, len(og_obs.obs_phase) - 1, 10)):
         print(t)

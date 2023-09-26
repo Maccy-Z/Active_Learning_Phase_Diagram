@@ -15,9 +15,9 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-from code.utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
-from code.config import Config
-from code.gaussian_sampler import fit_gp
+from utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
+from config import Config
+from gaussian_sampler import fit_gp
 
 
 # Sample phase diagrams from models.
@@ -53,12 +53,14 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax):
     models = fit_gp(obs_holder, cfg=cfg)
     pds = single_pds(models, model_Xs)[2].reshape(points, points)
 
+    print(cfg.extent)
+    xmin, xmax, ymin, ymax = cfg.extent
     ax.set_title(f'Ours', fontsize=12)
-    ax.imshow(pds, origin="lower", extent=cfg.extent)
+    ax.imshow(pds, origin="lower", extent=cfg.extent, aspect='auto')
     ax.scatter(Xs[:T, 0], Xs[:T, 1], marker="x", s=30, c=Ys[:T], cmap='bwr')  # Existing observations
 
-    ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=12)
-    ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=12)
+    ax.set_xticks(np.linspace(xmin, xmax, 3), labels=np.linspace(xmin, xmax, 3), fontsize=12)
+    ax.set_yticks(np.linspace(ymin, ymax, 3), labels=np.linspace(ymin, ymax, 3), fontsize=11)
 
 
 def main():
@@ -74,11 +76,11 @@ def main():
         cfg = pickle.load(f)
 
     fig, ax = plt.subplots(figsize=(3, 3))
-    plt.subplots_adjust(left=0.1, right=0.99, top=0.925, bottom=0.1, wspace=0.4, hspace=0.4)
+    plt.subplots_adjust(left=0.175, right=0.95, top=0.925, bottom=0.1, wspace=0.4, hspace=0.4)
 
     errors = []
     t = len(og_obs.obs_phase)
-
+    print("Total number of observations:", t)
     obs_holder = copy.deepcopy(og_obs)
     dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg, ax=ax)
 
