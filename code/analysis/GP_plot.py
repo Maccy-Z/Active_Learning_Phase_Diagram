@@ -123,7 +123,7 @@ def main():
 
         error = dist(obs_holder, pd_fn=pd_fn, points=19, true_t=true_t, cfg=cfg, ax=ax, t=t)
         errors.append(error)
-    plt.subplots_adjust(left=0.05, right=0.98, top=0.94, bottom=0.07, wspace=0.4, hspace=0.4)
+    plt.subplots_adjust(left=0.05, right=0.98, top=0.94, bottom=0.07, wspace=0.4, hspace=0.3)
     # plt.tight_layout()
     plt.show()
 
