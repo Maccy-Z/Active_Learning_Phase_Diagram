@@ -86,7 +86,7 @@ def main():
 
     #fig.tight_layout()
 
-    fig.show()
+    plt.show()
 
 
 if __name__ == "__main__":
