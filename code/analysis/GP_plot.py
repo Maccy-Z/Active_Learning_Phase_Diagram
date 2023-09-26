@@ -1,6 +1,7 @@
 # Evaluate error of GP model and plot predictions
 import sys
 import os
+
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
@@ -38,13 +39,12 @@ def single_pds(models: list[GPy.core.GP], xs):
 
 
 # Distance between true PD and prediction
-def dist(obs_holder, *, pd_fn, cfg, points, t, ax):
+def dist(obs_holder, *, pd_fn, cfg, points, t, ax, true_t):
     # Observations up to time t
-    T = t + 2
     Xs, Ys = obs_holder.get_og_obs()
 
-    obs_holder._obs_pos = Xs[:T]
-    obs_holder.obs_phase = Ys[:T]
+    obs_holder._obs_pos = Xs[:true_t]
+    obs_holder.obs_phase = Ys[:true_t]
 
     plot_Xs, X1, X2 = make_grid(points, cfg.extent)
     model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
@@ -61,16 +61,34 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax):
     diff = np.not_equal(pds, true_pd)
     diff_mean = np.mean(diff)
 
-    if t % 10 == 0:
-        ax.set_title(f'{t = }')
-        ax.imshow(pds, origin="lower", extent=cfg.extent, aspect='auto')
-        ax.scatter(Xs[:T, 0], Xs[:T, 1], marker="x", s=10, c=Ys[:T], cmap='bwr')  # Existing observations
+    ax.set_title(f'{t = }')
+    ax.imshow(pds, origin="lower", extent=cfg.extent, aspect='auto')
+    ax.scatter(Xs[:true_t, 0], Xs[:true_t, 1], marker="x", s=10, c=Ys[:true_t], cmap='bwr')  # Existing observations
 
-        # Here set the ticks and labels
-        xmin, xmax, ymin, ymax = cfg.extent
-        ax.set_xticks(np.linspace(xmin, xmax, 3), labels=np.linspace(xmin, xmax, 3), fontsize=12)
-        ax.set_yticks(np.linspace(ymin, ymax, 3), labels=np.linspace(ymin, ymax, 3), fontsize=11)
+    # Here set the ticks and labels
+    xmin, xmax, ymin, ymax = cfg.extent
+    ax.set_xticks(np.linspace(xmin, xmax, 2), labels=np.linspace(xmin, xmax, 2), fontsize=12)
+    ax.set_yticks(np.linspace(ymin, ymax, 2), labels=np.linspace(ymin, ymax, 2), fontsize=11)
     return diff_mean
+
+
+def deduplicate(array_list):
+    seen = []  # List to store the distinct arrays seen so far
+    count_dict = {}  # Dictionary to store the result
+
+    count = 0
+    for idx, arr in enumerate(array_list):
+        # Check if the current array is identical to any of the arrays seen so far
+        if not any(np.array_equal(arr, seen_arr) for seen_arr in seen):
+            seen.append(arr)
+            count += 1
+        count_dict[idx] = count
+
+    reversed_dict = {}
+    for key, value in count_dict.items():
+        if value not in reversed_dict:
+            reversed_dict[value] = key
+    return reversed_dict
 
 
 def main():
@@ -83,28 +101,31 @@ def main():
 
     og_obs = ObsHolder.load(f'./saves/{save_name}')
 
+    all_obs = og_obs._obs_pos
+    obs_map = deduplicate(all_obs)
+    print(obs_map)
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
         cfg = pickle.load(f)
 
-    fig, axs = plt.subplots(3, 5, figsize=(10, 5))
+    fig, axs = plt.subplots(2, 4, figsize=(10, 4))
     errors = []
-    for i, t in enumerate(range(10, len(og_obs.obs_phase) - 1, 10)):
+    for i, t in enumerate(range(6, 86, 10)):
         print(t)
-        # Plot number
-        row = i // 5  # Integer division to get the row index
-        col = i % 5  # Modulo to get the column index
+        true_t = obs_map[t]
+        # print(t)
+
         # Select the current subplot to update
-        print(i, row, col)
+        row = i // 4  # Integer division to get the row index
+        col = i % 4  # Modulo to get the column index
         ax = axs[row, col]
 
         obs_holder = copy.deepcopy(og_obs)
-        error = dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg, ax=ax)
+
+        error = dist(obs_holder, pd_fn=pd_fn, points=19, true_t=true_t, cfg=cfg, ax=ax, t=t)
         errors.append(error)
-    plt.subplots_adjust(left=0.04, right=0.99, top=0.95, bottom=0.05, wspace=0.4, hspace=0.4)
+    plt.subplots_adjust(left=0.05, right=0.98, top=0.94, bottom=0.07, wspace=0.4, hspace=0.4)
     # plt.tight_layout()
     plt.show()
-
-
 
     print()
     print(errors)
