@@ -43,8 +43,8 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax, true_t):
     # Observations up to time t
     Xs, Ys = obs_holder.get_og_obs()
 
-    obs_holder._obs_pos = Xs[:true_t]
-    obs_holder.obs_phase = Ys[:true_t]
+    obs_holder._obs_pos = Xs[:true_t+1]
+    obs_holder.obs_phase = Ys[:true_t+1]
 
     plot_Xs, X1, X2 = make_grid(points, cfg.extent)
     model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
