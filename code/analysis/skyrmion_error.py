@@ -52,7 +52,7 @@ def dist(obs_holder, *, true_pd, cfg, points, t):
     model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
     models = fit_gp(obs_holder, cfg=cfg)
     pds = single_pds(models, model_Xs)[2].reshape(points, points)
-    pds = np.rot90(pds)
+    pds = np.rot90(np.rot90(pds))
     true_pd = np.stack(true_pd).reshape(points, points)
 
     diff = np.not_equal(pds, true_pd)
@@ -69,8 +69,10 @@ def main():
     true_pd = []
     eval_points = 21
 
-    true_pd= np.ones([eval_points, eval_points])
-    true_pd[0, 0] = 0
+    # true_pd= np.ones([eval_points, eval_points])
+    # # true_pd[0, 0] = 2
+    # # true_pd[20, 0] = 0
+    # # true_pd[20, 20] = 0
 
     assert true_pd != [], ("Fill in the true phase diagram as a 2D numpy array, with the same number of points as eval_points. "
                            "It might need transposing / reflecting to orient properly. ")
