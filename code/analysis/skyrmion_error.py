@@ -15,9 +15,9 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-from code.utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
-from code.config import Config
-from code.gaussian_sampler import fit_gp
+from utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
+from config import Config
+from gaussian_sampler import fit_gp
 
 
 # Sample phase diagrams from models.
@@ -42,21 +42,25 @@ def single_pds(models: list[GPy.core.GP], xs):
 # Distance between true PD and prediction
 def dist(obs_holder, *, true_pd, cfg, points, t):
     # Observations up to time t
-    T = t + 2
+    T = t + 10
     Xs, Ys = obs_holder.get_og_obs()
 
     obs_holder._obs_pos = Xs[:T]
     obs_holder.obs_phase = Ys[:T]
 
-    plot_Xs, X1, X2 = make_grid(points, cfg.extent)
+    # plot_Xs, X1, X2 = make_grid(points, cfg.extent)
     model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
     models = fit_gp(obs_holder, cfg=cfg)
     pds = single_pds(models, model_Xs)[2].reshape(points, points)
-
+    pds = np.rot90(pds)
     true_pd = np.stack(true_pd).reshape(points, points)
 
     diff = np.not_equal(pds, true_pd)
     diff_mean = np.mean(diff)
+
+    print("\033[91mDelete this to stop plotting\033[0m")
+    plt.imshow(pds)
+    plt.show()
 
     return diff_mean
 
@@ -64,8 +68,14 @@ def dist(obs_holder, *, true_pd, cfg, points, t):
 def main():
     true_pd = []
     eval_points = 21
+
+    true_pd= np.ones([eval_points, eval_points])
+    true_pd[0, 0] = 0
+
     assert true_pd != [], ("Fill in the true phase diagram as a 2D numpy array, with the same number of points as eval_points. "
                            "It might need transposing / reflecting to orient properly. ")
+    plt.imshow(true_pd)
+    plt.show()
 
     f = sorted([int(s) for s in os.listdir("./saves")])
 
