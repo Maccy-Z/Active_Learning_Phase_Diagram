@@ -43,8 +43,8 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax, true_t):
     # Observations up to time t
     Xs, Ys = obs_holder.get_og_obs()
 
-    obs_holder._obs_pos = Xs[:true_t+1]
-    obs_holder.obs_phase = Ys[:true_t+1]
+    Xs = obs_holder._obs_pos = Xs[:true_t+1]
+    Ys = obs_holder.obs_phase = Ys[:true_t+1]
 
     plot_Xs, X1, X2 = make_grid(points, cfg.extent)
     model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
@@ -63,7 +63,7 @@ def dist(obs_holder, *, pd_fn, cfg, points, t, ax, true_t):
 
     ax.set_title(f'{t = }')
     ax.imshow(pds, origin="lower", extent=cfg.extent, aspect='auto')
-    ax.scatter(Xs[:true_t, 0], Xs[:true_t, 1], marker="x", s=10, c=Ys[:true_t], cmap='bwr')  # Existing observations
+    ax.scatter(Xs[:true_t+1, 0], Xs[:true_t+1, 1], marker="x", s=10, c=Ys[:true_t+1], cmap='bwr')  # Existing observations
 
     # Here set the ticks and labels
     xmin, xmax, ymin, ymax = cfg.extent
