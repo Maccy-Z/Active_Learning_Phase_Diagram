@@ -52,27 +52,61 @@ def dist(obs_holder, *, true_pd, cfg, points, t):
     model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
     models = fit_gp(obs_holder, cfg=cfg)
     pds = single_pds(models, model_Xs)[2].reshape(points, points)
-    pds = np.rot90(np.rot90(pds))
+    pds = np.flip(np.rot90(np.rot90(pds)), axis=1)
     true_pd = np.stack(true_pd).reshape(points, points)
 
     diff = np.not_equal(pds, true_pd)
     diff_mean = np.mean(diff)
 
-    print("\033[91mDelete this to stop plotting\033[0m")
-    plt.imshow(pds)
-    plt.show()
-
+    # print("\033[91mDelete this to stop plotting\033[0m")
+    # plt.imshow(pds)
+    # plt.show()
+    #exit(5)
     return diff_mean
 
 
+def deduplicate(array_list):
+    seen = []  # List to store the distinct arrays seen so far
+    count_dict = {}  # Dictionary to store the result
+
+    count = 0
+    for idx, arr in enumerate(array_list):
+        # Check if the current array is identical to any of the arrays seen so far
+        if not any(np.array_equal(arr, seen_arr) for seen_arr in seen):
+            seen.append(arr)
+            count += 1
+        count_dict[idx] = count
+
+    reversed_dict = {}
+    for key, value in count_dict.items():
+        if value not in reversed_dict:
+            reversed_dict[value] = key
+    return reversed_dict
+
 def main():
-    true_pd = []
+    true_pd = np.array([[2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2., 2., 2.],
+                        [0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2.],
+                        [0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 2.],
+                        [0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])
     eval_points = 21
 
-    # true_pd= np.ones([eval_points, eval_points])
-    # # true_pd[0, 0] = 2
-    # # true_pd[20, 0] = 0
-    # # true_pd[20, 20] = 0
 
     assert true_pd != [], ("Fill in the true phase diagram as a 2D numpy array, with the same number of points as eval_points. "
                            "It might need transposing / reflecting to orient properly. ")
@@ -85,6 +119,10 @@ def main():
     print(f'{save_name = }')
 
     og_obs = ObsHolder.load(f'./saves/{save_name}')
+
+    # Deduplicate observations
+    all_obs = og_obs._obs_pos
+    obs_map = deduplicate(all_obs)
 
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
         cfg = pickle.load(f)
@@ -101,8 +139,12 @@ def main():
     # for s in [10, 20, 30, 40, 50]:
     #     print(f'{errors[s]}')
 
-    print()
+    print("Errors:")
+    print("Copy me to error_plot.py")
     print(errors)
+    print("Map number of observations made to number of unique observations (remove duplicates)")
+    print("Copy me to error_plot.py")
+    print(obs_map)
 
 
 if __name__ == "__main__":
