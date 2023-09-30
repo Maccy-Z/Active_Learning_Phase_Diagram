@@ -42,7 +42,7 @@ def single_pds(models: list[GPy.core.GP], xs):
 # Distance between true PD and prediction
 def dist(obs_holder, *, true_pd, cfg, points, t):
     # Observations up to time t
-    T = t + 10
+    T = t + 1
     Xs, Ys = obs_holder.get_og_obs()
 
     obs_holder._obs_pos = Xs[:T]
