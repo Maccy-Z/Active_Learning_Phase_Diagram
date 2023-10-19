@@ -117,6 +117,6 @@ if __name__ == "__main__":
     print(f'{obs = }')
 
     cfg = Config()
-    main(Xs, obs, cfg, save_dir="./saves")
+    main(Xs, obs, cfg, save_dir="../saves")
 
 
