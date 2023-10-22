@@ -15,9 +15,9 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-from code.utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
-from code.config import Config
-from code.gaussian_sampler import fit_gp
+from my_code.utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
+from my_code.config import Config
+from my_code.gaussian_sampler import fit_gp
 
 
 # Sample phase diagrams from models.

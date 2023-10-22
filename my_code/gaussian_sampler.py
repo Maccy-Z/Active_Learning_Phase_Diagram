@@ -4,7 +4,7 @@ import numpy as np
 import time
 import scipy
 
-from utils import ObsHolder, make_grid, to_real_scale
+from utils import ObsHolder, make_grid, to_real_scale, points_within_radius
 from config import Config
 from matplotlib import pyplot as plt
 
@@ -43,7 +43,7 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
     for i in range(cfg.N_phases):
         phase_i = (Y == i)  # * 2 - 1  # Between 0 and 1
 
-        kernel = GPy.kern.Matern52(input_dim=2, variance=var, lengthscale=r)
+        kernel = GPy.kern.Matern52(input_dim=cfg.N_dim, variance=var, lengthscale=r)
         # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
         model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
 
@@ -69,6 +69,7 @@ def dist2(pd1s: np.ndarray, pd2s: np.ndarray, weights=None):
     # n_diagrams, n_points = pd1s.shape
 
     diffs = np.not_equal(pd1s, pd2s)
+
     mean_diffs = np.mean(diffs, axis=1)  # Mean over each phase diagram
 
     if weights is not None:
@@ -101,11 +102,11 @@ def max_1(mu_1, sigma_1, mus, sigmas, hermite_roots):
 
 
 # Probability each y is observed
-def sample_new_y(models, x_new):
+def sample_new_y(models, x_new, cfg):
     """Probability of observing each phase at x_{n+1}. Everything is gaussian, so this is finding the max of gaussians."""
     mus, vars = [], []
     for model in models:
-        mu, var = model.predict(x_new.reshape(-1, 2), include_likelihood=False)
+        mu, var = model.predict(x_new.reshape(-1, cfg.N_dim), include_likelihood=False)
         mus.append(mu.squeeze()), vars.append(var.squeeze())
 
     sigmas = np.sqrt(vars).tolist()
@@ -127,7 +128,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
     Returns: Phase diagrams, maximum probability of observing"""
 
     # First sample P_{n}(y_{n+1})
-    pd_probs = sample_new_y(models, x_new)
+    pd_probs = sample_new_y(models, x_new, cfg=cfg)
 
     # Skip sampling a point if certainty is already very high
     if max(pd_probs) > cfg.skip_point:
@@ -148,7 +149,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
 
             y_new = int(phase_i == obs_phase)
             X_new, Y_new = np.vstack([X, x_new]), np.vstack([Y, y_new])
-            kernel = GPy.kern.Matern52(input_dim=2, variance=kern_var, lengthscale=kern_len)
+            kernel = GPy.kern.Matern52(input_dim=cfg.N_dim, variance=kern_var, lengthscale=kern_len)
             # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
             model = GPy.models.GPClassification(X_new, Y_new, kernel)
 
@@ -174,7 +175,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
 # Compute A(x) over all points
 def acquisition(models, new_Xs, cfg):
     # Grid over which to compute distances
-    X_dist, X1_dist, X2_dist = make_grid(cfg.N_dist, [0, 1, 0, 1])
+    X_dist, _ = make_grid(cfg.N_dist, cfg.unit_extent)
     # P_n
     pd_old = gen_pd(models, X_dist, sample=cfg.sample_old, cfg=cfg)
 
@@ -183,15 +184,7 @@ def acquisition(models, new_Xs, cfg):
     for new_X in new_Xs:
         if cfg.sample_dist is not None:
             # Sample distance a region around selected point only
-            X_min = new_X - cfg.sample_dist / 2
-            X_max = X_min + cfg.sample_dist
-
-            X_min = np.maximum(X_min, [0, 0])
-            X_max = np.minimum(X_max, [1, 1])
-
-            # Create a mask of wanted points
-            mask = (X_dist[:, 0] >= X_min[0]) & (X_dist[:, 0] <= X_max[0]) & (X_dist[:, 1] >= X_min[1]) & (X_dist[:, 1] <= X_max[1])
-
+            mask = points_within_radius(X_dist, new_X, cfg.sample_dist, cfg.unit_extent)
             pd_old_want = pd_old[:, mask]
             X_dist_region = X_dist[mask]
 
@@ -217,19 +210,19 @@ def acquisition(models, new_Xs, cfg):
             avg_dist = dist2(pd_old_repeat, pd_new_tile)
         avg_dists.append(avg_dist)
 
-    X_display, _, _ = make_grid(cfg.N_display, [0, 1, 0, 1])
+    X_display, _ = make_grid(cfg.N_display, cfg.unit_extent)
     pd_old_mean = gen_pd(models, X_display, sample=None, cfg=cfg)[0]
 
     return pd_old_mean, np.array(avg_dists), np.stack(full_probs)
 
 
 # Suggest a single point to sample given current observations
-def suggest_point(obs_holder, cfg):
+def suggest_point(obs_holder, cfg: Config):
     # Fit to existing observations
     models = fit_gp(obs_holder, cfg=cfg)
 
     # Find max_x A(x)
-    new_Xs, _, _ = make_grid(cfg.N_eval, [0, 1, 0, 1])  # Points to test for aquisition
+    new_Xs, _ = make_grid(cfg.N_eval, cfg.unit_extent)  # Points to test for aquisition
 
     pd_old, avg_dists, pd_probs = acquisition(models, new_Xs, cfg)
     max_pos = np.argmax(avg_dists)

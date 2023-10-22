@@ -10,7 +10,7 @@ from config import Config
 
 
 class DistanceSampler:
-    def __init__(self, init_phases, init_Xs, cfg, save_dir="./saves"):
+    def __init__(self, init_phases, init_Xs, cfg: Config, save_dir="./saves"):
         save_path = new_save_folder(save_dir)
         print(f'{save_path = }')
         print()
@@ -19,18 +19,21 @@ class DistanceSampler:
         self.obs_holder = ObsHolder(self.cfg, save_path=save_path)
 
         # Check if initial inputs are within allowed area
-        vectors = np.array(init_Xs)
-        xmin, xmax, ymin, ymax = self.cfg.extent
-        inside_x = np.logical_and(vectors[:, 0] >= xmin, vectors[:, 0] <= xmax)
-        inside_y = np.logical_and(vectors[:, 1] >= ymin, vectors[:, 1] <= ymax)
-        in_area = np.all(inside_x & inside_y)
-        if not in_area:
+        points = np.array(init_Xs)
+        if points.shape[1] != self.cfg.N_dim:
+            raise ValueError(f"Number of dimensions must be {self.cfg.N_dim}, got {points.shape[1]}")
+        bounds = np.array(self.cfg.extent)
+        mins, maxs = bounds[:, 0], bounds[:, 1]
+
+        all_in = np.logical_and(points >= mins, points <= maxs).all(axis=1)
+        if not all_in.all():
             print("\033[31mWarning: Observations are outside search area\033[0m")
 
         # Check phases are allowed
-
         for phase, X in zip(init_phases, init_Xs, strict=True):
             self.obs_holder.make_obs(X, phase=phase)
+
+        self.obs_holder.get_obs()
 
     # Load in axes for plotting
     def set_plots(self, axs, fig):
@@ -51,7 +54,7 @@ class DistanceSampler:
         vmin, vmax = im.get_clim()
         ticks = np.linspace(vmin, vmax, 3)
 
-        fmt = CustomScalarFormatter(useMathText=True)#FormatStrFormatter('%.1g')
+        fmt = CustomScalarFormatter(useMathText=True)  # FormatStrFormatter('%.1g')
         fmt.set_scientific(True)
         fmt.set_powerlimits((-1, 1))
 
@@ -131,7 +134,7 @@ def main(save_dir):
 
     # Init observations to start off
     # X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    X_init = [[0.0, 1.], [0, -1.25]]
+    X_init = [[0.0, 1., 2], [0, 1.25, 2.59]]
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)

@@ -5,7 +5,7 @@ import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-import code.edit_source_files
+import my_code.edit_source_files
 import pickle
 import GPy
 import numpy as np
@@ -13,8 +13,8 @@ import math
 from matplotlib import pyplot as plt
 import scipy.stats as stats
 
-from code.config import Config
-from code.utils import make_grid, ObsHolder
+from my_code.config import Config
+from my_code.utils import make_grid, ObsHolder
 
 cfg = Config()
 

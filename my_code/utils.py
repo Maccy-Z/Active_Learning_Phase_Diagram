@@ -7,6 +7,7 @@ import pickle
 import shutil
 import importlib.util
 from matplotlib import ticker
+from functools import lru_cache
 
 from config import Config
 
@@ -29,13 +30,13 @@ class ObsHolder:
     def get_obs(self) -> [np.ndarray, np.ndarray]:
         # Rescale observations to [0, 1] on inference
         obs_pos = np.array(self._obs_pos)
-        xmin, xmax, ymin, ymax = self.cfg.extent
-        mins = np.array([xmin, ymin])
-        maxs = np.array([xmax, ymax])
+        bounds = np.array(self.cfg.extent)
+        mins, maxs = bounds[:, 0], bounds[:, 1]
 
-        X_range = maxs - mins
+        bbox_sizes = maxs - mins
 
-        obs_pos = (obs_pos - mins) / X_range
+        obs_pos = (obs_pos - mins) / bbox_sizes
+
         return obs_pos, np.array(self.obs_phase)
 
     def get_og_obs(self):
@@ -130,46 +131,59 @@ def quad_pd(X, train=True):
     return 2
 
 
-# Nearest-neighbour plot
-def plot_mean(obs_holder, show_obs=True):
-    Xs = np.array(obs_holder.obs_pos)
-    obs = np.array(obs_holder.obs_phase)
+# Make nxn...nx grid
+@lru_cache(maxsize=10)
+def make_grid(n, extent: tuple[tuple[float]]) -> (np.ndarray, np.ndarray):
+    extent = np.array(extent)
+    lin_spaces = [np.linspace(start, end, n) for start, end in extent]
+    mesh = np.meshgrid(*lin_spaces, indexing='ij')
 
-    if show_obs:
-        plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=40, c=obs, cmap='bwr')  # Existing observations
+    # Reshape the meshgrid to have a list of points
+    grid_shape = mesh[0].shape  # Shape of the n-dimensional grid
+    num_points = np.prod(grid_shape)  # Total number of points
 
-    # Interpolate points onto a grid
-    xi = np.linspace(-2, 2, 100)  # x-coordinate of regular grid
-    yi = np.linspace(-2, 2, 100)  # y-coordinate of regular grid
-    xi, yi = np.meshgrid(xi, yi)  # Create grid mesh
+    # Create an array of points
+    points = np.vstack([mesh_dim.reshape(num_points) for mesh_dim in mesh]).T
 
-    zi = scipy.interpolate.griddata(Xs, obs, (xi, yi), method='nearest')  # Interpolate using linear method
-
-    plt.imshow(zi, origin="lower", extent=obs_holder.cfg.extent)
-    # print(Xs[:, 0], Xs[:,1])
-    # plt.tricontourf(Xs[:, 0], Xs[:,1], obs, levels=100)
-
-    plt.xlim(obs_holder.cfg.xmin, obs_holder.cfg.xmax)
-    plt.ylim(obs_holder.cfg.ymin, obs_holder.cfg.ymax)
-    plt.show()
+    return points, mesh
 
 
-# Make nxn grid
-def make_grid(n, extent) -> (np.ndarray, np.ndarray, np.ndarray):
-    "Make a n x n grid or points"
-    xmin, xmax, ymin, ymax = extent
-    X1 = np.linspace(xmin, xmax, n)
-    X2 = np.linspace(ymin, ymax, n)
-    x1, x2 = np.meshgrid(X1, X2)
-    X = np.hstack((x1.reshape(n ** 2, 1), x2.reshape(n ** 2, 1)))
-    return X, X1, X2
+# Select points within a set distance from a give point
+def points_within_radius(points: np.ndarray, target_point: np.ndarray, r_max: float, cube_limits: tuple[tuple[float]]):
+    """
+    Select points within a certain radius from a target point within an n-dimensional cube.
+
+    Parameters:
+    points (np.ndarray): Array of points in the n-dimensional cube, shape (num_points, n).
+    target_point (np.ndarray or list): The reference point in n-dimensional space.
+    r_max (float): The maximum distance from the target point.
+    cube_limits (list): List of tuples defining the min and max values for each dimension.
+
+    Returns:
+    np.ndarray: Mask of wanted points.
+    """
+
+    # Step 1: Calculate the squared Euclidean distances
+    # We use squared distances for comparison to avoid the computational cost of square roots
+    squared_distances = np.sum((points - target_point) ** 2, axis=1)
+
+    # Step 2: Filter points based on squared distance
+    within_radius = squared_distances <= r_max ** 2
+
+    # Check points within cube limits
+    min_limits, max_limits = np.array(cube_limits).T  # Unpack limits
+    within_cube = np.all((points >= min_limits) & (points <= max_limits), axis=1)
+
+    # Combine the conditions
+    mask = within_radius & within_cube
+
+    return mask
 
 
 # Rescale from physical coords to plot coords
 def to_real_scale(X, extent):
-    xmin, xmax, ymin, ymax = extent
-    mins = np.array([xmin, ymin])
-    maxs = np.array([xmax, ymax])
+    extent = np.array(extent)
+    mins, maxs = extent[:, 0], extent[:, 1]
 
     X_range = maxs - mins
 
@@ -220,13 +234,6 @@ class CustomScalarFormatter(ticker.ScalarFormatter):
         self.format = "%1.1f"  # Give format here
 
 if __name__ == "__main__":
-    Xs, _, _ = make_grid(19, (-2, 2, -2, 2))
+    obs_holder: ObsHolder = ObsHolder.load("./saves/152")
 
-    p = [bin_pd(X) for X in Xs]
-    p = np.array(p).reshape(19, 19)
-
-    plt.imshow(p, origin="lower", extent=(-2, 2, -2, 2))
-    plt.yticks(np.linspace(-2, 2, 5))
-    plt.xticks(np.linspace(-2, 2, 5))
-    plt.tight_layout()
-    plt.show()
+    print(obs_holder.get_obs())

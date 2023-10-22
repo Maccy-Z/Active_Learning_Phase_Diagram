@@ -8,8 +8,8 @@ import GPy
 import numpy as np
 from matplotlib import pyplot as plt
 
-from code.utils import ObsHolder, make_grid, bin_pd, new_save_folder, quad_pd, tri_pd
-from code.config import Config
+from my_code.utils import ObsHolder, make_grid, bin_pd, new_save_folder, quad_pd, tri_pd
+from my_code.config import Config
 
 
 
