@@ -1,2 +1,30 @@
 .idea
 .idea/
+
+__pycache__/
+venv/
+pics/
+saves/
+
+# file types to ignore
+*.pyc
+*.pyd
+*.so
+*.enamlc
+*~
+.DS_Store
+_configtest.*
+.hypothesis
+
+# ignore the build directories
+*.egg-info/
+build/
+dist/
+docs/build/
+
+
+docs/html.zip
+tvtk/tvtk_classes.zip
+mayavi/images/m2_about.jpg
+
+
