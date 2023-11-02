@@ -50,11 +50,36 @@ class MultitaskGPModel(gpt.models.ApproximateGP):
         )
 
     def forward(self, x):
-        print(x)
-        exit(2)
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpt.distributions.MultivariateNormal(mean_x, covar_x)
+
+
+def test(model, likelihood, X_train, Y_train):
+    model.eval(), likelihood.eval()
+    # Test on grid of points
+    h = 0.1
+    xx1, xx2 = np.meshgrid(np.arange(-2, 2.5, h), np.arange(-2, 2, h))
+
+    with torch.no_grad():
+        X_test = torch.from_numpy(np.vstack((xx1.reshape(-1), xx2.reshape(-1))).T).float()
+        f_pred = model(X_test)
+
+        print(f_pred.mean.shape)
+
+        mean_prob = torch.nn.functional.softmax(f_pred.mean, dim=-1)[:, 0]
+
+        fg, ax = plt.subplots(1, 1, figsize=(4, 3))
+
+        cs = ax.contourf(xx1, xx2, mean_prob.numpy().reshape(xx1.shape), levels=16)
+        ax.scatter(X_train[Y_train == 0, 0], X_train[Y_train == 0, 1])
+        ax.scatter(X_train[Y_train == 1, 0], X_train[Y_train == 1, 1])
+        plt.colorbar(cs, ax=ax)
+        plt.show()
+
+    # Get fantasy model
+    fant_x, fant_y = np.array([[0.1, 0.1]]), np.array([0])
+    fantasy_model = model.get_fantasy_model(fant_x, fant_y)
 
 
 def main():
@@ -68,45 +93,62 @@ def main():
     model.train(), likelihood.eval()
 
     for n, p  in model.named_parameters():
-        print(n, p.shape)
+        if "raw_outputscale" in n:
+            print(n)
+            print(p.data.squeeze())
+            p.data = 3 * torch.ones_like(p.data)
+            print(p.data.squeeze())
+            print()
+        if "raw_lengthscale" in n:
+            print(n)
+            print(p.data.squeeze())
+            p.data = -1 * torch.ones_like(p.data)
+            print(p.data.squeeze())
+            print()
     print()
     print()
 
     mll = gpt.mlls.VariationalELBO(likelihood, model, num_data=Y_train.size(0))
 
-    for i in range(400):
+    for i in range(5000):
         optimizer.zero_grad()
         output = model(X_train)
         loss = -mll(output, Y_train)
         loss.backward()
         optimizer.step()
 
-    model.eval(), likelihood.eval()
-    # Test on grid of points
-    h = 0.1
-    xx1, xx2 = np.meshgrid(np.arange(-2, 2.5, h), np.arange(-2, 2, h))
+    for n, p  in model.named_parameters():
+        if "covar_module" in n:
+            print(n, p.data.squeeze())
+    print()
+    print()
 
-    with torch.no_grad():
-        X_test = torch.from_numpy(np.vstack((xx1.reshape(-1), xx2.reshape(-1))).T).float()
-        f_pred = model(X_test)
-
-        print(f_pred.variance.shape)
-
-
-    mean_prob = torch.nn.functional.softmax(f_pred.mean, dim=-1)[:, 0]
-
-    with torch.no_grad():
-        fg, ax = plt.subplots(1, 1, figsize=(4, 3))
-
-        cs = ax.contourf(xx1, xx2, mean_prob.numpy().reshape(xx1.shape), levels=16)
-        ax.scatter(X_train[Y_train == 0, 0], X_train[Y_train == 0, 1])
-        ax.scatter(X_train[Y_train == 1, 0], X_train[Y_train == 1, 1])
-        plt.colorbar(cs, ax=ax)
-        plt.show()
+    test(model, likelihood, X_train, Y_train)
+    # model.eval(), likelihood.eval()
+    # # Test on grid of points
+    # h = 0.1
+    # xx1, xx2 = np.meshgrid(np.arange(-2, 2.5, h), np.arange(-2, 2, h))
+    #
+    # with torch.no_grad():
+    #     X_test = torch.from_numpy(np.vstack((xx1.reshape(-1), xx2.reshape(-1))).T).float()
+    #     f_pred = model(X_test)
+    #
+    #     print(f_pred.variance.shape)
+    #
+    #     mean_prob = torch.nn.functional.softmax(f_pred.mean, dim=-1)[:, 0]
+    #
+    #     fg, ax = plt.subplots(1, 1, figsize=(4, 3))
+    #
+    #     cs = ax.contourf(xx1, xx2, mean_prob.numpy().reshape(xx1.shape), levels=16)
+    #     ax.scatter(X_train[Y_train == 0, 0], X_train[Y_train == 0, 1])
+    #     ax.scatter(X_train[Y_train == 1, 0], X_train[Y_train == 1, 1])
+    #     plt.colorbar(cs, ax=ax)
+    #     plt.show()
     # preds = likelihood(output)
     # print(f'{preds.probs.shape=}')
     # exit(56)
 
 
 if __name__ == "__main__":
+    np.random.seed(0)
     main()
