@@ -6,10 +6,11 @@ git+https://github.com/SheffieldML/GPy.git#egg=GPy
 scikit-learn
 scikit-image
 # PyQt6
+PyQT5
 paramz
 six
-torch
-gpytorch
+#torch
+#gpytorch
 sympy
 setuptools
-mayavi
+./mayavi
