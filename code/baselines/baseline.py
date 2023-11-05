@@ -15,7 +15,7 @@ from code.config import Config
 # Fit model to existing observations
 def fit_gp(obs_holder: ObsHolder, cfg=None, t=None) -> list[GPy.core.GP]:
     "Trains a model for each phase."
-    X, Y = obs_holder.get_obs()
+    X, Y = obs_holder.get_og_obs()
 
     Y = Y * 2 - 1
     kernel = GPy.kern.Matern52(input_dim=2)
@@ -80,7 +80,7 @@ def plot(new_point, plots, obs_holder, cfg):
     for plot, ax in zip(plots, axs):
         cax = ax.imshow(plot, extent=cfg.extent, origin="lower")
 
-        X_obs, phase_obs = obs_holder.get_obs()
+        X_obs, phase_obs = obs_holder.get_og_obs()
         xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
         ax.scatter(xs_train, ys_train, marker="x", s=10, c=phase_obs, cmap='bwr')
         ax.scatter(new_point[0], new_point[1], s=30)
@@ -113,8 +113,8 @@ def main():
     obs_holder = ObsHolder(cfg, "./tmp")
 
     # X_init, _, _ = make_grid(4, cfg.extent)
-    X_init = [[0, -1.2], [0, 1]]
-    phase_init = np.array([bin_pd(X) for X in X_init])
+    X_init = [[0, -1], [0, 1]]
+    phase_init = np.array([bin_pd(X, train=False) for X in X_init])
 
     for X, Y in zip(X_init, phase_init):
         obs_holder.make_obs(X, phase=Y)
@@ -128,10 +128,10 @@ def main():
         y_pred = plots[1] > 0
         e = error(y_pred)
         errors.append(e)
-        if i % 10 == 0:
-            #plot(new_point, plots, obs_holder, cfg)
-
-            print(e)
+        # if i % 10 == 0:
+        #     plot(new_point, plots, obs_holder, cfg)
+        #
+        #     print(e)
 
     print(errors)
 
