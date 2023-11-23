@@ -1,4 +1,4 @@
-#import edit_source_files
+# import edit_source_files
 import GPy
 import numpy as np
 import time
@@ -47,18 +47,17 @@ def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
         # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
         model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
 
-        if cfg.optim_step:
-            model.optimize()
-            var, r = float(kernel.variance), float(kernel.lengthscale)
-            if r > 1:
-                kernel.lengthscale = 1
-            if r < 0.1:
-                kernel.lengthscale = 0.1
-            if var < 1:
-                kernel.variance = 1
+        model.optimize()
+        var, r = float(kernel.variance), float(kernel.lengthscale)
+        if r > 1:
+            kernel.lengthscale = 1
+        if r < 0.1:
+            kernel.lengthscale = 0.1
+        if var < 1:
+            kernel.variance = 1
 
-            var, r = float(kernel.variance), float(kernel.lengthscale)
-            print(f'{var = :.2g}, {r = :.2g}')
+        var, r = float(kernel.variance), float(kernel.lengthscale)
+        print(f'{var = :.2g}, {r = :.2g}')
 
         models.append(model)
 
@@ -71,7 +70,6 @@ def dist2(pd1s: np.ndarray, pd2s: np.ndarray, weights=None):
     diffs = np.not_equal(pd1s, pd2s)
 
     mean_diffs = np.mean(diffs, axis=1)  # Mean over each phase diagram
-
     if weights is not None:
         mean_diffs *= weights
         mean_diffs = np.sum(mean_diffs)
@@ -153,9 +151,7 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
             # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
             model = GPy.models.GPClassification(X_new, Y_new, kernel)
 
-
             new_models.append(model)
-
 
         # Sample new phase diagrams, weighted to probability model is observed.
         if cfg.sample_new is None:
@@ -169,15 +165,29 @@ def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
         sampled_phase.append(obs_phase)
 
     pds = np.concatenate(pds)
+
+    # plt.close("all")
+    # for i, p in enumerate(pds):
+    #     plt.imshow(p.reshape([cfg.N_dist, cfg.N_dist]).T, origin="lower", extent=(0, 1, 0, 1))
+    #     plt.scatter(x_new[0], x_new[1], c="orange", s=200)
+    #     plt.xticks([])
+    #     plt.yticks([])
+    #     plt.tight_layout()
+    #     plt.savefig(f"test_{i}.pdf", bbox_inches='tight', pad_inches=0)
+    #     plt.show()
+    # exit(5)
+
     return pds, pd_probs, sampled_phase
 
 
-# Compute A(x) over all points
+# Compute A(x) over all points0.33
 def acquisition(models, new_Xs, cfg):
     # Grid over which to compute distances
     X_dist, _ = make_grid(cfg.N_dist, cfg.unit_extent)
     # P_n
     pd_old = gen_pd(models, X_dist, sample=cfg.sample_old, cfg=cfg)
+
+    # new_Xs = [np.array([0.3, 0.5])]
 
     # P_{n+1}
     avg_dists, full_probs = [], []
@@ -213,6 +223,7 @@ def acquisition(models, new_Xs, cfg):
     X_display, _ = make_grid(cfg.N_display, cfg.unit_extent)
     pd_old_mean = gen_pd(models, X_display, sample=None, cfg=cfg)[0]
 
+    #exit(64)
     return pd_old_mean, np.array(avg_dists), np.stack(full_probs)
 
 

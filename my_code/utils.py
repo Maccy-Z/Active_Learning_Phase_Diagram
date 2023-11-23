@@ -19,18 +19,15 @@ class ObsHolder:
         self._obs_pos = []
         self.obs_phase = []
 
-    def make_obs(self, X, phase: int = None):
+    def make_obs(self, X, phase):
         self._obs_pos.append(X)
-        # Test or use real data
-        if phase is None:
-            self.obs_phase.append(tri_pd(X))
-        else:
-            self.obs_phase.append(phase)
+        self.obs_phase.append(phase)
 
     def get_obs(self) -> [np.ndarray, np.ndarray]:
         # Rescale observations to [0, 1] on inference
         obs_pos = np.array(self._obs_pos)
         bounds = np.array(self.cfg.extent)
+
         mins, maxs = bounds[:, 0], bounds[:, 1]
 
         bbox_sizes = maxs - mins
@@ -232,6 +229,35 @@ def new_save_folder(save_dir):
 class CustomScalarFormatter(ticker.ScalarFormatter):
     def _set_format(self):  # Override function that finds format to use.
         self.format = "%1.1f"  # Give format here
+
+
+# Print a string in color
+def c_print(text, color: str):
+    color_codes = {
+        "black": "\033[30m",
+        "red": "\033[31m",
+        "green": "\033[32m",
+        "yellow": "\033[33m",
+        "blue": "\033[34m",
+        "magenta": "\033[35m",
+        "cyan": "\033[36m",
+        "white": "\033[37m",
+        "bright_black": "\033[90m",
+        "bright_red": "\033[91m",
+        "bright_green": "\033[92m",
+        "bright_yellow": "\033[93m",
+        "bright_blue": "\033[94m",
+        "bright_magenta": "\033[95m",
+        "bright_cyan": "\033[96m",
+        "bright_white": "\033[97m",
+        "reset": "\033[0m"  # Reset text color to default
+    }
+
+    code = color_codes[color]
+
+    print(f"{code}{text}{color_codes['reset']}")
+
+
 
 if __name__ == "__main__":
     obs_holder: ObsHolder = ObsHolder.load("./saves/152")

@@ -3,15 +3,17 @@ from dataclasses import dataclass
 
 @dataclass
 class Config:
-    N_dim: int = 3  # Dimension of parameter space
+    """ Experiment setup """
+    N_dim: int = 2  # Dimension of parameter space
     N_phases: int = 3
-
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
+    """Search resolution"""
     N_dist: int = 11  # Points distance function is evaluated at
     N_eval: int = 11  # Candidate points for new sample
     N_display: int = 21  # Number of points to visualise
 
+    """Acquisition function parameters"""
     sample_likelihood: bool = False  # Sample from likelihood instead of posterior
     sample_old: int = None  # Samples for P_{n}
     sample_new: int = None  # Samples for P_{n+1}
@@ -19,19 +21,16 @@ class Config:
     skip_phase: float = 0.05  # Min prob to skip sampling a phase
     sample_dist: float = 0.5  # Size of region to sample P_{n+1} over.
 
-    optim_step: bool = True  # Optimise MLE when sampling x_{n+1}
-
-    normal_sample: str = 'cholesky'  # Modify generation of random normals for speed up
-
-    # noise_var: float = 5e-2  # Variance for observations2
-    kern_var: float = 10
-    kern_r: float = 0.5
+    """GP parameters"""
+    gaus_herm_n: int = 16  # Number of samples for Gauss Hermite quadrature
+    T: float = 1.  # Temperature for softmax
+    N_optim_steps: int = 250  # Number of steps to optimise hyperparameters
 
     def __post_init__(self):
-        self.extent = ((0, 1),
-                       (0, 1),
-                       (0, 1)
-                        )
+        self.extent = ((-2, 2),
+                       (-2, 2),
+                       #(0, 1)
+                       )
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 
 

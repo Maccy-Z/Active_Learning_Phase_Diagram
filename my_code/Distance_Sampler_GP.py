@@ -1,10 +1,10 @@
 # Code to plot the results. Run directly for automatic evaluation
-
 from matplotlib import pyplot as plt
 from matplotlib import axes as Axes
 import numpy as np
+import time
 
-from gaussian_sampler import suggest_point, suggest_two_points
+from gaussian_sampler_new import suggest_point, suggest_two_points
 from utils import ObsHolder, new_save_folder, tri_pd, bin_pd, quad_pd, CustomScalarFormatter
 from config import Config
 
@@ -118,7 +118,7 @@ class DistanceSampler:
     def single_obs(self):
         self.obs_holder.save()
 
-        new_point, (pd_old, avg_dists, pd_probs), prob_at_point = suggest_point(self.obs_holder, self.cfg)
+        new_point, prob_at_point, (pd_old, avg_dists, pd_probs) = suggest_point(self.obs_holder, self.cfg)
         self.plot(new_point, pd_old, avg_dists, pd_probs)
 
         return new_point, prob_at_point
@@ -138,20 +138,7 @@ def main(save_dir):
 
     # Init observations to start off
     # X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    X_init = [[0., 1.],
-              [0., -1.],
-              [-2., 0.],
-              [2., -1.6],
-              [-2., -2.],
-              [2., 1.6],
-              [-2., 2.],
-              [-0.8, -1.2],
-              [-0.8, 1.2],
-              [1.2, 0.],
-              [-1.6, -2.],
-              #[-0.8, 0.],
-              ]
-    # [[0.0, 1.], [0, -1]]
+    X_init = [[0.0, 1.], [0, -1]]
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)
@@ -168,17 +155,19 @@ def main(save_dir):
     for i in range(51):
         print()
         print("Step:", i)
+        st = time.time()
         new_points, prob = distance_sampler.single_obs()
+        print(f'Time taken: {time.time() - st:.2f}s')
         print(f'{new_points =}, {prob = }')
-        fig.savefig(f'test_full.pdf')
-        fig.show()
-        exit(5)
         new_points = np.array(new_points).reshape(-1, 2)
         for p in new_points:
             obs_phase = pd_fn(p)
             distance_sampler.obs_holder.make_obs(p, obs_phase)
 
-        print(distance_sampler.obs_holder.get_og_obs())
+        # print(distance_sampler.obs_holder.get_og_obs())
+
+        fig.show()
+        # exit(5)
 
 
 if __name__ == "__main__":
