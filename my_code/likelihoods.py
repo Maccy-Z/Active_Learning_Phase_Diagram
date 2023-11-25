@@ -1,26 +1,52 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.linalg as la
+import time
 from numpy.polynomial.hermite import hermgauss
 import scipy
 from functools import lru_cache
+from numba import jit
 
 
-def softmax_fn(x, T, phase_no):
-    # Softmax function for likelihood
-    """ xs.shape = [BS, n_dim]"""
-    likelihood = np.exp(T * x[:, phase_no]) / np.sum(np.exp(T * x), axis=1)
-    return likelihood
+@jit(nopython=True)
+def row_max(mat):
+    max_vals = np.empty(mat.shape[0])
+    for i in range(mat.shape[0]):
+        max_vals[i] = np.max(mat[i])
+    return max_vals
 
 
-def like_sq(x, x0=None):
-    like = softmax_fn(x, x0)
-    like_sq = like ** 2
-    return like_sq
+# def softmax_fn(x, T, ):
+#     # Softmax function for likelihood
+#     """ xs.shape = [BS, n_dim]"""
+#     # x = x.astype(np.float32)
+#     # Rescale for numerical stability
+#     exp_x = np.exp(T * (x - np.max(x, axis=1, keepdims=True)))
+#
+#     probs = exp_x[:, :-1] / np.sum(exp_x, axis=1, keepdims=True)
+#     return probs
+
+@jit(nopython=True, fastmath=True)
+def softmax_fn(logits, T):
+    """ logits.shape = [BS, n_dim]"""
+
+    logits *= T
+    max_vals = row_max(logits)
+    for i in range(logits.shape[0]):
+        logits[i] -= max_vals[i]
+
+    exp_logits = np.exp(logits)
+    sum_exp = np.empty(exp_logits.shape[0])
+    for i in range(exp_logits.shape[0]):
+        sum_exp[i] = np.sum(exp_logits[i])
+
+    for i in range(exp_logits.shape[0]):
+        exp_logits[i] /= sum_exp[i]
+
+    return exp_logits
 
 
 @lru_cache(maxsize=2)
-def herm_gauss_weigts(n, dim):
+def herm_gauss_weigts(n, dim) -> (np.ndarray, np.ndarray):
     points, weights = hermgauss(n)
 
     # Compute grid of points to sample from
@@ -36,10 +62,13 @@ def herm_gauss_weigts(n, dim):
     grid = grid[mask]
     weight_product = weight_product[mask]
 
+    # Normalization constant
+    normalization_constant = 1 / ((np.pi) ** (dim / 2))
+    weight_product *= normalization_constant
     return grid, weight_product
 
 
-def gauss_hermite_quadrature(mean_vector, cov_matrix, n, **softmax_kwargs):
+def gauss_hermite_quadrature(mean_vector, cov_matrix, n, T):
     """
     Integrate an n-variable function with respect to an n-D Gaussian distribution using Gauss-Hermite quadrature
     with Cholesky decomposition, vectorized for performance.
@@ -51,28 +80,31 @@ def gauss_hermite_quadrature(mean_vector, cov_matrix, n, **softmax_kwargs):
     cov_diagonal (np.array): The covariance matrix of the Gaussian distribution. Assume to be diagonal
 
     Returns:
-    float: The approximate integral of the function with respect to the n-D Gaussian distribution.
+    float: The approximate integral of the function with respect to the n-D Gaussian distribution. Shape = [n_dim]
     """
-    dim = len(mean_vector)
-    normalization_constant = 1 / ((np.pi) ** (dim / 2))
-
-    # Apply Cholesky decomposition to the covariance matrix
-    # L = la.cholesky(cov_matrix)
-    L = np.sqrt(cov_matrix)
 
     # Prepare Gauss-Hermite quadrature points and weights for each dimension
+    dim = len(mean_vector)
     grid, weight_product = herm_gauss_weigts(n, dim)
+
+    return gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product, T)
+
+
+@jit(nopython=True, fastmath=True)
+def gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product, T):
+    # Apply Cholesky decomposition to the covariance matrix
+    L = np.sqrt(cov_matrix)
 
     # Transform the points using the Cholesky factor and add mean
     x_transformed = mean_vector + np.sqrt(2) * grid * L
 
     # Evaluate the function on the entire grid of points
-    func_values = softmax_fn(x_transformed, **softmax_kwargs)
+    func_values = softmax_fn(x_transformed, T)
 
     # Compute the integral as the sum of weighted function evaluations
-    integral = np.sum(weight_product * func_values)
+    probs = np.sum(weight_product[:, np.newaxis] * func_values, axis=0)
 
-    return integral * normalization_constant
+    return probs
 
 
 def main():

@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 
 from utils import ObsHolder, make_grid, new_save_folder
 from config import Config
-from Distance_Sampler import fit_gp, acquisition
+from Distance_Sampler_2D import fit_gp, acquisition
 
 np.set_printoptions(precision=2)
 N_phases = 3

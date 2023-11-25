@@ -1,255 +1,218 @@
-# import edit_source_files
-import GPy
 import numpy as np
-import time
-import scipy
-
-from utils import ObsHolder, make_grid, to_real_scale, points_within_radius
+from utils import ObsHolder, make_grid, to_real_scale, points_within_radius, c_print
 from config import Config
+from GP import GPRSoftmax
 from matplotlib import pyplot as plt
+import time
 
 np.set_printoptions(precision=2)
 
 
-# Sample phase diagrams from models.
-def gen_pd(models: list[GPy.core.GP], xs, cfg, sample=None):
-    """
-    @param models: List of models for each phase
-    @param xs: Points to sample from
-    @param sample: Use mean or sample from GP.
-    @return: List of possible phase diagrams.
-    """
-    y_preds = []
-    for phase_i, pd_model in enumerate(models):
-        if sample is None:
-            y_pred, _ = pd_model.predict(xs, include_likelihood=cfg.sample_likelihood)  # m.shape = [n**2, 1]
-        else:
-            y_pred = pd_model.posterior_samples_f(xs, size=sample, method=cfg.normal_sample).squeeze(axis=1)
-        y_preds.append(y_pred)
+class DistanceCalculator:
+    def __init__(self, probs_old, cfg: Config):
+        # probs_old.shape = [N_samples ** 2, N_phases]
+        self.cfg = cfg
 
-    y_preds = np.stack(y_preds)
-    sample_pds = np.argmax(y_preds, axis=0).T
-    return sample_pds
+        pds_old = np.argmax(probs_old, axis=1)  # Shape = [N_samples ** 2]
 
+        # Tile since acqusition function is computed over all possible observations
+        pds_old = np.tile(pds_old, (cfg.N_phases, 1))  # Shape = [N_phases, N_samples ** 2]
+        probs_old = np.tile(probs_old, (cfg.N_phases, 1, 1))  # Shape = [N_phases, N_samples ** 2, N_phases]
 
-# Fit model to existing observations
-def fit_gp(obs_holder: ObsHolder, cfg) -> list[GPy.core.GP]:
-    "Trains a model for each phase."
-    X, Y = obs_holder.get_obs()
+        self.pds_old = pds_old
+        self.probs_old = probs_old
 
-    var, r = obs_holder.get_kern_param()
+        self.dist = self.abs_change
 
-    models = []
-    for i in range(cfg.N_phases):
-        phase_i = (Y == i)  # * 2 - 1  # Between 0 and 1
+    def abs_change(self, probs_new, dist_mask, sampled_mask, weights):
+        """
+        probs_new.shape = [n_phases, N_dist, N_phases]. First dim is search phases, last is probs for each phase
+        """
+        pds_new = np.argmax(probs_new, axis=-1)  # Shape = [n_phases, N_dist]
+        pds_old = self.pds_old[sampled_mask][:, dist_mask]  # Shape = [n_phases, N_dist]
 
-        kernel = GPy.kern.Matern52(input_dim=cfg.N_dim, variance=var, lengthscale=r)
-        # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
-        model = GPy.models.GPClassification(X, phase_i.reshape(-1, 1), kernel)
-
-        model.optimize()
-        var, r = float(kernel.variance), float(kernel.lengthscale)
-        if r > 1:
-            kernel.lengthscale = 1
-        if r < 0.1:
-            kernel.lengthscale = 0.1
-        if var < 1:
-            kernel.variance = 1
-
-        var, r = float(kernel.variance), float(kernel.lengthscale)
-        print(f'{var = :.2g}, {r = :.2g}')
-
-        models.append(model)
-
-    return models
-
-
-def dist2(pd1s: np.ndarray, pd2s: np.ndarray, weights=None):
-    # n_diagrams, n_points = pd1s.shape
-
-    diffs = np.not_equal(pd1s, pd2s)
-
-    mean_diffs = np.mean(diffs, axis=1)  # Mean over each phase diagram
-    if weights is not None:
-        mean_diffs *= weights
+        diffs = np.not_equal(pds_old, pds_new)
+        mean_diffs = np.sum(diffs, axis=1).astype(float)  # Mean over each phase diagram
+        mean_diffs *= weights[sampled_mask]
         mean_diffs = np.sum(mean_diffs)
-    else:
-        mean_diffs = np.mean(mean_diffs)
 
-    return mean_diffs
+        return mean_diffs
+
+    # def KL_div(self, pds_new, dist_mask, sampled_mask, weights):
+    #     """
+    #     KL div between PD_old and PD_new, assuming probs are independent Gaussian distributions.
+    #     Sum over phase diagram, average over possible observations
+    #     """
+    #
+    #     pds_new, prob_means_new, prob_stds_new = pds_new
+    #     pds_old = self.pds[sampled_mask][:, dist_mask]
+    #     prob_means_old = self.prob_means[sampled_mask][:, dist_mask]
+    #     prob_stds_old = self.prob_stds[sampled_mask][:, dist_mask]
+    #
+    #     # prob_stds_old += 0.05
+    #     # prob_stds_new += 0.05
+    #
+    #     log_term = np.log(prob_stds_new / prob_stds_old)
+    #     diff_term = (prob_stds_old ** 2 + (prob_means_old - prob_means_new) ** 2) / (2 * prob_stds_new ** 2)
+    #
+    #     KL_div = log_term + diff_term - 0.5  # shape = (n_phase, num_dists, N_phases)
+    #     # KL_div = (prob_means_old - prob_means_new) ** 2
+    #
+    #     # Sum over phase diagrams
+    #     KL_div = np.mean(KL_div, axis=(1, 2))  # shape = (n_phase,)
+    #
+    #     KL_div *= weights
+    #     distance = np.sum(KL_div)
+    #
+    #     self.plot_means(prob_means_old, prob_means_new, distance)
+    #     return distance
+    #
+    # def plot_means(self, old_means, new_means, distance):
+    #     old = old_means[0, :, 0].reshape(11, 11)
+    #     new_obs_0 = new_means[0, :, 0].reshape(11, 11)
+    #     new_obs_1 = new_means[1, :, 0].reshape(11, 11)
+    #
+    #     delta_0 = old - new_obs_0
+    #     delta_1 = old - new_obs_1
+    #
+    #     plt.close("all")
+    #     plt.subplot(1, 3, 1)
+    #     plt.title(distance)
+    #     plt.imshow(old.T, origin="lower", extent=(0, 1, 0, 1), vmax=0.8, vmin=0.2)
+    #     plt.scatter(0.5, 0.5, c='r')
+    #     plt.subplot(1, 3, 2)
+    #     plt.imshow(delta_0.T, origin="lower", extent=(0, 1, 0, 1), vmax=0.1, vmin=-0.1)
+    #     plt.scatter(0.5, 0.5, c='r')
+    #     plt.subplot(1, 3, 3)
+    #     plt.imshow(delta_1.T, origin="lower", extent=(0, 1, 0, 1), vmax=0.1, vmin=-0.1)
+    #     plt.scatter(0.5, 0.5, c='r')
+    #
+    #     plt.show()
 
 
-# Probability single gaussian is larger than the rest by integral of form f(x) exp(-x^2) where f(x) is product of CDFs.
-def max_1(mu_1, sigma_1, mus, sigmas, hermite_roots):
-    xs, weights = hermite_roots  # x to sample, weights for summation
+def fit_gp(fit_hyperparams: bool, obs_holder: ObsHolder, cfg) -> GPRSoftmax:
+    "Fit a new model to observations"
+    model = GPRSoftmax(obs_holder, cfg)
+    model.make_GP(fit_hyperparams)
 
-    # Calculate CDF of each scaled gaussian
-    cdfs = []
-    for mu, sigma in zip(mus, sigmas, strict=True):
-        scaled_xs = (np.sqrt(2) * sigma_1 * xs + mu_1 - mu) / sigma
-        cdf_xs = scipy.stats.norm.cdf(scaled_xs)
-        cdfs.append(cdf_xs)
-
-    cdfs = np.stack(cdfs)
-
-    # Product of cdfs for f(x)
-    f = np.prod(cdfs, axis=0)
-    prob = np.sum(weights * f) / np.sqrt(np.pi)
-
-    return prob
+    return model
 
 
-# Probability each y is observed
-def sample_new_y(models, x_new, cfg):
-    """Probability of observing each phase at x_{n+1}. Everything is gaussian, so this is finding the max of gaussians."""
-    mus, vars = [], []
-    for model in models:
-        mu, var = model.predict(x_new.reshape(-1, cfg.N_dim), include_likelihood=False)
-        mus.append(mu.squeeze()), vars.append(var.squeeze())
+# Sample phase diagrams from models.
+def gen_pd(model: GPRSoftmax, xs, cfg: Config):
+    """
+    @param model: Models
+    @param xs: Points to sample from. Shape = [N_samples ** 2, N_phases]
+    @param cfg: Config
+    @return: Most likely phase diagram.
+    """
+    probs = model.predict(xs)  # shape = [N_samples ** 2, N_phases]
+    # pred_ys = np.argmax(probs, axis=1)
 
-    sigmas = np.sqrt(vars).tolist()
-    hm_roots = scipy.special.roots_hermite(30)
-
-    probs = []
-    for i, (mu, sigma) in enumerate(zip(mus, sigmas)):
-        mu_remain = mus[:i] + mus[i + 1:]
-        sigma_remain = sigmas[:i] + sigmas[i + 1:]
-
-        probs.append(max_1(mu, sigma, mu_remain, sigma_remain, hm_roots))
-
-    return np.array(probs)
+    return probs  # , pred_ys
 
 
 # Predict new observaion and phase diagram
-def gen_pd_new_point(models: list[GPy.core.GP], x_new, sample_xs, cfg):
+def gen_pd_new_point(old_model: GPRSoftmax, x_new, sample_xs, obs_probs, cfg: Config):
     """Sample P_{n+1}(x_{n+1}, y), new phase diagrams assuming a new observation is taken at x_new.
-    Returns: Phase diagrams, maximum probability of observing"""
-
-    # First sample P_{n}(y_{n+1})
-    pd_probs = sample_new_y(models, x_new, cfg=cfg)
-
-    # Skip sampling a point if certainty is already very high
-    if max(pd_probs) > cfg.skip_point:
-        return None, pd_probs, None
+    Returns: Phase diagrams and which phases were sampled"""
 
     # Sample new models for each possible observation
-    pds, sampled_phase = [], []
-    for obs_phase, obs_prob in enumerate(pd_probs):
-        # Ignore very unlikely observations that will have 0 samples
+    sampled_mask, probs = [], []
+    for obs_phase, obs_prob in enumerate(obs_probs):
+        # Ignore very unlikely observations
         if obs_prob < cfg.skip_phase:
-            pds.append(np.empty((0, sample_xs.shape[0])))
+            # probs.append(np.empty((sample_xs.shape[0], cfg.N_phases)))
+            sampled_mask.append(False)
             continue
 
-        new_models = []
-        for phase_i, model in enumerate(models):
-            kern_var, kern_len = float(model.kern.variance), float(model.kern.lengthscale)
-            X, Y = model.X, model.Y
-
-            y_new = int(phase_i == obs_phase)
-            X_new, Y_new = np.vstack([X, x_new]), np.vstack([Y, y_new])
-            kernel = GPy.kern.Matern52(input_dim=cfg.N_dim, variance=kern_var, lengthscale=kern_len)
-            # model = GPy.models.GPRegression(X, phase_i.reshape(-1, 1), kernel, noise_var=cfg.noise_var)
-            model = GPy.models.GPClassification(X_new, Y_new, kernel)
-
-            new_models.append(model)
+        # Make fantasy model assuming new observation is taken
+        fant_model = old_model.fantasy_GPs(x_new, obs_phase)
 
         # Sample new phase diagrams, weighted to probability model is observed.
-        if cfg.sample_new is None:
-            # Use probability weighting
-            pd_new = gen_pd(new_models, sample_xs, sample=None, cfg=cfg)
-        else:
-            # Use number of phase diagrams as weighting
-            pd_new = gen_pd(new_models, sample_xs, sample=round(cfg.sample_new * obs_prob), cfg=cfg)  # Note, rounding here.
+        pred_probs = gen_pd(fant_model, sample_xs, cfg=cfg)
 
-        pds.append(pd_new)
-        sampled_phase.append(obs_phase)
+        probs.append(pred_probs)
+        sampled_mask.append(True)
+        # prob_mean = np.array(prob_mean)
+        # print(prob_mean.shape)
 
-    pds = np.concatenate(pds)
+        # plt.close("all")
+        # plt.subplot(1, 3, 1)
+        # plt.title(f"Observed Phase {obs_phase}")
+        # plt.imshow(prob_mean[:, 0].reshape([cfg.N_dist, cfg.N_dist]).T, origin="lower", extent=(0, 1, 0, 1), vmax=1, vmin=0.0)
+        # plt.scatter(x_new[0], x_new[1], c="orange")
+        # plt.scatter(X_old[:, 0], X_old[:, 1], c=y_old)
+        #
+        # plt.subplot(1, 3, 2)
+        # plt.imshow(prob_std[:, 0].reshape([cfg.N_dist, cfg.N_dist]).T, origin="lower", extent=(0, 1, 0, 1), vmax=0.3, vmin=0)
+        # plt.scatter(X_old[:, 0], X_old[:, 1], c=y_old)
+        # plt.scatter(x_new[0], x_new[1], c="orange")
+        #
+        # plt.subplot(1, 3, 3)
+        # plt.imshow(pred_ys.reshape([cfg.N_dist, cfg.N_dist]).T, origin="lower", extent=(0, 1, 0, 1), vmax=1., vmin=0)
+        # plt.scatter(X_old[:, 0], X_old[:, 1], c=y_old)
+        # plt.scatter(x_new[0], x_new[1], c="orange")
+        # plt.show()
 
-    # plt.close("all")
-    # for i, p in enumerate(pds):
-    #     plt.imshow(p.reshape([cfg.N_dist, cfg.N_dist]).T, origin="lower", extent=(0, 1, 0, 1))
-    #     plt.scatter(x_new[0], x_new[1], c="orange", s=200)
-    #     plt.xticks([])
-    #     plt.yticks([])
-    #     plt.tight_layout()
-    #     plt.savefig(f"test_{i}.pdf", bbox_inches='tight', pad_inches=0)
-    #     plt.show()
-    # exit(5)
-
-    return pds, pd_probs, sampled_phase
+    probs = np.stack(probs)  # shape = [n_phase, N_samples ** 2, N_phases]
+    return probs, sampled_mask
 
 
-# Compute A(x) over all points0.33
-def acquisition(models, new_Xs, cfg):
+def search_point(old_model: GPRSoftmax, new_X, X_dist, obs_prob, dist_calc, cfg):
+    # Skip point if certain enough
+    if np.max(obs_prob) > cfg.skip_point:
+        return 0.
+
+    # Sample distance a region around selected point only
+    mask = points_within_radius(X_dist, new_X, cfg.sample_dist, cfg.unit_extent)
+    X_dist_region = X_dist[mask]
+
+    pd_new, sampled_phase = gen_pd_new_point(old_model, new_X, sample_xs=X_dist_region, obs_probs=obs_prob, cfg=cfg)
+
+    # Expected distance between PD1 and PD2 averaged over all pairs
+    avg_dist = dist_calc.dist(pd_new, dist_mask=mask, sampled_mask=sampled_phase, weights=obs_prob)
+
+    return avg_dist
+
+
+# Compute A(x) over all points
+def acquisition(old_model: GPRSoftmax, acq_Xs, pool, cfg):
     # Grid over which to compute distances
     X_dist, _ = make_grid(cfg.N_dist, cfg.unit_extent)
-    # P_n
-    pd_old = gen_pd(models, X_dist, sample=cfg.sample_old, cfg=cfg)
 
-    # new_Xs = [np.array([0.3, 0.5])]
+    # P_n
+    probs_old = gen_pd(old_model, X_dist, cfg=cfg)  # For computing distances
+    obs_probs = gen_pd(old_model, acq_Xs, cfg=cfg)  # Probs for sampling A(x)
+    dist_calc = DistanceCalculator(probs_old, cfg)
 
     # P_{n+1}
-    avg_dists, full_probs = [], []
-    for new_X in new_Xs:
-        if cfg.sample_dist is not None:
-            # Sample distance a region around selected point only
-            mask = points_within_radius(X_dist, new_X, cfg.sample_dist, cfg.unit_extent)
-            pd_old_want = pd_old[:, mask]
-            X_dist_region = X_dist[mask]
+    args = [(old_model, new_X, X_dist, obs_prob, dist_calc, cfg) for new_X, obs_prob in zip(acq_Xs, obs_probs)]
+    avg_dists = pool.starmap(search_point, args)
 
-        else:
-            X_dist_region = X_dist
-            pd_old_want = pd_old
-
-        pd_new, pd_probs, sampled_phase = gen_pd_new_point(models, new_X, sample_xs=X_dist_region, cfg=cfg)
-        full_probs.append(pd_probs)
-
-        if pd_new is None:  # Skipped sampling point
-            avg_dists.append(0)
-            continue
-
-        # Expected distance between PD1 and PD2 averaged over all pairs
-        pd_old_repeat = np.repeat(pd_old_want, pd_new.shape[0], axis=0)
-        pd_new_tile = np.tile(pd_new, (pd_old_want.shape[0], 1))
-
-        if cfg.sample_new is None:
-            weights = np.tile(pd_probs, pd_old_want.shape[0])
-            avg_dist = dist2(pd_old_repeat, pd_new_tile, weights=weights[sampled_phase])
-        else:
-            avg_dist = dist2(pd_old_repeat, pd_new_tile)
-        avg_dists.append(avg_dist)
-
-    X_display, _ = make_grid(cfg.N_display, cfg.unit_extent)
-    pd_old_mean = gen_pd(models, X_display, sample=None, cfg=cfg)[0]
-
-    #exit(64)
-    return pd_old_mean, np.array(avg_dists), np.stack(full_probs)
+    return np.array(avg_dists), obs_probs
 
 
 # Suggest a single point to sample given current observations
-def suggest_point(obs_holder, cfg: Config):
+def suggest_point(pool, obs_holder, cfg: Config):
     # Fit to existing observations
-    models = fit_gp(obs_holder, cfg=cfg)
+    model = fit_gp(True, obs_holder, cfg=cfg)
 
     # Find max_x A(x)
-    new_Xs, _ = make_grid(cfg.N_eval, cfg.unit_extent)  # Points to test for aquisition
+    acq_Xs, _ = make_grid(cfg.N_eval, cfg.unit_extent)  # Points to test for aquisition
+    # acq_Xs = np.array([[0.5, 0.5], [0.5, 0.5]])
 
-    pd_old, avg_dists, pd_probs = acquisition(models, new_Xs, cfg)
-    max_pos = np.argmax(avg_dists)
-    new_point = new_Xs[max_pos]
+    acq_fn, pd_probs = acquisition(model, acq_Xs, pool, cfg)
+    max_pos = np.argmax(acq_fn)
+    new_point = acq_Xs[max_pos]
     prob_at_point = pd_probs[max_pos]
 
     # Rescale new point to real coordiantes
     new_point = to_real_scale(new_point, cfg.extent)
 
-    return new_point, (pd_old, avg_dists, pd_probs), prob_at_point
+    # Plot old phase diagram
+    X_display, _ = make_grid(cfg.N_display, cfg.unit_extent)
+    probs_old = gen_pd(model, X_display, cfg=cfg)
+    pd_old = np.argmax(probs_old, axis=1)
 
-
-# Sample two points
-def suggest_two_points(obs_holder, cfg):
-    new_point, plot_probs, prob_at_point = suggest_point(obs_holder, cfg)
-    obs_holder.make_obs(new_point)
-    sec_point, _, _ = suggest_point(obs_holder, cfg)
-
-    return new_point, sec_point, plot_probs
+    return new_point, prob_at_point, (pd_old, acq_fn, pd_probs),

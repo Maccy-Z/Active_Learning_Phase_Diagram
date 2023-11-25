@@ -1,14 +1,7 @@
-import sys
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import axes as Axes
+from DistanceSampler3D import DistanceSampler3D
+from utils import Config
 
-from matplotlib.backends.backend_qtagg import (
-    FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar
-)
-
-from PyQt5.QtWidgets import QApplication, QMainWindow, QSizePolicy, QWidget, QPushButton, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QDialog
 from PyQt5.QtWidgets import QLineEdit, QLabel, QHBoxLayout
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
@@ -18,8 +11,8 @@ from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
 from traits.api import HasTraits, Instance
 from traitsui.api import View, Item
 
-from DistanceSampler3d import DistanceSampler3d
-from utils import Config
+import sys
+import numpy as np
 
 
 class Visualization(HasTraits):
@@ -39,7 +32,7 @@ class Visualization(HasTraits):
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, gui_to_sampler: DistanceSampler3d, cfg, *args, **kwargs):
+    def __init__(self, gui_to_sampler: DistanceSampler3D, cfg, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.cfg = cfg
 
@@ -126,7 +119,7 @@ class MainWindow(QMainWindow):
         y = float(self.text_y.text().replace(',', '.'))
         z = float(self.text_z.text().replace(',', '.'))
 
-        if phase > self.cfg.N_phases-1 or phase < 0:
+        if phase > self.cfg.N_phases - 1 or phase < 0:
             self.dynamicLabel.setText(f'Invalid phase entered. Maximum phase is {self.cfg.N_phases - 1}')
             self.dynamicLabel.repaint()
             return
@@ -147,13 +140,13 @@ class MainWindow(QMainWindow):
         new_point, prob_at_point = self.gui_to_sampler.single_obs()
 
         x, y, z = new_point
-        self.text_x.setText(str(x))
-        self.text_y.setText(str(y))
-        self.text_z.setText(str(z))
+        self.text_x.setText(f'{x:.4g}')
+        self.text_y.setText(f'{y:.4g}')
+        self.text_z.setText(f'{z:.4g}')
 
         new_text = "Done"
         self.dynamicLabel.setText(new_text)
-        self.dynamicLabel.repaint()
+        self.infoLabel.setText(f'Predicted probabilities: {prob_at_point}')
 
         return new_point, prob_at_point
 
@@ -162,6 +155,8 @@ class InputWindow(QDialog):
     def __init__(self, cfg: Config, parent=None):
         super(InputWindow, self).__init__(parent)
         self.cfg = cfg
+        assert cfg.N_dim == 3, "Only works for 3D"
+
         self.N_phases = cfg.N_phases
         self.N_dim = cfg.N_dim
 
@@ -290,7 +285,7 @@ if __name__ == "__main__":
 
     phases, Xs = initial_obs(cfg)
 
-    passer = DistanceSampler3d(init_phases=phases, init_Xs=Xs, cfg=cfg)
+    passer = DistanceSampler3D(init_phases=phases, init_Xs=Xs, cfg=cfg)
     window = MainWindow(passer, cfg=cfg)
 
     # app.exec()
