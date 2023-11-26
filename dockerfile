@@ -10,9 +10,6 @@ RUN pip install gpytorch
 RUN pip install numba
 RUN pip install scikit-learn
 RUN pip install scikit-image
-#WORKDIR /GPy
-#COPY GPy-devel /GPy
-#RUN python setup.py install
 
 ## Install GUI dependency
 RUN apt install libgl1-mesa-glx -y
@@ -21,8 +18,7 @@ RUN apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-de
 RUN apt install libdbus-1-dev -y
 RUN pip install pyqt5
 
-#RUN pip install dill
-
+# Pip mayavi is out of date currently.
 WORKDIR /mayavi
 COPY mayavi /mayavi
 RUN pip install .
