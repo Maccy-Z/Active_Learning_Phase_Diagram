@@ -1,13 +1,14 @@
 # Code to plot the results. Run directly for automatic evaluation
+import numpy as np
+import time
+
 from DistanceSampler import DistanceSampler
 from gaussian_sampler import suggest_point
 from config import Config
-from tvtk.util.ctf import ColorTransferFunction
 
-import numpy as np
+from tvtk.util.ctf import ColorTransferFunction
 from mayavi import mlab
 import vtk
-import time
 
 class Plotter:
     name: str

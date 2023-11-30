@@ -5,7 +5,7 @@ import math
 @dataclass
 class Config:
     """ Experiment setup """
-    N_dim: int = 2  # Dimension of parameter space
+    N_dim: int = 3  # Dimension of parameter space
     N_phases: int = 3
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
@@ -30,7 +30,7 @@ class Config:
     def __post_init__(self):
         self.extent = ((-2, 2),
                        (-2, 2),
-                       #(-2, 2)
+                       (-2, 2)
                        )
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 

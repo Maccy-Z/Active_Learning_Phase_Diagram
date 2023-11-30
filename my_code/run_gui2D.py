@@ -14,8 +14,6 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
 
-
-
 class MplCanvas(FigureCanvas):
 
     def __init__(self, parent=None, width=15, height=5, dpi=100):
@@ -137,6 +135,8 @@ class InputWindow(QDialog):
     def __init__(self, cfg: Config, parent=None):
         super(InputWindow, self).__init__(parent)
         self.cfg = cfg
+        assert cfg.N_dim == 2, "Only works for 2D"
+
         self.N_phases = cfg.N_phases
 
         # GUI Elements

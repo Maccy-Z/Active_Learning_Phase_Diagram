@@ -171,7 +171,7 @@ class InputWindow(QDialog):
 
         # # Second Input Box
         self.labels, self.inputs = [], []
-        for dim in range(self.N_dim):
+        for dim in range(3):
             self.labels.append(QLabel(f'Coordinate {dim + 1}'))
             self.inputs.append(QLineEdit(self))
 

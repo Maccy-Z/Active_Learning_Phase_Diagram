@@ -1,15 +1,10 @@
 numpy
+numba
 scipy
 matplotlib
-git+https://github.com/SheffieldML/GPy.git#egg=GPy
-#./SheffieldML-GPy-e91799a
 scikit-learn
-scikit-image
-# PyQt6
 PyQT5
-six
-#torch
-#gpytorch
-sympy
+gpytorch
+#sympy
 setuptools
-./mayavi
+./mayavi/
