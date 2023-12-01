@@ -5,6 +5,5 @@ matplotlib
 scikit-learn
 PyQT5
 gpytorch
-#sympy
 setuptools
 ./mayavi/
