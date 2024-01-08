@@ -208,7 +208,7 @@ def suggest_point(pool, obs_holder, cfg: Config):
     prob_at_point = pd_probs[max_pos]
 
     # Rescale new point to real coordiantes
-    new_point = to_real_scale(new_point, cfg.extent)
+    # new_point = to_real_scale(new_point, cfg.extent)
 
     # Plot old phase diagram
     X_display, _ = make_grid(cfg.N_display, cfg.unit_extent)

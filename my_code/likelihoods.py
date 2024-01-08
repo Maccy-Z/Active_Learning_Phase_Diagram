@@ -15,16 +15,6 @@ def row_max(mat):
     return max_vals
 
 
-# def softmax_fn(x, T, ):
-#     # Softmax function for likelihood
-#     """ xs.shape = [BS, n_dim]"""
-#     # x = x.astype(np.float32)
-#     # Rescale for numerical stability
-#     exp_x = np.exp(T * (x - np.max(x, axis=1, keepdims=True)))
-#
-#     probs = exp_x[:, :-1] / np.sum(exp_x, axis=1, keepdims=True)
-#     return probs
-
 @jit(nopython=True, fastmath=True)
 def softmax_fn(logits, T):
     """ logits.shape = [BS, n_dim]"""
@@ -45,7 +35,7 @@ def softmax_fn(logits, T):
     return exp_logits
 
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=5)
 def herm_gauss_weigts(n, dim) -> (np.ndarray, np.ndarray):
     points, weights = hermgauss(n)
 

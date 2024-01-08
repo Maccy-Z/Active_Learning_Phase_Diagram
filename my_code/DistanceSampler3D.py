@@ -1,14 +1,15 @@
 # Code to plot the results. Run directly for automatic evaluation
 import numpy as np
-import time
 
 from DistanceSampler import DistanceSampler
 from gaussian_sampler import suggest_point
 from config import Config
+from utils import to_real_scale
 
 from tvtk.util.ctf import ColorTransferFunction
 from mayavi import mlab
 import vtk
+
 
 class Plotter:
     name: str
@@ -35,7 +36,7 @@ class Plotter:
         max_scalar = scalar_field.max()
 
         # First, define the points of the scalar field
-        ex = np.array(self.cfg.extent)
+        ex = np.array(self.cfg.unit_extent)
         shape = scalar_field.shape
         xs, ys, zs = np.mgrid[ex[0, 0]:ex[0, 1]:shape[0] * 1j, ex[1, 0]:ex[1, 1]:shape[1] * 1j, ex[2, 0]:ex[2, 1]:shape[2] * 1j]
 
@@ -46,7 +47,6 @@ class Plotter:
         # Create the color/opacity transfer functions
         color_tf = ColorTransferFunction()
         opacity_tf = vtk.vtkPiecewiseFunction()
-
         num_samples = 256  # Number of points to sample the function over the range of data
         for i in range(num_samples):
             scalar_value = min_scalar + (max_scalar - min_scalar) * float(i) / (num_samples - 1)
@@ -64,7 +64,8 @@ class Plotter:
         vol._volume_property.set_scalar_opacity(opacity_tf)
 
         # Make the axis visible
-        axes = mlab.axes(vol, nb_labels=3, ranges=ex.flatten(), line_width=1.0, color=(0, 0, 0), figure=scene)
+        ex_true = np.array(self.cfg.extent)
+        axes = mlab.axes(vol, nb_labels=3, ranges=ex_true.flatten(), line_width=1.0, color=(0, 0, 0), figure=scene)
         label_text_property = axes.axes.axis_label_text_property
         label_text_property.color = (0, 0, 0)
 
@@ -182,6 +183,8 @@ class PhasePlotter(Plotter):
 
     def plot3d(self, scene, scalar_field, old_points, phase_obs, new_point):
         scene = scene.scene.mayavi_scene
+        point_size = 0.1
+
         # Slightly noise observations to avoid poor quality plots
         scalar_field = scalar_field + 1e-5 * np.random.normal(*scalar_field.shape)
         self.plot(scene, scalar_field)
@@ -189,7 +192,8 @@ class PhasePlotter(Plotter):
         # Old points
         xs, ys, zs = old_points
         s, lut = self.get_colormap_lut(phase_obs)
-        points = mlab.points3d(xs, ys, zs, s, scale_factor=0.3, figure=scene, scale_mode='none')
+
+        points = mlab.points3d(xs, ys, zs, s, scale_factor=point_size, figure=scene, scale_mode='none')
         # lut requires at least 2 points
         if len(phase_obs) > 2:
             points.module_manager.scalar_lut_manager.lut.number_of_colors = len(phase_obs)
@@ -197,7 +201,8 @@ class PhasePlotter(Plotter):
 
         # Next point to sample
         xs, ys, zs = new_point
-        mlab.points3d(xs, ys, zs, scale_factor=0.3, color=(1, 1, 1), figure=scene)
+        mlab.points3d(xs, ys, zs, scale_factor=point_size, color=(1, 1, 1), figure=scene, scale_mode='none')
+        print(f'{new_point = }, {old_points = }')
 
 
 class DistanceSampler3D(DistanceSampler):
@@ -222,6 +227,10 @@ class DistanceSampler3D(DistanceSampler):
         self.obs_holder.save()
 
     def single_obs(self, ):
+        """
+        Suggest a point and plot the results
+        Note plotting is done in unit scale, but returns new_point as real scale
+        """
         # self.obs_holder.save()
         new_point, prob_at_point, (pd_old, acq_fn, pd_probs) = suggest_point(self.pool, self.obs_holder, self.cfg)
         # Reshape and process raw data for plotting
@@ -229,14 +238,15 @@ class DistanceSampler3D(DistanceSampler):
         acq_fn = acq_fn.reshape([self.cfg.N_eval for _ in range(3)])
         error_prob = 1 - np.amax(pd_probs, axis=1)
         error_prob = error_prob.reshape([self.cfg.N_eval for _ in range(3)])
+
         plot_holder = {'new_point': new_point, 'pd': pd, 'acq_fn': acq_fn, 'error_prob': error_prob, 'pd_probs': pd_probs}
         self.plot(plot_holder)
 
-        return new_point, prob_at_point
+        return to_real_scale(new_point, self.cfg.extent), prob_at_point
 
     def plot(self, plot_holder):
         # Get existing ovservations
-        X_obs, phase_obs = self.obs_holder.get_og_obs()
+        X_obs, phase_obs = self.obs_holder.get_obs()
         xs, ys, zs = X_obs[:, 0], X_obs[:, 1], X_obs[:, 2]
 
         # clear old plots
@@ -253,23 +263,25 @@ def main(save_dir):
 
     # Init observations to start off
     # X_init, _, _ = make_grid(cfg.N_init, cfg.extent)
-    X_init = [[0.0, 1., 2], [0, 1.25, 2.59]]
+    X_init = [[0.0, 0.1, 0.2], [0, 0.25, 0.1]]
     phase_init = [1, 2]
     print(phase_init)
 
     distance_sampler = DistanceSampler3D(phase_init, X_init, cfg, save_dir=save_dir)
 
-    [mlab.figure(figure=i, bgcolor=(0.9, 0.9, 0.9)) for i in range(3)]
+    scenes = [mlab.figure(figure=i, bgcolor=(0.9, 0.9, 0.9)) for i in range(3)]
+    distance_sampler.set_scenes(scenes)
     for i in range(51):
         print()
         print("Step:", i)
         new_points, prob = distance_sampler.single_obs()
         print(f'{new_points =}, {prob = }')
 
-        distance_sampler.obs_holder.add_obs(new_points, phase=0)
+        distance_sampler.add_obs(X=new_points, phase=0)
 
 
 if __name__ == "__main__":
     save_dir = "./saves"
+    from run_gui3D import Visualization
 
     main(save_dir)

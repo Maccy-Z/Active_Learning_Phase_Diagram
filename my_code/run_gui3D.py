@@ -114,10 +114,15 @@ class MainWindow(QMainWindow):
         self.dynamicLabel.repaint()
 
         # Get next observation
-        phase = int(self.text_phase.text())
-        x = float(self.text_x.text().replace(',', '.'))
-        y = float(self.text_y.text().replace(',', '.'))
-        z = float(self.text_z.text().replace(',', '.'))
+        try:
+            phase = int(self.text_phase.text())
+            x = float(self.text_x.text().replace(',', '.'))
+            y = float(self.text_y.text().replace(',', '.'))
+            z = float(self.text_z.text().replace(',', '.'))
+        except ValueError as e:
+            self.dynamicLabel.setText(f'Invalid phase or coordinates entered. {e}')
+            self.dynamicLabel.repaint()
+            return
 
         if phase > self.cfg.N_phases - 1 or phase < 0:
             self.dynamicLabel.setText(f'Invalid phase entered. Maximum phase is {self.cfg.N_phases - 1}')
@@ -252,30 +257,6 @@ def initial_obs(cfg):
 
     print(initialDialog.phases, initialDialog.Xs)
     return initialDialog.phases, initialDialog.Xs
-
-    # phases = np.array([0, 1, 2, 1, 2, 2, 0, 0, 1, 0, 1, 2, 2, 2, 0, 0, 0, 1, 2, 2])
-    #
-    # obs_pos = np.array([[0., 0., 0.],
-    #                     [0., 1., 0.],
-    #                     [1., 0.5, 1.],
-    #                     [0., 0.5, 0.83333333],
-    #                     [1., 0.83333333, 0.],
-    #                     [0.83333333, 0., 0.],
-    #                     [0., 0.16666667, 0.16666667],
-    #                     [0.16666667, 0., 0.83333333],
-    #                     [0.5, 1., 1.],
-    #                     [0.5, 0.16666667, 1.],
-    #                     [0.5, 0.83333333, 0.16666667],
-    #                     [1., 1., 1.],
-    #                     [1., 0., 0.83333333],
-    #                     [1., 1., 0.83333333],
-    #                     [0.16666667, 0.33333333, 0.],
-    #                     [0.5, 0.33333333, 0.5],
-    #                     [0.5, 0.5, 0.],
-    #                     [0.66666667, 1., 0.],
-    #                     [0.83333333, 0.83333333, 1.],
-    #                     [0.83333333, 0., 0.83333333]])
-    # return phases, obs_pos
 
 
 if __name__ == "__main__":
