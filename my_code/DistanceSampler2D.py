@@ -1,7 +1,7 @@
 # Code to plot the results. Run directly for automatic evaluation
 from DistanceSampler import DistanceSampler
 from gaussian_sampler import suggest_point
-from utils import tri_pd, bin_pd, quad_pd, CustomScalarFormatter
+from utils import tri_pd, bin_pd, quad_pd, CustomScalarFormatter, to_real_scale
 from config import Config
 
 from matplotlib import pyplot as plt
@@ -80,7 +80,12 @@ class DistanceSampler2D(DistanceSampler):
         # plt.colorbar()
 
     def single_obs(self):
+        """
+        Suggest a point and plot the results
+        Note plotting here is done in real scale
+        """
         new_point, prob_at_point, (pd_old, acq_fn, pd_probs) = suggest_point(self.pool, self.obs_holder, self.cfg)
+        new_point = to_real_scale(new_point, self.cfg.extent)
 
         pd = pd_old.reshape([self.cfg.N_display for _ in range(2)]).T
         acq_fn = acq_fn.reshape([self.cfg.N_eval for _ in range(2)]).T
