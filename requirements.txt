@@ -7,3 +7,4 @@ PyQT5
 gpytorch
 setuptools
 ./mayavi/
+vtk==9.2.*
