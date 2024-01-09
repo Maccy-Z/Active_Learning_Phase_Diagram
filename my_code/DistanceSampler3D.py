@@ -202,7 +202,7 @@ class PhasePlotter(Plotter):
         # Next point to sample
         xs, ys, zs = new_point
         mlab.points3d(xs, ys, zs, scale_factor=point_size, color=(1, 1, 1), figure=scene, scale_mode='none')
-        print(f'{new_point = }, {old_points = }')
+        # print(f'{new_point = }, {old_points = }')
 
 
 class DistanceSampler3D(DistanceSampler):
