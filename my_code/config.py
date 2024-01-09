@@ -5,13 +5,13 @@ import math
 @dataclass
 class Config:
     """ Experiment setup """
-    N_dim: int = 2  # Dimension of parameter space
+    N_dim: int = 3  # Dimension of parameter space
     N_phases: int = 2
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""
-    N_dist: int = 5  # Points distance function is evaluated at
-    N_eval: int = 5  # Candidate points for new sample
+    N_dist: int = 7  # Points distance function is evaluated at
+    N_eval: int = 7  # Candidate points for new sample
     N_display: int = 11  # Number of points to visualise
 
     """Acquisition function parameters"""
@@ -20,7 +20,7 @@ class Config:
     sample_dist: float = 0.5  # Size of region to sample P_{n+1} over.
 
     """GP parameters"""
-    obs_P: float = 0.9  # Certainty of observations
+    obs_P: float = 0.8  # Certainty of observations
     gaus_herm_n: int = 10  # Number of samples for Gauss Hermite quadrature
     N_optim_steps: int = 250  # Number of steps to optimise hyperparameters
 
@@ -28,9 +28,9 @@ class Config:
     N_CPUs: int = 8  # Number of CPUs to use
 
     def __post_init__(self):
-        self.extent = ((0, 1),
-                       (0, 0.1),
-                       # (0, 2)
+        self.extent = ((-2, 2),
+                       (-2, 2),
+                       (0, 2)
                        )
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 

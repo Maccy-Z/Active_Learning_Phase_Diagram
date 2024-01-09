@@ -258,6 +258,7 @@ class DistanceSampler3D(DistanceSampler):
 
 
 def main(save_dir):
+    assert False, "Running 3D plots not currently supported. "
     print(save_dir)
     cfg = Config()
 
@@ -282,6 +283,4 @@ def main(save_dir):
 
 if __name__ == "__main__":
     save_dir = "./saves"
-    from run_gui3D import Visualization
-
     main(save_dir)

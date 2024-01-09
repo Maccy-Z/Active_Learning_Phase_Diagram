@@ -204,6 +204,7 @@ def suggest_point(pool, obs_holder, cfg: Config):
 
     acq_fn, pd_probs = acquisition(model, acq_Xs, pool, cfg)
     max_pos = np.argmax(acq_fn)
+
     new_point = acq_Xs[max_pos]
     prob_at_point = pd_probs[max_pos]
 
@@ -216,3 +217,5 @@ def suggest_point(pool, obs_holder, cfg: Config):
     pd_old = np.argmax(probs_old, axis=1)
 
     return new_point, prob_at_point, (pd_old, acq_fn, pd_probs),
+
+

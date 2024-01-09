@@ -85,6 +85,7 @@ class DistanceSampler2D(DistanceSampler):
         Note plotting here is done in real scale
         """
         new_point, prob_at_point, (pd_old, acq_fn, pd_probs) = suggest_point(self.pool, self.obs_holder, self.cfg)
+
         new_point = to_real_scale(new_point, self.cfg.extent)
 
         pd = pd_old.reshape([self.cfg.N_display for _ in range(2)]).T
@@ -99,13 +100,13 @@ class DistanceSampler2D(DistanceSampler):
 
 
 def main(save_dir):
-    pd_fn = tri_pd
+    pd_fn = bin_pd
 
     print(save_dir)
     cfg = Config()
 
     # Init observations to start off
-    X_init = [[0.0, 1.], [0, -1]]
+    X_init = [[0.0, -0.5], [0, 0.5]]
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler2D(phase_init, X_init, cfg, save_dir=save_dir)
@@ -125,7 +126,7 @@ def main(save_dir):
         new_point, prob = distance_sampler.single_obs()
         print(f'Time taken: {time.time() - st:.2f}s')
         print(f'{new_point =}, {prob = }')
-        obs_phase = pd_fn(new_point)
+        obs_phase = pd_fn(new_point, train=False)
         distance_sampler.add_obs(obs_phase, new_point)
 
         # print(distance_sampler.obs_holder.get_og_obs())

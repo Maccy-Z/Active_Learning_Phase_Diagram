@@ -9,65 +9,50 @@ cwd = os.getcwd()
 os.chdir(os.path.dirname(cwd))
 
 import pickle
-import GPy
 import numpy as np
-import math
 from matplotlib import pyplot as plt
 import copy
 
 from my_code.utils import make_grid, ObsHolder, tri_pd, bin_pd, quad_pd
 from my_code.config import Config
-from my_code.gaussian_sampler import fit_gp
-
-
-# Sample phase diagrams from models.
-def single_pds(models: list[GPy.core.GP], xs):
-    """
-    @param models: List of models for each phase
-    @param xs: Points to sample from
-    @param sample: Use mean or sample from GP.
-    @return: List of possible phase diagrams.
-    """
-    y_preds = []
-    for phase_i, pd_model in enumerate(models):
-        y_pred, _ = pd_model.predict(xs, include_likelihood=True)  # m.shape = [n**2, 1]
-
-        y_preds.append(y_pred)
-
-    y_preds = np.stack(y_preds)
-    sample_pds = np.argmax(y_preds, axis=0).T
-    return None, None, sample_pds
+from my_code.gaussian_sampler import fit_gp, gen_pd
 
 
 # Distance between true PD and prediction
 def dist(obs_holder, *, pd_fn, cfg, points, t):
-    # Observations up to time t
-    T = t + 2
+    # Truncate observations up to time t, assuming first 2 observations are given.
     Xs, Ys = obs_holder.get_og_obs()
-
+    T = t + 2
     obs_holder._obs_pos = Xs[:T]
     obs_holder.obs_phase = Ys[:T]
 
-    plot_Xs, X1, X2 = make_grid(points, cfg.extent)
-    model_Xs, _, _ = make_grid(points, (0, 1, 0, 1))
-    models = fit_gp(obs_holder, cfg=cfg)
-    pds = single_pds(models, model_Xs)[2].reshape(points, points)
+    model = fit_gp(True, obs_holder, cfg=cfg)
 
+    X_eval, _ = make_grid(points, cfg.unit_extent)
+    probs = gen_pd(model, X_eval, cfg=cfg)
+    pd_pred = np.argmax(probs, axis=1).reshape((points,) * cfg.N_dim)
+
+    x_eval_real, _ = make_grid(points, cfg.extent)
     true_pd = []
-    for X in plot_Xs:
+    for X in x_eval_real:
         true_phase = pd_fn(X, train=False)
         true_pd.append(true_phase)
+    pd_true = np.stack(true_pd).reshape((points,) * cfg.N_dim)
 
-    true_pd = np.stack(true_pd).reshape(points, points)
+    # print(pd_pred.shape)
+    # print()
+    # print(X_eval)
+    # exit(4)
 
-    diff = np.not_equal(pds, true_pd)
+    diff = np.not_equal(pd_pred, pd_true)
     diff_mean = np.mean(diff)
 
     return diff_mean
 
 
 def main():
-    pd_fn = bin_pd
+    pd_fn = lambda x, train: (x[0] > 0) * 1  # bin_pd
+
     f = sorted([int(s) for s in os.listdir("./saves")])
 
     save_name = f[-1]
@@ -76,10 +61,11 @@ def main():
     og_obs = ObsHolder.load(f'./saves/{save_name}')
 
     with open(f'./saves/{save_name}/cfg.pkl', "rb") as f:
-        cfg = pickle.load(f)
+        cfg: Config = pickle.load(f)
 
     errors = []
     for t in range(len(og_obs.obs_phase)):
+        print()
         obs_holder = copy.deepcopy(og_obs)
         error = dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg)
         errors.append(error)
