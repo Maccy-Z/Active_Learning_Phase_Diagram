@@ -116,6 +116,7 @@ class GPRSimple(torch.nn.Module):
         if only_diag:
             # Diagonal covariance
             diag_var = self.kernel.diag_kern(pred_x) - torch.sum(v ** 2, dim=0)
+            diag_var = torch.clamp(diag_var, min=0.)
 
             preds = {"mean": pred_mean.squeeze(), "var": diag_var}
             return preds
@@ -123,6 +124,8 @@ class GPRSimple(torch.nn.Module):
             # Full covariance
             pred_cov = self.kernel.kern(pred_x, pred_x) - v.T @ v
             diag_var = torch.diag(pred_cov)
+            diag_var = torch.clamp(diag_var, min=0.)
+
             # Confidence region including observation noise
             preds = {"mean": pred_mean.squeeze(), "var": diag_var, "cov_matrix": pred_cov}
             return preds
@@ -184,10 +187,16 @@ class GPRSoftmax(torch.nn.Module):
 
         means = torch.stack(means).T.numpy()  # shape = [N_pred, N_phases]
         covs = torch.stack(covs).T.numpy()
+
         # For each point, find prob of each phase using Gauss Hermite on likelihood
         probs = []
         for mu, cov in zip(means, covs):
             phase_probs = gauss_hermite_quadrature(mu, cov, self.cfg.gaus_herm_n, T=self.cfg.T)
+
+            if np.any(np.isnan(phase_probs)):
+                print(f"NaN in phase_probs: {phase_probs}")
+                print(mu, cov)
+
             probs.append(phase_probs)
         probs = np.array(probs)
 

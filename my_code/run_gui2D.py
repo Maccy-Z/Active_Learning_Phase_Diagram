@@ -231,7 +231,6 @@ def initial_obs(cfg):
     if dialog_result == QDialog.DialogCode.Rejected:
         print("\033[31mNothing entered, exiting\033[0m")
         sys.exit()
-
     return initialDialog.phases, initialDialog.Xs
 
 

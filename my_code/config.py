@@ -5,14 +5,14 @@ import math
 @dataclass
 class Config:
     """ Experiment setup """
-    N_dim: int = 3  # Dimension of parameter space
-    N_phases: int = 2
+    N_dim: int = 2  # Dimension of parameter space
+    N_phases: int = 3
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""
-    N_dist: int = 7  # Points distance function is evaluated at
-    N_eval: int = 7  # Candidate points for new sample
-    N_display: int = 11  # Number of points to visualise
+    N_dist: int = 21  # Points distance function is evaluated at
+    N_eval: int = 21  # Candidate points for new sample
+    N_display: int = 21  # Number of points to visualise
 
     """Acquisition function parameters"""
     skip_point: float = 0.8  # Min prob to be confident enough to skip a point
@@ -28,9 +28,8 @@ class Config:
     N_CPUs: int = 8  # Number of CPUs to use
 
     def __post_init__(self):
-        self.extent = ((-2, 2),
-                       (-2, 2),
-                       (0, 2)
+        self.extent = ((0, 0.5),
+                       (0, 0.25)
                        )
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 
