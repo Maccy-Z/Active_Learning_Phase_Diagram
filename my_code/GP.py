@@ -116,7 +116,7 @@ class GPRSimple(torch.nn.Module):
         if only_diag:
             # Diagonal covariance
             diag_var = self.kernel.diag_kern(pred_x) - torch.sum(v ** 2, dim=0)
-            diag_var = torch.clamp(diag_var, min=0.)
+            diag_var = torch.clamp(diag_var, min=1e-9)
 
             preds = {"mean": pred_mean.squeeze(), "var": diag_var}
             return preds
@@ -124,7 +124,7 @@ class GPRSimple(torch.nn.Module):
             # Full covariance
             pred_cov = self.kernel.kern(pred_x, pred_x) - v.T @ v
             diag_var = torch.diag(pred_cov)
-            diag_var = torch.clamp(diag_var, min=0.)
+            diag_var = torch.clamp(diag_var, min=1e-9)
 
             # Confidence region including observation noise
             preds = {"mean": pred_mean.squeeze(), "var": diag_var, "cov_matrix": pred_cov}
