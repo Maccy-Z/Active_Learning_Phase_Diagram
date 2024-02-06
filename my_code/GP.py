@@ -35,6 +35,7 @@ class ParamHolder(torch.nn.Module):
 
         if kern_len > 5:
             kern_len = torch.tensor(5.)
+
         return {'kern_len': kern_len, 'kern_scale': kern_scale, 'noise': noise}
 
     @staticmethod
@@ -77,7 +78,15 @@ class GPRSimple(torch.nn.Module):
     def log_marginal_likelihood(self):
         noise = self.param_holder.get_params()['noise']
         K = self.kernel.kern(self.train_x, self.train_x) + noise * torch.eye(len(self.train_x))
-        L = torch.linalg.cholesky(K)
+
+        # If noise is too low, there is a possibility K is not positive definite.
+        try:
+            L = torch.linalg.cholesky(K)
+        except RuntimeError as e:
+            c_print(f'Cholesky failed. Trying with more noise.', color="red")
+            K = self.kernel.kern(self.train_x, self.train_x) + 1e-5 * torch.eye(len(self.train_x))
+            L = torch.linalg.cholesky(K)
+
         inv_y = torch.cholesky_solve(self.train_y.unsqueeze(1), L)
 
         # Negative log-likelihood
