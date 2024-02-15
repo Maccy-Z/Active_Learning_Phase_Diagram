@@ -5,9 +5,9 @@ RUN apt update
 
 # Install GPy
 RUN pip install numpy==1.23 matplotlib
-WORKDIR /GPy
-COPY SheffieldML-GPy-e91799a /GPy
-RUN python setup.py install
+#WORKDIR /GPy
+#COPY SheffieldML-GPy-e91799a /GPy
+#RUN python setup.py install
 
 ## Install GUI dependency
 RUN apt install libgl1-mesa-glx -y
