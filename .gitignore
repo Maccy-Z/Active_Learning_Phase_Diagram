@@ -3,5 +3,5 @@
 __pycache__/
 *.py[cod]
 *$py.class
-/my_code/saves/
+/code/saves/
 /venv/
