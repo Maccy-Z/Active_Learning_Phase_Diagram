@@ -17,11 +17,12 @@ class ObsHolder:
         self.cfg = cfg
         self.save_path = save_path
         self._obs_pos = []
-        self.obs_phase = []
+        self.obs_phase, self.obs_prob = [], []
 
-    def make_obs(self, X, phase):
+    def make_obs(self, X, phase, prob):
         self._obs_pos.append(X)
         self.obs_phase.append(phase)
+        self.obs_prob.append(prob)
 
     def get_obs(self) -> [np.ndarray, np.ndarray]:
         # Rescale observations to [0, 1] on inference
@@ -34,10 +35,10 @@ class ObsHolder:
 
         obs_pos = (obs_pos - mins) / bbox_sizes
 
-        return obs_pos, np.array(self.obs_phase)
+        return obs_pos, np.array(self.obs_phase), np.array(self.obs_prob)
 
     def get_og_obs(self):
-        return np.array(self._obs_pos), np.array(self.obs_phase)
+        return np.array(self._obs_pos), np.array(self.obs_phase), np.array(self.obs_prob)
 
     @staticmethod
     def load(save_path):

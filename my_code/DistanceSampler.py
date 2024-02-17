@@ -1,6 +1,7 @@
 # Code to plot the results. Run directly for automatic evaluation
 # Workaround for multiprocesssing with torch ops
 import os
+
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
@@ -14,7 +15,7 @@ from config import Config
 
 
 class DistanceSampler:
-    def __init__(self, init_phases, init_Xs, cfg: Config, save_dir="./saves"):
+    def __init__(self, init_phases, init_Xs, cfg: Config, init_probs=None, save_dir="./saves"):
         save_path = new_save_folder(save_dir)
         print(f'{save_path = }')
         print()
@@ -33,17 +34,22 @@ class DistanceSampler:
         if not all_in.all():
             print("\033[31mWarning: Observations are outside search area\033[0m")
 
-        # Check phases are allowed
-        for phase, X in zip(init_phases, init_Xs, strict=True):
-            self.obs_holder.make_obs(X, phase=phase)
+        # If there are no initial probabilities, set them all to obs_prob
+        if init_probs is None:
+            init_probs = [cfg.obs_prob] * len(init_phases)
+
+        for phase, prob, X in zip(init_phases, init_probs, init_Xs, strict=True):
+            self.obs_holder.make_obs(X, phase=phase, prob=prob)
 
         self.pool = torch.multiprocessing.Pool(processes=self.cfg.N_CPUs)
 
     def plot(self, plot_holder):
         raise NotImplementedError
 
-    def add_obs(self, phase: int, X: np.ndarray):
-        self.obs_holder.make_obs(X, phase=phase)
+    def add_obs(self, phase: int, X: np.ndarray, prob=None):
+        if prob is None:
+            prob = self.cfg.obs_prob
+        self.obs_holder.make_obs(X, phase=phase, prob=prob)
         self.obs_holder.save()
 
     def single_obs(self):
@@ -69,7 +75,6 @@ def main(save_dir):
     phase_init = [pd_fn(X) for X in X_init]
 
     distance_sampler = DistanceSampler(phase_init, X_init, cfg, save_dir=save_dir)
-
     for i in range(51):
         print()
         print("Step:", i)
@@ -82,7 +87,6 @@ def main(save_dir):
 
         obs_phase = pd_fn(new_point)
         distance_sampler.add_obs(obs_phase, new_point)
-
 
 
 if __name__ == "__main__":

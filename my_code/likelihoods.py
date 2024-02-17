@@ -16,10 +16,9 @@ def row_max(mat):
 
 
 @jit(nopython=True, fastmath=True)
-def softmax_fn(logits, T):
+def softmax_fn(logits):
     """ logits.shape = [BS, n_dim]"""
 
-    logits *= T
     max_vals = row_max(logits)
     for i in range(logits.shape[0]):
         logits[i] -= max_vals[i]
@@ -58,7 +57,7 @@ def herm_gauss_weigts(n, dim) -> (np.ndarray, np.ndarray):
     return grid, weight_product
 
 
-def gauss_hermite_quadrature(mean_vector, cov_matrix, n, T):
+def gauss_hermite_quadrature(mean_vector, cov_matrix, n):
     """
     Integrate an n-variable function with respect to an n-D Gaussian distribution using Gauss-Hermite quadrature
     with Cholesky decomposition, vectorized for performance.
@@ -77,11 +76,11 @@ def gauss_hermite_quadrature(mean_vector, cov_matrix, n, T):
     dim = len(mean_vector)
     grid, weight_product = herm_gauss_weigts(n, dim)
 
-    return gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product, T)
+    return gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product)
 
 
 @jit(nopython=True, fastmath=True)
-def gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product, T):
+def gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product):
     # Apply Cholesky decomposition to the covariance matrix
     L = np.sqrt(cov_matrix)
 
@@ -89,7 +88,7 @@ def gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product
     x_transformed = mean_vector + np.sqrt(2) * grid * L
 
     # Evaluate the function on the entire grid of points
-    func_values = softmax_fn(x_transformed, T)
+    func_values = softmax_fn(x_transformed)
 
     # Compute the integral as the sum of weighted function evaluations
     probs = np.sum(weight_product[:, np.newaxis] * func_values, axis=0)
