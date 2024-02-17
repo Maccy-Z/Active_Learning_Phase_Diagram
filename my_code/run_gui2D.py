@@ -250,7 +250,6 @@ class InputWindow(QDialog):
                 p = np.array(probs)
                 if np.any(p <= 0) or np.any(p >= 1):
                     raise ValueError("Probabilities must be between 0 and 1")
-
         except ValueError as e:
             print()
             print("\033[31mInvalid probabilities\033[0m")
