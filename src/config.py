@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-import math
 
 
 @dataclass
 class Config:
     """ Experiment setup """
     N_dim: int = 3  # Dimension of parameter space
-    N_phases: int = 2
+    N_phases: int = 2  # Number of phases to sample. Note: This is not checked in the code if set incorrectly.
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""
@@ -35,7 +34,6 @@ class Config:
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 
         # Assertions to make sure parameters are valid
-        assert self.skip_phase <= (1 - self.skip_point), "skip_phase must be less than 1 - skip_point to ensure more than 1 phase is sampled"
         assert 0 < self.obs_prob < 1, "obs_P must be strictly between 0 and 1"
         assert len(self.extent) == self.N_dim, "Extent must have N_dim dimensions"
 
