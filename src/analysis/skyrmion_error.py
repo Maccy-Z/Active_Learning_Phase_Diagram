@@ -14,9 +14,9 @@ import math
 from matplotlib import pyplot as plt
 import copy
 
-from my_code.utils import make_grid, ObsHolder, c_print
-from my_code.config import Config
-from my_code.gaussian_sampler import fit_gp, gen_pd
+from src.utils import make_grid, ObsHolder, c_print
+from src.config import Config
+from src.gaussian_sampler import fit_gp, gen_pd
 
 
 # Distance between true PD and prediction
