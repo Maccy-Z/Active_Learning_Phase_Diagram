@@ -174,17 +174,16 @@ def main():
 
     plt.plot(errors)
     plt.show()
-    #
-    # print()
-    # for s in [10, 20, 30, 40, 50]:
-    #     print(f'{errors[s]}')
+
+
+    print()
+    for s in [10, 20, 30, 40, 50]:
+        print(f'{errors[s]}')
 
     print("Errors:")
     print("Copy me to error_plot.py")
     print(errors)
-    print("Map number of observations made to number of unique observations (remove duplicates)")
     print("Copy me to error_plot.py")
-    # print(obs_map)
 
 
 if __name__ == "__main__":
