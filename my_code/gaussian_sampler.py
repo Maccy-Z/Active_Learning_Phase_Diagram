@@ -39,10 +39,10 @@ class DistanceCalculator:
         return mean_diffs
 
 
-def fit_gp(fit_hyperparams: bool, obs_holder: ObsHolder, cfg) -> GPRSoftmax:
+def fit_gp(obs_holder: ObsHolder, cfg) -> GPRSoftmax:
     "Fit a new model to observations"
     model = GPRSoftmax(obs_holder, cfg)
-    model.make_GP(fit_hyperparams)
+    model.make_GP(fit_hyperparams=True)
 
     return model
 
@@ -144,7 +144,7 @@ def acquisition(old_model: GPRSoftmax, acq_Xs, pool, cfg):
 # Suggest a single point to sample given current observations
 def suggest_point(pool, obs_holder, cfg: Config):
     # Fit to existing observations
-    model = fit_gp(True, obs_holder, cfg=cfg)
+    model = fit_gp(obs_holder, cfg=cfg)
 
     # Find max_x A(x)
     acq_Xs, _ = make_grid(cfg.N_eval, cfg.unit_extent)  # Points to test for aquisition

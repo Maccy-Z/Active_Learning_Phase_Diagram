@@ -93,7 +93,6 @@ class MainWindow(QMainWindow):
         hbox5.addWidget(self.label_prob)
         hbox5.addWidget(self.text_prob)
 
-
         # Add a button to update the plot
         self.button = QPushButton("Update Plot")
         self.button.clicked.connect(self.next_point)
@@ -140,14 +139,14 @@ class MainWindow(QMainWindow):
                 prob = None
             else:
                 prob = float(self.text_prob.text().replace(',', '.'))
+                if prob <= 0 or prob >= 1:
+                    self.dynamicLabel.setText("Probability must be between 0 and 1")
+                    self.dynamicLabel.setStyleSheet("color: red;")
+                    return
+
         except ValueError as e:
             self.dynamicLabel.setText(f'Invalid probability entered. {e}')
             self.dynamicLabel.repaint()
-            return
-
-        if prob <= 0 or prob >= 1:
-            self.dynamicLabel.setText("Probability must be between 0 and 1")
-            self.dynamicLabel.setStyleSheet("color: red;")
             return
 
         if phase > self.cfg.N_phases - 1 or phase < 0:

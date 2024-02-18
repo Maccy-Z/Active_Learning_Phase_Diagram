@@ -33,8 +33,9 @@ class ParamHolder(torch.nn.Module):
         kern_scale = torch.nn.functional.softplus(self.raw_kern_scale) + 1e-4
         noise = torch.nn.functional.softplus(self.raw_noise) + 1e-6
 
-        if kern_len > 5:
-            kern_len = torch.tensor(5.)
+        kern_len = kern_len.clamp(0, 5)
+        noise = noise.clamp(0, 1)
+
         return {'kern_len': kern_len, 'kern_scale': kern_scale, 'noise': noise}
 
     @staticmethod
@@ -51,6 +52,9 @@ class GPRSimple(torch.nn.Module):
     inv_y: torch.Tensor
 
     def __init__(self, noise_var=None, kern_len=math.log(2), kern_scale=math.log(2)):
+        """Simple Gaussian Process Regression model. Uses Matern 1/2 kernel.
+            Set noise_var=None to fit noise_var. Otherwise, noise_var is fixed.
+        """
         super(GPRSimple, self).__init__()
         self.param_holder = ParamHolder(noise_var=noise_var, kern_len=kern_len, kern_scale=kern_scale)
 
@@ -60,7 +64,6 @@ class GPRSimple(torch.nn.Module):
     def fit(self, train_x: torch.Tensor, train_y: torch.Tensor, n_iters=None):
         # train_x.dim() == 2, "train_x must be a 2D tensor."
         self.train_x, self.train_y = train_x, train_y
-
         if n_iters is not None:
             self.fit_params(n_iters)
 
