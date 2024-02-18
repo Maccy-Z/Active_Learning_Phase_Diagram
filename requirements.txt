@@ -1,11 +1,11 @@
-numpy
-numba
-scipy
-matplotlib
-scikit-learn
-PyQT5
---find-links https://download.pytorch.org/whl/cpu
-torch
+numpy~=1.26
+numba~=0.59
+scipy~=1.12
+matplotlib~=3.8
+scikit-learn~=1.4
+PyQT5~=5.15
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch~=2.2
 setuptools
 git+https://github.com/enthought/mayavi.git@8ae6e5cc4e95607541da210070066e79f2de3e7e#egg=mayavi
 vtk==9.2.*
