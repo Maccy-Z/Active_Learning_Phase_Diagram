@@ -176,7 +176,7 @@ class InputWindow(QDialog):
         self.input_y = QLineEdit(self)
 
         # Probability of error
-        self.label4 = QLabel("Measurement probability (can be empty)", self)
+        self.label4 = QLabel("Measurement prob (can be empty):", self)
         self.input_prob = QLineEdit(self)
 
         # OK button
@@ -271,6 +271,7 @@ class InputWindow(QDialog):
 
         self.phases = np.array(phases)
         self.Xs = np.stack([xs, ys]).T
+        self.probs = None if probs is None else np.array(probs)
         self.accept()
 
 
@@ -282,7 +283,7 @@ def initial_obs(cfg):
         print("\033[31mNothing entered, exiting\033[0m")
         sys.exit()
 
-    return initialDialog.phases, initialDialog.Xs
+    return initialDialog.phases, initialDialog.Xs, initialDialog.probs
 
 
 if __name__ == "__main__":
@@ -290,9 +291,9 @@ if __name__ == "__main__":
 
     cfg = Config()
 
-    phases, Xs = initial_obs(cfg)
+    phases, Xs, probs = initial_obs(cfg)
 
-    passer = DistanceSampler2D(init_phases=phases, init_Xs=Xs, cfg=cfg)
+    passer = DistanceSampler2D(init_phases=phases, init_Xs=Xs, init_probs=probs, cfg=cfg)
     window = MainWindow(passer)
 
     # app.exec()
