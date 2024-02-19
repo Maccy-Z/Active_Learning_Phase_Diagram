@@ -208,7 +208,7 @@ class PhasePlotter(Plotter):
 class DistanceSampler3D(DistanceSampler):
     mayavi_scenes: list
 
-    def __init__(self, init_phases, init_Xs, cfg: Config, init_probs=None, save_dir="./saves"):
+    def __init__(self, init_phases, init_Xs, cfg: Config, init_probs=None, save_dir="../saves"):
         super().__init__(init_phases, init_Xs, init_probs=init_probs, cfg=cfg, save_dir=save_dir)
         assert cfg.N_dim == 3, "3D sampling and plotting only"
 

@@ -90,6 +90,6 @@ def main(save_dir):
 
 
 if __name__ == "__main__":
-    save_dir = "./saves"
+    save_dir = "../saves"
 
     main(save_dir)

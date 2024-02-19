@@ -71,7 +71,14 @@ class GPRSimple(torch.nn.Module):
         # Cache important matrices
         with torch.no_grad():
             K = self.kernel.kern(train_x, train_x) + noise * torch.eye(len(train_x))
-            self.L = torch.linalg.cholesky(K)
+            # If noise is too low, there is a possibility K is not positive definite.
+            try:
+                self.L = torch.linalg.cholesky(K)
+            except RuntimeError as e:
+                c_print(f'Cholesky failed. Trying with more noise.', color="red")
+                K = self.kernel.kern(train_x, train_x) + 1e-5 * torch.eye(len(train_x))
+                self.L = torch.linalg.cholesky(K)
+
             self.inv_y = torch.cholesky_solve(train_y.unsqueeze(1), self.L)
         self.is_fitted = True
         return {param_name: param.detach().item() for param_name, param in self.param_holder.get_params().items()}

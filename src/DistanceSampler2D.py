@@ -11,7 +11,7 @@ import time
 
 
 class DistanceSampler2D(DistanceSampler):
-    def __init__(self, init_phases, init_Xs, cfg: Config, init_probs=None, save_dir="./saves"):
+    def __init__(self, init_phases, init_Xs, cfg: Config, init_probs=None, save_dir="../saves"):
         super().__init__(init_phases, init_Xs, cfg, init_probs, save_dir)
         assert cfg.N_dim == 2, "2D sampling and plotting only"
 
@@ -135,6 +135,6 @@ def main(save_dir):
 
 
 if __name__ == "__main__":
-    save_dir = "./saves"
+    save_dir = "../saves"
 
     main(save_dir)

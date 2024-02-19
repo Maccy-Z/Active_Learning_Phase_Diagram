@@ -10,20 +10,19 @@ os.chdir(os.path.dirname(cwd))
 from matplotlib import pyplot as plt
 import numpy as np
 
-from src.DistanceSampler import DistanceSampler
+from src.DistanceSampler2D import DistanceSampler2D
 from src.utils import ObsHolder
 
-T = 100
-obs_holder = ObsHolder.load("./saves/14")
+T = 150
+obs_holder = ObsHolder.load("../saves/12")
 obs_holder._obs_pos = obs_holder._obs_pos[:T]
 obs_holder.obs_phase = obs_holder.obs_phase[:T]
 cfg = obs_holder.cfg
 
-distance_sampler = DistanceSampler(init_phases=obs_holder.obs_phase, init_Xs=obs_holder._obs_pos, cfg=cfg, save_dir="/tmp")
-
-fig = plt.figure(figsize=(11, 3.3))
+distance_sampler = DistanceSampler2D(init_phases=obs_holder.obs_phase, init_Xs=obs_holder._obs_pos, cfg=cfg, save_dir="/tmp")
 
 # Create three subplots
+fig = plt.figure(figsize=(11, 3.3))
 axes1 = fig.add_subplot(131)
 axes2 = fig.add_subplot(132)
 axes3 = fig.add_subplot(133)
@@ -31,13 +30,13 @@ axes3 = fig.add_subplot(133)
 distance_sampler.set_plots([axes1, axes2, axes3], fig)
 distance_sampler.single_obs()
 
-def set_ticks(ax):
-    ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
-    ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
-
-set_ticks(axes1)
-set_ticks(axes2)
-set_ticks(axes3)
+# def set_ticks(ax):
+#     ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
+#     ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
+#
+# set_ticks(axes1)
+# set_ticks(axes2)
+# set_ticks(axes3)
 
 plt.subplots_adjust(left=0.04, right=0.99, top=0.92, bottom=0.08, wspace=0.15, hspace=0.4)
 
