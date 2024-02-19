@@ -7,38 +7,83 @@ sys.path.append(parent_dir)
 cwd = os.getcwd()
 os.chdir(os.path.dirname(cwd))
 
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 
 from src.DistanceSampler2D import DistanceSampler2D
 from src.utils import ObsHolder
+from src.gaussian_sampler import gen_pd, fit_gp
+from src.utils import make_grid
 
-T = 150
-obs_holder = ObsHolder.load("../saves/12")
-obs_holder._obs_pos = obs_holder._obs_pos[:T]
-obs_holder.obs_phase = obs_holder.obs_phase[:T]
-cfg = obs_holder.cfg
 
-distance_sampler = DistanceSampler2D(init_phases=obs_holder.obs_phase, init_Xs=obs_holder._obs_pos, cfg=cfg, save_dir="/tmp")
+def plot_all():
+    T = 150
+    obs_holder = ObsHolder.load("../saves/12")
+    obs_holder._obs_pos = obs_holder._obs_pos[:T]
+    obs_holder.obs_phase = obs_holder.obs_phase[:T]
+    cfg = obs_holder.cfg
 
-# Create three subplots
-fig = plt.figure(figsize=(11, 3.3))
-axes1 = fig.add_subplot(131)
-axes2 = fig.add_subplot(132)
-axes3 = fig.add_subplot(133)
+    distance_sampler = DistanceSampler2D(init_phases=obs_holder.obs_phase, init_Xs=obs_holder._obs_pos, init_probs=None, cfg=cfg, save_dir="/tmp")
 
-distance_sampler.set_plots([axes1, axes2, axes3], fig)
-distance_sampler.single_obs()
+    # Create three subplots
+    fig = plt.figure(figsize=(11, 3.3))
+    axes1 = fig.add_subplot(131)
+    axes2 = fig.add_subplot(132)
+    axes3 = fig.add_subplot(133)
 
-# def set_ticks(ax):
-#     ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
-#     ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
-#
-# set_ticks(axes1)
-# set_ticks(axes2)
-# set_ticks(axes3)
+    distance_sampler.set_plots([axes1, axes2, axes3], fig)
 
-plt.subplots_adjust(left=0.04, right=0.99, top=0.92, bottom=0.08, wspace=0.15, hspace=0.4)
+    distance_sampler.single_obs()
 
-#fig.tight_layout()
-fig.show()
+    # def set_ticks(ax):
+    #     ax.set_xticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
+    #     ax.set_yticks(np.linspace(-2, 2, 3), labels=np.linspace(-2, 2, 3).astype(int), fontsize=11)
+    #
+    # set_ticks(axes1)
+    # set_ticks(axes2)
+    # set_ticks(axes3)
+
+    plt.subplots_adjust(left=0.04, right=0.99, top=0.92, bottom=0.08, wspace=0.15, hspace=0.4)
+
+    # fig.tight_layout()
+    fig.show()
+
+
+def plot_single(T):
+    obs_holder = ObsHolder.load("../saves/12")
+    obs_holder._obs_pos = obs_holder._obs_pos[:T]
+    obs_holder.obs_phase = obs_holder.obs_phase[:T]
+    obs_holder.obs_prob = obs_holder.obs_prob[:T]
+    cfg = obs_holder.cfg
+
+    # Generate predictions
+    model = fit_gp(obs_holder, cfg=cfg)
+    X_display, _ = make_grid(cfg.N_display, cfg.unit_extent)
+    probs_old = gen_pd(model, X_display, cfg=cfg)
+    pd_old = np.argmax(probs_old, axis=1)
+    pd = pd_old.reshape([cfg.N_display for _ in range(2)]).T
+
+    # Plot observations
+    X_obs, phase_obs, _ = obs_holder.get_og_obs()
+    xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
+
+    plt.scatter(xs_train, ys_train, marker="x", s=30, c=phase_obs, cmap='bwr')
+    plt.imshow(pd, origin="lower", extent=sum(cfg.extent, ()), aspect='auto')
+
+    # Set plot pretty format
+    ax = plt.gca()
+    ax.set_box_aspect(1)
+    plt.xticks(cfg.extent[0])
+    plt.yticks(cfg.extent[1])
+    plt.show()
+
+
+def main():
+    for T in [6, 16, 26, 36, 46, 56, 66, 76, 86, 96, 106, 116, 126, 136, 146]:
+        print("T:", T)
+        plot_single(T)
+
+
+if __name__ == "__main__":
+    main()
+    plt.show()

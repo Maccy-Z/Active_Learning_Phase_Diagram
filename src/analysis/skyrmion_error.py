@@ -161,7 +161,7 @@ def main():
     save_name = f[-1]
     print(f'{save_name = }')
 
-    og_obs = ObsHolder.load_legacy(f'../saves/{save_name}')
+    og_obs = ObsHolder.load(f'../saves/{save_name}')
     deduplicate(og_obs)
 
     with open(f'../saves/{save_name}/cfg.pkl', "rb") as f:

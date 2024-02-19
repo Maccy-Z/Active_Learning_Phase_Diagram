@@ -56,16 +56,16 @@ class ObsHolder:
         cls._obs_pos = obs_holder._obs_pos
         cls.obs_phase = obs_holder.obs_phase
 
+        if hasattr(cls, "obs_prob"):
+            cls.obs_prob = obs_holder.obs_prob
+        else:
+            print("Loading old obs_holder")
+            with open(f'{save_path}/obs_holder.pkl', "rb") as f:
+                obs_holder = pickle.load(f)
+            obs_holder.obs_prob = [0.9 for _ in obs_holder.obs_phase]
+            return obs_holder
+
         return cls
-
-    @staticmethod
-    def load_legacy(save_path):
-        with open(f'{save_path}/obs_holder.pkl', "rb") as f:
-            obs_holder = pickle.load(f)
-
-        obs_holder.obs_prob = [0.9 for _ in obs_holder.obs_phase]
-
-        return obs_holder
 
     def save(self):
         with open(f'{self.save_path}/obs_holder.pkl', "wb") as f:
@@ -253,7 +253,6 @@ def c_print(text, color: str):
     code = color_codes[color]
 
     print(f"{code}{text}{color_codes['reset']}")
-
 
 
 if __name__ == "__main__":
