@@ -60,23 +60,21 @@ def dist(obs_holder, *, true_pd, cfg, points, t):
     return diff_mean
 
 
-def deduplicate(array_list):
-    seen = []  # List to store the distinct arrays seen so far
-    count_dict = {}  # Dictionary to store the result
-
-    count = 0
-    for idx, arr in enumerate(array_list):
+def deduplicate(obs_holder: ObsHolder):
+    c_print("Deduplicating observations", "green")
+    Xs, phases = obs_holder.get_og_obs()
+    seen_Xs, seen_phase = [], []
+    for X, p in zip(Xs, phases):
         # Check if the current array is identical to any of the arrays seen so far
-        if not any(np.array_equal(arr, seen_arr) for seen_arr in seen):
-            seen.append(arr)
-            count += 1
-        count_dict[idx] = count
+        if not any(np.array_equal(X, seen_arr) for seen_arr in seen_Xs):
+            seen_Xs.append(X)
+            seen_phase.append(p)
+        else:
+            print(f"Duplicate found: {X}, phase: {p}")
 
-    reversed_dict = {}
-    for key, value in count_dict.items():
-        if value not in reversed_dict:
-            reversed_dict[value] = key
-    return reversed_dict
+    obs_holder._obs_pos = seen_Xs
+    obs_holder.obs_phase = seen_phase
+
 
 
 def main():
@@ -163,6 +161,7 @@ def main():
     print(f'{save_name = }')
 
     og_obs = ObsHolder.load_legacy(f'../saves/{save_name}')
+    deduplicate(og_obs)
 
     with open(f'../saves/{save_name}/cfg.pkl', "rb") as f:
         cfg: Config = pickle.load(f)
