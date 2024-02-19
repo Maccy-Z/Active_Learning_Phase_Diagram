@@ -202,6 +202,11 @@ class GPRSoftmax(torch.nn.Module):
         probs = []
         for mu, cov in zip(means, covs):
             phase_probs = gauss_hermite_quadrature(mu, cov, self.cfg.gaus_herm_n)
+
+            if np.any(np.isnan(phase_probs)):
+                print(f"NaN in phase_probs: {phase_probs}")
+                print(mu, cov)
+
             probs.append(phase_probs)
         probs = np.array(probs)
 

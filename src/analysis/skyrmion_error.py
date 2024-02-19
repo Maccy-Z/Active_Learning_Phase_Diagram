@@ -62,18 +62,20 @@ def dist(obs_holder, *, true_pd, cfg, points, t):
 
 def deduplicate(obs_holder: ObsHolder):
     c_print("Deduplicating observations", "green")
-    Xs, phases = obs_holder.get_og_obs()
-    seen_Xs, seen_phase = [], []
-    for X, p in zip(Xs, phases):
+    Xs, phases, probs = obs_holder.get_og_obs()
+    seen_Xs, seen_phase, seen_prob = [], [], []
+    for X, phase, prob in zip(Xs, phases, probs):
         # Check if the current array is identical to any of the arrays seen so far
         if not any(np.array_equal(X, seen_arr) for seen_arr in seen_Xs):
             seen_Xs.append(X)
-            seen_phase.append(p)
+            seen_phase.append(phase)
+            seen_prob.append(prob)
         else:
-            print(f"Duplicate found: {X}, phase: {p}")
+            print(f"Duplicate found: {X}, phase: {phase}")
 
     obs_holder._obs_pos = seen_Xs
     obs_holder.obs_phase = seen_phase
+    obs_holder.obs_prob = seen_prob
 
 
 def main():
