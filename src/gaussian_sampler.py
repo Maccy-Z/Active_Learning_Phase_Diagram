@@ -40,7 +40,7 @@ class DistanceCalculator:
 
 
 def fit_gp(obs_holder: ObsHolder, cfg) -> GPRSoftmax:
-    "Fit a new model to observations"
+    "Fit a new model to observations, including hyperparam tuning "
     model = GPRSoftmax(obs_holder, cfg)
     model.make_GP(fit_hyperparams=True)
 

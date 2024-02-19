@@ -58,6 +58,15 @@ class ObsHolder:
 
         return cls
 
+    @staticmethod
+    def load_legacy(save_path):
+        with open(f'{save_path}/obs_holder.pkl', "rb") as f:
+            obs_holder = pickle.load(f)
+
+        obs_holder.obs_prob = [0.9 for _ in obs_holder.obs_phase]
+
+        return obs_holder
+
     def save(self):
         with open(f'{self.save_path}/obs_holder.pkl', "wb") as f:
             pickle.dump(self, f)

@@ -19,12 +19,12 @@ class Config:
     sample_dist: float = 0.5  # Size of region to sample P_{n+1} over.
 
     """GP parameters"""
-    obs_prob: float = 0.9  # Default certainty of observations. (Not too close to 1 or 0)
+    obs_prob: float = 0.95  # Default certainty of observations. (Not too close to 1 or 0)
     gaus_herm_n: int = 10  # Number of samples for Gauss Hermite quadrature
     N_optim_steps: int = 250  # Number of steps to optimise hyperparameters
 
     """General Parameters"""
-    N_CPUs: int = 8  # Number of CPUs to use
+    N_CPUs: int = 8  # Number of parallel CPU threads to use
 
     def __post_init__(self):
         self.extent = ((-2, 2),
