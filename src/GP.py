@@ -33,8 +33,8 @@ class ParamHolder(torch.nn.Module):
         kern_scale = torch.nn.functional.softplus(self.raw_kern_scale) + 1e-4
         noise = torch.nn.functional.softplus(self.raw_noise) + 1e-6
 
-        if kern_len > 5:
-            kern_len = torch.tensor(5.)
+        kern_len = kern_len.clamp(0, 5)
+        noise = noise.clamp(0, 1)
 
         return {'kern_len': kern_len, 'kern_scale': kern_scale, 'noise': noise}
 
@@ -52,6 +52,9 @@ class GPRSimple(torch.nn.Module):
     inv_y: torch.Tensor
 
     def __init__(self, noise_var=None, kern_len=math.log(2), kern_scale=math.log(2)):
+        """Simple Gaussian Process Regression model. Uses Matern 1/2 kernel.
+            Set noise_var=None to fit noise_var. Otherwise, noise_var is fixed.
+        """
         super(GPRSimple, self).__init__()
         self.param_holder = ParamHolder(noise_var=noise_var, kern_len=kern_len, kern_scale=kern_scale)
 
@@ -61,7 +64,6 @@ class GPRSimple(torch.nn.Module):
     def fit(self, train_x: torch.Tensor, train_y: torch.Tensor, n_iters=None):
         # train_x.dim() == 2, "train_x must be a 2D tensor."
         self.train_x, self.train_y = train_x, train_y
-
         if n_iters is not None:
             self.fit_params(n_iters)
 
@@ -169,19 +171,18 @@ class GPRSoftmax(torch.nn.Module):
         """
         For each phase, make a GPRSimple classifier
         """
-        obs_X, obs_phase = self.obs_holder.get_obs()
-        obs_X, obs_phase = torch.from_numpy(obs_X).to(torch.float), torch.from_numpy(obs_phase).to(torch.float)
-        obs_X = obs_X.view(-1, self.cfg.N_dim)
+        obs_Xs, obs_phases, obs_probs = self.obs_holder.get_obs()
+        obs_Xs, obs_phases, obs_probs = torch.from_numpy(obs_Xs).to(torch.float), torch.from_numpy(obs_phases), torch.from_numpy(obs_probs).to(torch.float)
+        obs_Xs = obs_Xs.view(-1, self.cfg.N_dim)
         for phase in range(self.cfg.N_phases):
-            obs_y = (obs_phase == phase).to(torch.float)
-            logit_y = self._phase_to_mean(obs_y)
+            logit_ys = self._phase_to_mean(phase, obs_phases, obs_probs)
             phase_model = GPRSimple()
 
             if fit_hyperparams:
-                params = phase_model.fit(obs_X, logit_y, n_iters=self.cfg.N_optim_steps)
+                params = phase_model.fit(obs_Xs, logit_ys, n_iters=self.cfg.N_optim_steps)
                 self.fitted_params.append(params)
             else:
-                phase_model.fit(obs_X, logit_y, n_iters=None)
+                phase_model.fit(obs_Xs, logit_ys, n_iters=None)
 
             self.models.append(phase_model)
 
@@ -200,22 +201,29 @@ class GPRSoftmax(torch.nn.Module):
         # For each point, find prob of each phase using Gauss Hermite on likelihood
         probs = []
         for mu, cov in zip(means, covs):
-            phase_probs = gauss_hermite_quadrature(mu, cov, self.cfg.gaus_herm_n, T=self.cfg.T)
-
-            if np.any(np.isnan(phase_probs)):
-                print(f"NaN in phase_probs: {phase_probs}")
-                print(mu, cov)
-
+            phase_probs = gauss_hermite_quadrature(mu, cov, self.cfg.gaus_herm_n)
             probs.append(phase_probs)
         probs = np.array(probs)
 
         return probs
 
-    def _phase_to_mean(self, bin_obs):
-        logit_y = bin_obs * 2 - 1
+    def _phase_to_mean(self, phase, obs_phases: torch.Tensor, obs_probs):
+        """ Values to fit GP. For each phase, convert binary observation to logit space.
+            Set +1 and -1 to give correct softmax probability, with average logit=0.
+        """
+        n = self.cfg.N_phases
+        same_phase = obs_phases == phase
+
+        # Formulas for calculating logits.
+        same_logit = (1-n)/n * torch.log((1-obs_probs) / ((n - 1) * obs_probs))
+        diff_logit = 1/n * torch.log((1-obs_probs) / ((n - 1) * obs_probs))
+
+        logit_y = diff_logit
+        logit_y[same_phase] = same_logit[same_phase]
+
         return logit_y.to(torch.float)
 
-    def fantasy_GPs(self, fant_x: np.ndarray, fant_phase: np.ndarray):
+    def fantasy_GPs(self, fant_x: np.ndarray, fant_phase: int, fant_prob: float):
         """
         Make new models assuming new observations fant_phase at fant_x
         fant_x.shape = [N_fant, N_dim]
@@ -223,16 +231,16 @@ class GPRSoftmax(torch.nn.Module):
 
         Return new class with fantasy models
         """
-
-        obs_X, obs_phase = self.obs_holder.get_obs()
+        obs_X, obs_phase, obs_prob = self.obs_holder.get_obs()
         fant_x = fant_x.reshape(-1, self.cfg.N_dim)
 
-        obs_X = np.concatenate([obs_X, fant_x])
-        obs_phase = np.append(obs_phase, fant_phase)
+        obs_Xs = np.concatenate([obs_X, fant_x])
+        obs_phases = np.append(obs_phase, fant_phase)
+        obs_probs = np.append(obs_prob, fant_prob)
 
-        obs_X, obs_phase = torch.from_numpy(obs_X).to(torch.float), torch.from_numpy(obs_phase).to(torch.float)
+        obs_Xs, obs_phases, obs_probs = torch.from_numpy(obs_Xs).to(torch.float), torch.from_numpy(obs_phases), torch.from_numpy(obs_probs).to(torch.float)
 
-        new_model = GPRFantasy(self.obs_holder, self.cfg, obs_X, obs_phase, self.fitted_params)
+        new_model = GPRFantasy(self.obs_holder, self.cfg, obs_Xs, obs_phases, obs_probs, self.fitted_params)
         return new_model
 
 
@@ -241,15 +249,14 @@ class GPRFantasy(GPRSoftmax):
     Class for fantasy models.
     """
 
-    def __init__(self, obs_holder: ObsHolder, cfg: Config, obs_X: torch.Tensor, obs_phase: torch.Tensor, fitted_params):
+    def __init__(self, obs_holder: ObsHolder, cfg: Config, obs_X: torch.Tensor, obs_phase: torch.Tensor, obs_probs, fitted_params):
         """Make a fantasy model from existing observations and fit.
         Use parent hyperparameters"""
         super(GPRFantasy, self).__init__(obs_holder, cfg)
 
         for phase, params in enumerate(fitted_params):
             kern_len, kern_scale, noise = params['kern_len'], params['kern_scale'], params['noise']
-            obs_y = (obs_phase == phase).to(torch.float)
-            logit_y = self._phase_to_mean(obs_y)
+            logit_y = self._phase_to_mean(phase, obs_phase, obs_probs)
             phase_model = GPRSimple(kern_len=kern_len, kern_scale=kern_scale, noise_var=noise)
             phase_model.fit(obs_X, logit_y, n_iters=None)
             self.models.append(phase_model)

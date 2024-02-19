@@ -17,11 +17,12 @@ class ObsHolder:
         self.cfg = cfg
         self.save_path = save_path
         self._obs_pos = []
-        self.obs_phase = []
+        self.obs_phase, self.obs_prob = [], []
 
-    def make_obs(self, X, phase):
+    def make_obs(self, X, phase, prob):
         self._obs_pos.append(X)
         self.obs_phase.append(phase)
+        self.obs_prob.append(prob)
 
     def get_obs(self) -> [np.ndarray, np.ndarray]:
         # Rescale observations to [0, 1] on inference
@@ -34,10 +35,10 @@ class ObsHolder:
 
         obs_pos = (obs_pos - mins) / bbox_sizes
 
-        return obs_pos, np.array(self.obs_phase)
+        return obs_pos, np.array(self.obs_phase), np.array(self.obs_prob)
 
     def get_og_obs(self):
-        return np.array(self._obs_pos), np.array(self.obs_phase)
+        return np.array(self._obs_pos), np.array(self.obs_phase), np.array(self.obs_prob)
 
     @staticmethod
     def load(save_path):
@@ -56,6 +57,15 @@ class ObsHolder:
         cls.obs_phase = obs_holder.obs_phase
 
         return cls
+
+    @staticmethod
+    def load_legacy(save_path):
+        with open(f'{save_path}/obs_holder.pkl', "rb") as f:
+            obs_holder = pickle.load(f)
+
+        obs_holder.obs_prob = [0.9 for _ in obs_holder.obs_phase]
+
+        return obs_holder
 
     def save(self):
         with open(f'{self.save_path}/obs_holder.pkl', "wb") as f:

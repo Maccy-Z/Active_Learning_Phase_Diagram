@@ -11,8 +11,8 @@ import time
 
 
 class DistanceSampler2D(DistanceSampler):
-    def __init__(self, init_phases, init_Xs, cfg: Config, save_dir="./saves"):
-        super().__init__(init_phases, init_Xs, cfg, save_dir)
+    def __init__(self, init_phases, init_Xs, cfg: Config, init_probs=None, save_dir="./saves"):
+        super().__init__(init_phases, init_Xs, cfg, init_probs, save_dir)
         assert cfg.N_dim == 2, "2D sampling and plotting only"
 
     # Load in axes for plotting
@@ -69,7 +69,7 @@ class DistanceSampler2D(DistanceSampler):
         # Plot current phase diagram and next sample point
         new_point = plot_holder['new_point']
         pd = plot_holder['pd']
-        X_obs, phase_obs = self.obs_holder.get_og_obs()
+        X_obs, phase_obs, _ = self.obs_holder.get_og_obs()
         xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
         self.pd_ax.set_title(f"PD and points")
         self.pd_ax.imshow(pd, extent=extent, origin="lower", aspect='auto')  # Phase diagram
@@ -127,7 +127,7 @@ def main(save_dir):
         print(f'Time taken: {time.time() - st:.2f}s')
         print(f'{new_point =}, {prob = }')
         obs_phase = pd_fn(new_point, train=False)
-        distance_sampler.add_obs(obs_phase, new_point)
+        distance_sampler.add_obs(obs_phase, new_point, prob=0.99)
 
         # print(distance_sampler.obs_holder.get_og_obs())
 

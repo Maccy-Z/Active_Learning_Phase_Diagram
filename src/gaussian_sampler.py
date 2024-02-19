@@ -38,62 +38,11 @@ class DistanceCalculator:
 
         return mean_diffs
 
-    # def KL_div(self, pds_new, dist_mask, sampled_mask, weights):
-    #     """
-    #     KL div between PD_old and PD_new, assuming probs are independent Gaussian distributions.
-    #     Sum over phase diagram, average over possible observations
-    #     """
-    #
-    #     pds_new, prob_means_new, prob_stds_new = pds_new
-    #     pds_old = self.pds[sampled_mask][:, dist_mask]
-    #     prob_means_old = self.prob_means[sampled_mask][:, dist_mask]
-    #     prob_stds_old = self.prob_stds[sampled_mask][:, dist_mask]
-    #
-    #     # prob_stds_old += 0.05
-    #     # prob_stds_new += 0.05
-    #
-    #     log_term = np.log(prob_stds_new / prob_stds_old)
-    #     diff_term = (prob_stds_old ** 2 + (prob_means_old - prob_means_new) ** 2) / (2 * prob_stds_new ** 2)
-    #
-    #     KL_div = log_term + diff_term - 0.5  # shape = (n_phase, num_dists, N_phases)
-    #     # KL_div = (prob_means_old - prob_means_new) ** 2
-    #
-    #     # Sum over phase diagrams
-    #     KL_div = np.mean(KL_div, axis=(1, 2))  # shape = (n_phase,)
-    #
-    #     KL_div *= weights
-    #     distance = np.sum(KL_div)
-    #
-    #     self.plot_means(prob_means_old, prob_means_new, distance)
-    #     return distance
-    #
-    # def plot_means(self, old_means, new_means, distance):
-    #     old = old_means[0, :, 0].reshape(11, 11)
-    #     new_obs_0 = new_means[0, :, 0].reshape(11, 11)
-    #     new_obs_1 = new_means[1, :, 0].reshape(11, 11)
-    #
-    #     delta_0 = old - new_obs_0
-    #     delta_1 = old - new_obs_1
-    #
-    #     plt.close("all")
-    #     plt.subplot(1, 3, 1)
-    #     plt.title(distance)
-    #     plt.imshow(old.T, origin="lower", extent=(0, 1, 0, 1), vmax=0.8, vmin=0.2)
-    #     plt.scatter(0.5, 0.5, c='r')
-    #     plt.subplot(1, 3, 2)
-    #     plt.imshow(delta_0.T, origin="lower", extent=(0, 1, 0, 1), vmax=0.1, vmin=-0.1)
-    #     plt.scatter(0.5, 0.5, c='r')
-    #     plt.subplot(1, 3, 3)
-    #     plt.imshow(delta_1.T, origin="lower", extent=(0, 1, 0, 1), vmax=0.1, vmin=-0.1)
-    #     plt.scatter(0.5, 0.5, c='r')
-    #
-    #     plt.show()
 
-
-def fit_gp(fit_hyperparams: bool, obs_holder: ObsHolder, cfg) -> GPRSoftmax:
-    "Fit a new model to observations"
+def fit_gp(obs_holder: ObsHolder, cfg) -> GPRSoftmax:
+    "Fit a new model to observations, including hyperparam tuning "
     model = GPRSoftmax(obs_holder, cfg)
-    model.make_GP(fit_hyperparams)
+    model.make_GP(fit_hyperparams=True)
 
     return model
 
@@ -122,18 +71,17 @@ def gen_pd_new_point(old_model: GPRSoftmax, x_new, sample_xs, obs_probs, cfg: Co
     for obs_phase, obs_prob in enumerate(obs_probs):
         # Ignore very unlikely observations
         if obs_prob < cfg.skip_phase:
-            # probs.append(np.empty((sample_xs.shape[0], cfg.N_phases)))
             sampled_mask.append(False)
             continue
+        sampled_mask.append(True)
 
         # Make fantasy model assuming new observation is taken
-        fant_model = old_model.fantasy_GPs(x_new, obs_phase)
+        fant_model = old_model.fantasy_GPs(x_new, obs_phase, cfg.obs_prob)
 
         # Sample new phase diagrams, weighted to probability model is observed.
         pred_probs = gen_pd(fant_model, sample_xs, cfg=cfg)
 
         probs.append(pred_probs)
-        sampled_mask.append(True)
         # prob_mean = np.array(prob_mean)
         # print(prob_mean.shape)
 
@@ -196,7 +144,7 @@ def acquisition(old_model: GPRSoftmax, acq_Xs, pool, cfg):
 # Suggest a single point to sample given current observations
 def suggest_point(pool, obs_holder, cfg: Config):
     # Fit to existing observations
-    model = fit_gp(True, obs_holder, cfg=cfg)
+    model = fit_gp(obs_holder, cfg=cfg)
 
     # Find max_x A(x)
     acq_Xs, _ = make_grid(cfg.N_eval, cfg.unit_extent)  # Points to test for aquisition

@@ -208,8 +208,8 @@ class PhasePlotter(Plotter):
 class DistanceSampler3D(DistanceSampler):
     mayavi_scenes: list
 
-    def __init__(self, init_phases, init_Xs, cfg: Config, save_dir="./saves"):
-        super().__init__(init_phases, init_Xs, cfg, save_dir)
+    def __init__(self, init_phases, init_Xs, cfg: Config, init_probs=None, save_dir="./saves"):
+        super().__init__(init_phases, init_Xs, init_probs=init_probs, cfg=cfg, save_dir=save_dir)
         assert cfg.N_dim == 3, "3D sampling and plotting only"
 
         self.prob_plotter = ProbPlotter(cfg)
@@ -222,16 +222,11 @@ class DistanceSampler3D(DistanceSampler):
         for scene in mavi_scenes:
             self.mayavi_scenes.append(scene)
 
-    def add_obs(self, phase: int, X: np.ndarray):
-        self.obs_holder.make_obs(X, phase=phase)
-        self.obs_holder.save()
-
-    def single_obs(self, ):
+    def single_obs(self):
         """
         Suggest a point and plot the results
         Note plotting is done in unit scale, but returns new_point as real scale
         """
-        # self.obs_holder.save()
         new_point, prob_at_point, (pd_old, acq_fn, pd_probs) = suggest_point(self.pool, self.obs_holder, self.cfg)
         # Reshape and process raw data for plotting
         pd = pd_old.reshape([self.cfg.N_display for _ in range(3)])
@@ -246,7 +241,7 @@ class DistanceSampler3D(DistanceSampler):
 
     def plot(self, plot_holder):
         # Get existing ovservations
-        X_obs, phase_obs = self.obs_holder.get_obs()
+        X_obs, phase_obs, _ = self.obs_holder.get_obs()
         xs, ys, zs = X_obs[:, 0], X_obs[:, 1], X_obs[:, 2]
 
         # clear old plots

@@ -10,8 +10,8 @@ os.chdir(os.path.dirname(cwd))
 from matplotlib import pyplot as plt
 import numpy as np
 
-from my_code.DistanceSampler import DistanceSampler
-from my_code.utils import ObsHolder
+from src.DistanceSampler import DistanceSampler
+from src.utils import ObsHolder
 
 T = 100
 obs_holder = ObsHolder.load("./saves/14")

@@ -16,10 +16,9 @@ def row_max(mat):
 
 
 @jit(nopython=True, fastmath=True)
-def softmax_fn(logits, T):
+def softmax_fn(logits):
     """ logits.shape = [BS, n_dim]"""
 
-    logits *= T
     max_vals = row_max(logits)
     for i in range(logits.shape[0]):
         logits[i] -= max_vals[i]
@@ -55,13 +54,16 @@ def herm_gauss_weigts(n, dim) -> (np.ndarray, np.ndarray):
     # Normalization constant
     normalization_constant = 1 / ((np.pi) ** (dim / 2))
     weight_product *= normalization_constant
+
+    # sqrt2 grid for later use
+    grid = np.sqrt(2) * grid
     return grid, weight_product
 
 
-def gauss_hermite_quadrature(mean_vector, cov_matrix, n, T):
+def gauss_hermite_quadrature(mean_vector, cov_matrix, n):
     """
     Integrate an n-variable function with respect to an n-D Gaussian distribution using Gauss-Hermite quadrature
-    with Cholesky decomposition, vectorized for performance.
+    with Cholesky decomposition, vectorized for performance, with last integral skipped.
 
     Parameters:
     func (function): The function f(x) to be integrated, where x can be an array of shape [BS, n_dim].
@@ -75,24 +77,31 @@ def gauss_hermite_quadrature(mean_vector, cov_matrix, n, T):
 
     # Prepare Gauss-Hermite quadrature points and weights for each dimension
     dim = len(mean_vector)
-    grid, weight_product = herm_gauss_weigts(n, dim)
+    sqrt2_grid, weight_product = herm_gauss_weigts(n, dim)
 
-    return gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product, T)
+    probs = gauss_hermite_quadrature_inner(mean_vector, cov_matrix, sqrt2_grid, weight_product)
+    return probs
 
 
 @jit(nopython=True, fastmath=True)
-def gauss_hermite_quadrature_inner(mean_vector, cov_matrix, grid, weight_product, T):
+def gauss_hermite_quadrature_inner(mean_vector, cov_diag, sqrt2_grid, weight_product):
     # Apply Cholesky decomposition to the covariance matrix
-    L = np.sqrt(cov_matrix)
+    L = np.sqrt(cov_diag)
 
     # Transform the points using the Cholesky factor and add mean
-    x_transformed = mean_vector + np.sqrt(2) * grid * L
+    x_transformed = mean_vector + sqrt2_grid * L
 
     # Evaluate the function on the entire grid of points
-    func_values = softmax_fn(x_transformed, T)
+    func_values = softmax_fn(x_transformed)
 
+    # Only compute n-1 integrals, last one is known from summing probs.
+    func_values = func_values[:, :-1]
     # Compute the integral as the sum of weighted function evaluations
     probs = np.sum(weight_product[:, np.newaxis] * func_values, axis=0)
+
+    # Fill in last value
+    remain_prob = 1 - np.sum(probs)
+    probs = np.append(probs, remain_prob)
 
     return probs
 

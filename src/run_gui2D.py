@@ -64,6 +64,10 @@ class MainWindow(QMainWindow):
         self.text_y = QLineEdit(self)
         self.text_y.setValidator(QDoubleValidator())
 
+        self.label_prob = QLabel("Measurement probability (can be empty)")
+        self.text_prob = QLineEdit(self)
+        self.text_prob.setValidator(QDoubleValidator())
+
         # Layout for the text boxes and labels
         hbox1 = QHBoxLayout()
         hbox1.addWidget(self.label1)
@@ -77,10 +81,15 @@ class MainWindow(QMainWindow):
         hbox3.addWidget(self.label3)
         hbox3.addWidget(self.text_y)
 
+        hbox4 = QHBoxLayout()
+        hbox4.addWidget(self.label_prob)
+        hbox4.addWidget(self.text_prob)
+
         # Add a button to update the plot
         self.button = QPushButton("Update Plot")
         self.button.clicked.connect(self.update_plot)
 
+        # Fill in layout
         layout = QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
@@ -89,6 +98,7 @@ class MainWindow(QMainWindow):
         layout.addLayout(hbox1)
         layout.addLayout(hbox2)
         layout.addLayout(hbox3)
+        layout.addLayout(hbox4)
         layout.addWidget(self.button)
 
         container = QWidget()
@@ -103,12 +113,21 @@ class MainWindow(QMainWindow):
         phase = int(self.text_phase.text())
         x = float(self.text_x.text().replace(',', '.'))
         y = float(self.text_y.text().replace(',', '.'))
+        if self.text_prob.text() == "":
+            prob = None
+        else:
+            prob = float(self.text_prob.text().replace(',', '.'))
+            if prob <= 0 or prob >= 1:
+                self.dynamicLabel.setText("Probability must be between 0 and 1")
+                self.dynamicLabel.setStyleSheet("color: red;")
+                return
 
         # Add to model
-        self.gui_to_sampler.add_obs(phase, np.array([x, y]))
+        self.gui_to_sampler.add_obs(phase, np.array([x, y]), prob=prob)
         # Sample next point
         new_point, prob_at_point = self.sample_and_plot()
 
+        # Update info for user
         self.infoLabel.setText(f'Predicted probabilities: {prob_at_point}')
         self.dynamicLabel.setStyleSheet("color: black;")
 
@@ -121,8 +140,8 @@ class MainWindow(QMainWindow):
         self.canvas.draw()
 
         x, y = new_point
-        self.text_x.setText(str(x))
-        self.text_y.setText(str(y))
+        self.text_x.setText(f'{x:.2f}')
+        self.text_y.setText(f'{y:.2f}')
 
         new_text = "Done"
         self.dynamicLabel.setText(new_text)
@@ -156,6 +175,11 @@ class InputWindow(QDialog):
         self.label3 = QLabel("Y coordinates:", self)
         self.input_y = QLineEdit(self)
 
+        # Probability of error
+        self.label4 = QLabel("Measurement prob (can be empty):", self)
+        self.input_prob = QLineEdit(self)
+
+        # OK button
         self.okButton = QPushButton("OK", self)
 
         # Add elements to the layout
@@ -169,6 +193,9 @@ class InputWindow(QDialog):
         self.layout.addWidget(self.label3)
         self.layout.addWidget(self.input_y)
 
+        self.layout.addWidget(self.label4)
+        self.layout.addWidget(self.input_prob)
+
         self.layout.addWidget(self.okButton)
 
         self.okButton.clicked.connect(self.check_input)
@@ -179,6 +206,7 @@ class InputWindow(QDialog):
         phases = self.input_phase.text()
         xs = self.input_x.text()
         ys = self.input_y.text()
+        probs = self.input_prob.text()
 
         try:
             phases = [int(p.strip()) for p in phases.split(',')]
@@ -213,14 +241,37 @@ class InputWindow(QDialog):
             self.instruction_box.setText("Invalid Y coordinates entered")
             return
 
+        # Probability can be left blank and must be between 0 and 1
+        try:
+            if probs == '':
+                probs = None
+            else:
+                probs = [float(x.strip()) for x in probs.split(',')]
+                p = np.array(probs)
+                if np.any(p <= 0) or np.any(p >= 1):
+                    raise ValueError("Probabilities must be between 0 and 1")
+        except ValueError as e:
+            print()
+            print("\033[31mInvalid probabilities\033[0m")
+            print(e)
+            self.instruction_box.setText("Invalid probabilities entered")
+            return
+
         if not len(xs) == len(phases) == len(ys):
             print("\033[31mNumber of entries must be equal for xs, ys, and phase\033[0m")
             print(f'{len(phases) = }, {len(xs) = }, {len(ys) = }')
             self.instruction_box.setText("Number of observations is inconsistent")
             return
 
+        if probs is not None and not len(probs) == len(phases):
+            print("\033[31mNumber of entries must be equal for phases and probs\033[0m")
+            print(f'{len(phases) = }, {len(probs) = }')
+            self.instruction_box.setText("Number of probabilities is inconsistent")
+            return
+
         self.phases = np.array(phases)
         self.Xs = np.stack([xs, ys]).T
+        self.probs = None if probs is None else np.array(probs)
         self.accept()
 
 
@@ -231,7 +282,7 @@ def initial_obs(cfg):
     if dialog_result == QDialog.DialogCode.Rejected:
         print("\033[31mNothing entered, exiting\033[0m")
         sys.exit()
-    return initialDialog.phases, initialDialog.Xs
+    return initialDialog.phases, initialDialog.Xs, initialDialog.probs
 
 
 if __name__ == "__main__":
@@ -239,9 +290,9 @@ if __name__ == "__main__":
 
     cfg = Config()
 
-    phases, Xs = initial_obs(cfg)
+    phases, Xs, probs = initial_obs(cfg)
 
-    passer = DistanceSampler2D(init_phases=phases, init_Xs=Xs, cfg=cfg)
+    passer = DistanceSampler2D(init_phases=phases, init_Xs=Xs, init_probs=probs, cfg=cfg)
     window = MainWindow(passer)
 
     # app.exec()
