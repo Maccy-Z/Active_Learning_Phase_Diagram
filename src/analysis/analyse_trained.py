@@ -9,6 +9,7 @@ os.chdir(os.path.dirname(cwd))
 
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.ticker as ticker
 
 from src.DistanceSampler2D import DistanceSampler2D
 from src.utils import ObsHolder
@@ -49,7 +50,7 @@ def plot_all():
     fig.show()
 
 
-def plot_single(T):
+def plot_single(T, ax):
     obs_holder = ObsHolder.load("../saves/12")
     obs_holder._obs_pos = obs_holder._obs_pos[:T]
     obs_holder.obs_phase = obs_holder.obs_phase[:T]
@@ -67,23 +68,33 @@ def plot_single(T):
     X_obs, phase_obs, _ = obs_holder.get_og_obs()
     xs_train, ys_train = X_obs[:, 0], X_obs[:, 1]
 
-    plt.scatter(xs_train, ys_train, marker="x", s=30, c=phase_obs, cmap='bwr')
-    plt.imshow(pd, origin="lower", extent=sum(cfg.extent, ()), aspect='auto')
+    ax.scatter(xs_train, ys_train, marker="x", s=30, c=phase_obs, cmap='bwr')
+    ax.imshow(pd, origin="lower", extent=sum(cfg.extent, ()), aspect='auto')
 
     # Set plot pretty format
-    ax = plt.gca()
     ax.set_box_aspect(1)
-    plt.xticks(cfg.extent[0])
-    plt.yticks(cfg.extent[1])
-    plt.show()
-
+    ax.set_xticks(cfg.extent[0])
+    ax.set_yticks(cfg.extent[1])
+    ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+    ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
 
 def main():
-    for T in [6, 16, 26, 36, 46, 56, 66, 76, 86, 96, 106, 116, 126, 136, 146]:
+
+    n_rows, n_cols = 2, 5
+    plot_steps = [6, 16, 26, 36, 56, 76, 86, 106, 126, 146]
+
+    assert n_rows * n_cols == len(plot_steps), "Number of subplots must match number of steps to plot."
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(15, 6))
+
+    for T, ax in zip(plot_steps, axs.flatten()):
         print("T:", T)
-        plot_single(T)
+        plot_single(T, ax)
+        ax.set_title(f"T={T}", fontsize=15)
+
+    plt.subplots_adjust(left=0.04, right=0.98, top=0.94, bottom=0.07, wspace=0.1, hspace=0.2)
+    # plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
     main()
-    plt.show()
