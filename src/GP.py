@@ -16,7 +16,7 @@ class ParamHolder(torch.nn.Module):
     raw_kern_scale: torch.nn.Parameter
     raw_noise: torch.nn.Parameter
 
-    def __init__(self, kern_len=math.log(1.5), kern_scale=math.log(2), noise_var=math.log(2)):
+    def __init__(self, kern_len=math.log(1), kern_scale=math.log(2), noise_var=math.log(2)):
         super().__init__()
 
         self.raw_kern_len = torch.nn.Parameter(self.inv_softplus(torch.tensor(kern_len)))
@@ -29,12 +29,12 @@ class ParamHolder(torch.nn.Module):
 
     # Return parameters in their original scale
     def get_params(self):
-        kern_len = torch.nn.functional.softplus(self.raw_kern_len) + 0.2
+        kern_len = torch.nn.functional.softplus(self.raw_kern_len) + 0.25
         kern_scale = torch.nn.functional.softplus(self.raw_kern_scale) + 1e-4
         noise = torch.nn.functional.softplus(self.raw_noise) + 1e-6
 
         kern_len = kern_len.clamp(0, 5)
-        noise = noise.clamp(0, 1)
+        noise = noise.clamp(0, 0.5)
 
         return {'kern_len': kern_len, 'kern_scale': kern_scale, 'noise': noise}
 
@@ -104,11 +104,13 @@ class GPRSimple(torch.nn.Module):
 
         log_likelihood = 0.5 * (inv_quad + 2 * logdet + len(self.train_x) * torch.log(torch.tensor(2 * torch.pi)))
 
-        # print(f'{inv_quad=}, {logdet=}')
-        # print(torch.logdet(L))
         return log_likelihood / self.train_y.shape[0]
 
     def fit_params(self, n_iters):
+        if len(self.train_x) < 5:       # Cant fit hyperparams if there are too few data points
+            c_print(f'Not enough data to fit hyperparameters. Skipping.', color="red")
+            return
+
         optim = torch.optim.Adam(self.parameters(), lr=0.1)
         for epoch in range(n_iters):
             loss = self.log_marginal_likelihood()
@@ -121,8 +123,6 @@ class GPRSimple(torch.nn.Module):
         c_print(f'noise = {noise.item():.2g}, kern len = {kern_len.item():.2g}, kern var = {kern_scale.item():.2g}', color="green")
 
     def predict(self, pred_x: torch.Tensor, only_diag=False):
-        # pred_x.dim() == 2, pred_x must be a 2D tensor.
-
         # Compute the cross-covariance matrix K_*
         K_star = self.kernel.kern(pred_x, self.train_x)
 

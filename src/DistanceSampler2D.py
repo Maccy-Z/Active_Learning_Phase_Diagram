@@ -100,16 +100,17 @@ class DistanceSampler2D(DistanceSampler):
 
 
 def main(save_dir):
-    pd_fn = bin_pd
+    pd_fn = quad_pd
 
     print(save_dir)
     cfg = Config()
 
     # Init observations to start off
     X_init = [[0.0, -0.5], [0, 0.5]]
-    phase_init = [pd_fn(X) for X in X_init]
+    phase_init = [pd_fn(X)[0] for X in X_init]
+    prob_init = [pd_fn(X)[1] for X in X_init]
 
-    distance_sampler = DistanceSampler2D(phase_init, X_init, cfg, save_dir=save_dir)
+    distance_sampler = DistanceSampler2D(phase_init, X_init, cfg, init_probs=prob_init, save_dir=save_dir)
 
     # Create three subplots
     fig = plt.figure(figsize=(11, 3.3))
@@ -126,12 +127,13 @@ def main(save_dir):
         new_point, prob = distance_sampler.single_obs()
         print(f'Time taken: {time.time() - st:.2f}s')
         print(f'{new_point =}, {prob = }')
-        obs_phase = pd_fn(new_point, train=False)
+        obs_phase, _ = pd_fn(new_point, train=True)
+
         distance_sampler.add_obs(obs_phase, new_point, prob=0.99)
 
         # print(distance_sampler.obs_holder.get_og_obs())
-
-        fig.show()
+        if i % 3 == 0:
+            fig.show()
 
 
 if __name__ == "__main__":

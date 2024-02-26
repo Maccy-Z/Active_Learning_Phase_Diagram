@@ -100,10 +100,19 @@ def bin_pd(X, train=True):
         x += (np.random.rand() - 0.5) * 0.4
         y += (np.random.rand() - 0.5) * 0.4
 
-    if y > 1 * np.sin(0.5 * np.pi * x):
-        return 1
+        dist = y - np.sin(0.5 * np.pi * x)
+        if np.abs(dist) < 0.2:
+            err = 0.2 - np.abs(dist)
+            cert = 0.99 - err * 0.5 / 0.2
+        else:
+            cert = 0.99
     else:
-        return 0
+        cert = 0.99
+
+    if y > np.sin(0.5 * np.pi * x):
+        return 1, cert
+    else:
+        return 0, cert
 
 
 def quad_pd(X, train=True):
@@ -111,18 +120,18 @@ def quad_pd(X, train=True):
 
     # Critical
     if x > 0.75 and y > 0.:
-        return 3
+        return 3, 1.
 
     # Solid
     if x <= -0.6 and y >= 0.5 / 1.4 * x - 9 / 7:
-        return 0
+        return 0, 1.
 
     # Liquid
     if -0.6 <= x <= 0.75 and y >= (10 / 27 * x ** 2 + 19 / 18 * x - 1):
-        return 1
+        return 1, 1.
 
     # Gas
-    return 2
+    return 2, 1.
 
 
 # Make nxn...nx grid

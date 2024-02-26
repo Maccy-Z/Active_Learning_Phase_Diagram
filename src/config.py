@@ -5,13 +5,13 @@ from dataclasses import dataclass
 class Config:
     """ Experiment setup """
     N_dim: int = 2  # Dimension of parameter space
-    N_phases: int = 2  # Number of phases to sample. Note: This is not checked in the code if set incorrectly.
+    N_phases: int = 4  # Number of phases to sample. Note: This is not checked in the code if set incorrectly.
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""
-    N_dist: int = 11  # Points distance function is evaluated at
-    N_eval: int = 11  # Candidate points for new sample
-    N_display: int = 21  # Number of points to visualise
+    N_dist: int = 19  # Points distance function is evaluated at
+    N_eval: int = 19  # Candidate points for new sample
+    N_display: int = 19  # Number of points to visualise
 
     """Acquisition function parameters"""
     skip_point: float = 0.95  # Min prob to be confident enough to skip a point
@@ -21,7 +21,7 @@ class Config:
     """GP parameters"""
     obs_prob: float = 0.95  # Default certainty of observations. (Not too close to 1 or 0)
     gaus_herm_n: int = 10  # Number of samples for Gauss Hermite quadrature
-    N_optim_steps: int = 250  # Number of steps to optimise hyperparameters
+    N_optim_steps: int = 200  # Number of steps to optimise hyperparameters
 
     """General Parameters"""
     N_CPUs: int = 8  # Number of parallel CPU threads to use

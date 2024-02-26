@@ -7,6 +7,7 @@ sys.path.append(parent_dir)
 
 cwd = os.getcwd()
 os.chdir(os.path.dirname(cwd))
+print(os.getcwd())
 
 import pickle
 import numpy as np
@@ -19,14 +20,15 @@ from src.gaussian_sampler import fit_gp, gen_pd
 
 
 # Distance between true PD and prediction
-def dist(obs_holder, *, pd_fn, cfg, points, t):
+def dist(obs_holder: ObsHolder, *, pd_fn, cfg, points, t):
     # Truncate observations up to time t, assuming first 2 observations are given.
-    Xs, Ys = obs_holder.get_og_obs()
+    Xs, Ys, prob = obs_holder.get_og_obs()
     T = t + 2
     obs_holder._obs_pos = Xs[:T]
     obs_holder.obs_phase = Ys[:T]
+    obs_holder.obs_prob = prob[:T]
 
-    model = fit_gp(True, obs_holder, cfg=cfg)
+    model = fit_gp(obs_holder, cfg=cfg)
 
     X_eval, _ = make_grid(points, cfg.unit_extent)
     probs = gen_pd(model, X_eval, cfg=cfg)
@@ -35,7 +37,7 @@ def dist(obs_holder, *, pd_fn, cfg, points, t):
     x_eval_real, _ = make_grid(points, cfg.extent)
     true_pd = []
     for X in x_eval_real:
-        true_phase = pd_fn(X, train=False)
+        true_phase, _ = pd_fn(X, train=False)
         true_pd.append(true_phase)
     pd_true = np.stack(true_pd).reshape((points,) * cfg.N_dim)
 
@@ -51,7 +53,7 @@ def dist(obs_holder, *, pd_fn, cfg, points, t):
 
 
 def main():
-    pd_fn = lambda x, train: (x[0] > 0) * 1  # bin_pd
+    pd_fn = bin_pd
 
     f = sorted([int(s) for s in os.listdir("./saves")])
 
@@ -70,6 +72,7 @@ def main():
         error = dist(obs_holder, pd_fn=pd_fn, points=19, t=t, cfg=cfg)
         errors.append(error)
     plt.plot(errors)
+    plt.ylim([0.0, 0.2])
     plt.show()
     #
     # print()
