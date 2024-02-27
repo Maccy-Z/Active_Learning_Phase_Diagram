@@ -31,6 +31,8 @@ plt.xticks(np.linspace(0, 50, 6), fontsize=12)
 
 plt.ylabel("Fractional error", fontsize=12)
 plt.xlabel("Number of steps", fontsize=12)
-# plt.legend(fontsize=12)
+plt.legend(fontsize=12)
 plt.tight_layout()
+
+plt.savefig("../../../images/bin_error.pdf")
 plt.show()

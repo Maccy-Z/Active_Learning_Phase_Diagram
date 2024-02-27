@@ -106,7 +106,7 @@ def main(save_dir):
     cfg = Config()
 
     # Init observations to start off
-    X_init = [[0.0, -0.5], [0, 0.5]]
+    X_init = [[0.0, -1.5], [0, 1]]
     phase_init = [pd_fn(X)[0] for X in X_init]
     prob_init = [pd_fn(X)[1] for X in X_init]
 

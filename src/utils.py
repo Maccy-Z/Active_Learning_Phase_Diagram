@@ -120,18 +120,18 @@ def quad_pd(X, train=True):
 
     # Critical
     if x > 0.75 and y > 0.:
-        return 3, 1.
+        return 3, 0.99
 
     # Solid
     if x <= -0.6 and y >= 0.5 / 1.4 * x - 9 / 7:
-        return 0, 1.
+        return 0, 0.99
 
     # Liquid
     if -0.6 <= x <= 0.75 and y >= (10 / 27 * x ** 2 + 19 / 18 * x - 1):
-        return 1, 1.
+        return 1, 0.99
 
     # Gas
-    return 2, 1.
+    return 2, 0.99
 
 
 # Make nxn...nx grid

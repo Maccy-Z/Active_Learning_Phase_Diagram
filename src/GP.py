@@ -34,7 +34,7 @@ class ParamHolder(torch.nn.Module):
         noise = torch.nn.functional.softplus(self.raw_noise) + 1e-6
 
         kern_len = kern_len.clamp(0, 5)
-        noise = noise.clamp(0, 0.5)
+        noise = noise.clamp(0, 1.)
 
         return {'kern_len': kern_len, 'kern_scale': kern_scale, 'noise': noise}
 
@@ -76,7 +76,7 @@ class GPRSimple(torch.nn.Module):
                 self.L = torch.linalg.cholesky(K)
             except RuntimeError as e:
                 c_print(f'Cholesky failed. Trying with more noise.', color="red")
-                K = self.kernel.kern(train_x, train_x) + 1e-5 * torch.eye(len(train_x))
+                K = self.kernel.kern(train_x, train_x) + 3e-5 * torch.eye(len(train_x))
                 self.L = torch.linalg.cholesky(K)
 
             self.inv_y = torch.cholesky_solve(train_y.unsqueeze(1), self.L)

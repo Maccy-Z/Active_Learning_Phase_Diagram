@@ -41,11 +41,6 @@ def dist(obs_holder: ObsHolder, *, pd_fn, cfg, points, t):
         true_pd.append(true_phase)
     pd_true = np.stack(true_pd).reshape((points,) * cfg.N_dim)
 
-    # print(pd_pred.shape)
-    # print()
-    # print(X_eval)
-    # exit(4)
-
     diff = np.not_equal(pd_pred, pd_true)
     diff_mean = np.mean(diff)
 
@@ -53,8 +48,7 @@ def dist(obs_holder: ObsHolder, *, pd_fn, cfg, points, t):
 
 
 def main():
-    pd_fn = bin_pd
-
+    pd_fn = quad_pd
     f = sorted([int(s) for s in os.listdir("./saves")])
 
     save_name = f[-1]

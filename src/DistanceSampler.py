@@ -60,8 +60,12 @@ class DistanceSampler:
 
     def __del__(self):
         # Safely close the pool when the class instance is deleted
-        self.pool.close()
-        self.pool.join()
+        try:
+            self.pool.close()
+            self.pool.join()
+        except Exception as e:
+            print("Closing threads")
+            print(e)
 
 
 def main(save_dir):
