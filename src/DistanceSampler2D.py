@@ -50,22 +50,6 @@ class DistanceSampler2D(DistanceSampler):
 
         extent = sum(self.cfg.extent, ())
 
-        # Plot probability of error
-        error_prob = plot_holder['error_prob']
-        max_error_prob = np.amax(error_prob)
-        self.p_obs_ax.set_title("Error prob (%)")
-        im = self.p_obs_ax.imshow(error_prob, extent=extent,
-                                  origin="lower", vmax=max_error_prob, vmin=0., aspect='auto')
-        self._show_cb(im, self.p_obs_ax)
-
-        # Plot acquisition function
-        avg_dists = plot_holder['acq_fn']
-        self.acq_ax.set_title(f'Acquisition fn')
-        # self.acq_ax.set_yticks([-2, -1, 0, 1, 2])
-        im = self.acq_ax.imshow(avg_dists, extent=extent,
-                                origin="lower", aspect='auto')  # , vmin=sec_low)  # Phase diagram
-        self._show_cb(im, self.acq_ax)
-
         # Plot current phase diagram and next sample point
         new_point = plot_holder['new_point']
         pd = plot_holder['pd']
@@ -76,8 +60,25 @@ class DistanceSampler2D(DistanceSampler):
         self.pd_ax.scatter(xs_train, ys_train, marker="x", s=30, c=phase_obs, cmap='bwr')  # Existing observations
         self.pd_ax.scatter(new_point[0], new_point[1], s=80, c='tab:orange')  # New observations
 
-        # self.pd_ax.set_yticks([-2, -1, 0, 1, 2])
-        # plt.colorbar()
+        # Plot acquisition function
+        avg_dists = plot_holder['acq_fn']
+        self.acq_ax.set_title(f'Acquisition fn')
+        #
+        im = self.acq_ax.imshow(avg_dists, extent=extent,
+                                origin="lower", aspect='auto')  # , vmin=sec_low)  # Phase diagram
+        self._show_cb(im, self.acq_ax)
+
+        # Plot probability of error
+        error_prob = plot_holder['error_prob']
+        max_error_prob = np.amax(error_prob)
+        self.p_obs_ax.set_title("Error prob (%)")
+        im = self.p_obs_ax.imshow(error_prob, extent=extent,
+                                  origin="lower", vmax=max_error_prob, vmin=0., aspect='auto')
+        self._show_cb(im, self.p_obs_ax)
+
+        self.pd_ax.set_yticks([-2, -1, 0, 1, 2])
+        self.acq_ax.set_yticks([-2, -1, 0, 1, 2])
+        self.p_obs_ax.set_yticks([-2, -1, 0, 1, 2])
 
     def single_obs(self):
         """
