@@ -48,7 +48,7 @@ def dist(obs_holder: ObsHolder, *, pd_fn, cfg, points, t):
 
 
 def main():
-    pd_fn = quad_pd
+    pd_fn = bin_pd
     f = sorted([int(s) for s in os.listdir("./saves")])
 
     save_name = f[-1]

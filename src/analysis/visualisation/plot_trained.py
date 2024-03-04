@@ -2,10 +2,11 @@
 import sys
 import os
 
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(parent_dir)
 cwd = os.getcwd()
 os.chdir(os.path.dirname(cwd))
+print(os.getcwd())
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,12 +15,12 @@ import matplotlib.ticker as ticker
 from src.DistanceSampler2D import DistanceSampler2D
 from src.utils import ObsHolder
 from src.gaussian_sampler import gen_pd, fit_gp
-from src.utils import make_grid
+from src.utils import make_grid, Config
 
 
 def plot_all():
     T = 150
-    obs_holder = ObsHolder.load("../saves/14")
+    obs_holder = ObsHolder.load("./saves/14")
     obs_holder._obs_pos = obs_holder._obs_pos[:T]
     obs_holder.obs_phase = obs_holder.obs_phase[:T]
     cfg = obs_holder.cfg
@@ -51,7 +52,7 @@ def plot_all():
 
 
 def plot_single(T, ax):
-    obs_holder = ObsHolder.load("../saves/12")
+    obs_holder = ObsHolder.load("../saves/0")
     obs_holder._obs_pos = obs_holder._obs_pos[:T]
     obs_holder.obs_phase = obs_holder.obs_phase[:T]
     obs_holder.obs_prob = obs_holder.obs_prob[:T]
@@ -75,13 +76,14 @@ def plot_single(T, ax):
     ax.set_box_aspect(1)
     ax.set_xticks(cfg.extent[0])
     ax.set_yticks(cfg.extent[1])
-    ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
-    ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+    ax.tick_params(labelsize=16)
+    ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+    ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
 
 def main():
 
     n_rows, n_cols = 2, 5
-    plot_steps = [6, 16, 26, 36, 56, 76, 86, 106, 126, 146]
+    plot_steps = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 
     assert n_rows * n_cols == len(plot_steps), "Number of subplots must match number of steps to plot."
     fig, axs = plt.subplots(n_rows, n_cols, figsize=(15, 6))
