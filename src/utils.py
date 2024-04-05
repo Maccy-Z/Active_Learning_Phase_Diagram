@@ -196,6 +196,8 @@ def to_real_scale(X, extent):
 
 def new_save_folder(save_dir):
     # Specify the directory path to search for folders
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
     # Get a list of all folders in the specified directory
     folders = [f for f in os.listdir(save_dir) if os.path.isdir(os.path.join(save_dir, f))]
