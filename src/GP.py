@@ -107,7 +107,7 @@ class GPRSimple(torch.nn.Module):
         return log_likelihood / self.train_y.shape[0]
 
     def fit_params(self, n_iters):
-        if len(self.train_x) < 5:       # Cant fit hyperparams if there are too few data points
+        if len(self.train_x) < 4:       # Cant fit hyperparams if there are too few data points
             c_print(f'Not enough data to fit hyperparameters. Skipping.', color="red")
             return
 
