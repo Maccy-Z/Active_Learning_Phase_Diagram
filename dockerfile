@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python@sha256:58ef3c375e20ca749f5bf4d1a62186a01e9d1d5756671037e391c832a5062d1e
 RUN apt update
 
 RUN pip install numpy==1.26
@@ -10,7 +10,7 @@ RUN pip install torch==2.2 --index-url https://download.pytorch.org/whl/cpu
 
 ### Install GUI dependency
 RUN apt install python3-pyqt5 -y
-RUN pip install pyqt5
+RUN pip install pyqt5==5.15
 
 
 # Pip mayavi is out of date currently.
