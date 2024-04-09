@@ -27,9 +27,9 @@ class Config:
     N_CPUs: int = 8  # Number of parallel CPU threads to use
 
     def __post_init__(self):
-        self.extent = ((-2, 2),
-                       (-2, 2),
-                       (-2, 2)
+        self.extent = ((0, 1),
+                       (0, 1),
+                       (0, 1)
                        )
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 
