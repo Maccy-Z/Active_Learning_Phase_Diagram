@@ -76,9 +76,9 @@ class DistanceSampler2D(DistanceSampler):
                                   origin="lower", vmax=max_error_prob, vmin=0., aspect='auto')
         self._show_cb(im, self.p_obs_ax)
 
-        self.pd_ax.set_yticks([-2, -1, 0, 1, 2])
-        self.acq_ax.set_yticks([-2, -1, 0, 1, 2])
-        self.p_obs_ax.set_yticks([-2, -1, 0, 1, 2])
+        # self.pd_ax.set_yticks([-2, -1, 0, 1, 2])
+        # self.acq_ax.set_yticks([-2, -1, 0, 1, 2])
+        # self.p_obs_ax.set_yticks([-2, -1, 0, 1, 2])
 
     def single_obs(self):
         """
