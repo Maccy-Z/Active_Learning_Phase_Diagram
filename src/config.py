@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class Config:
     """ Experiment setup """
     N_dim: int = 3  # Dimension of parameter space
-    N_phases: int = 4  # Number of phases to sample. Note: This is not checked in the code if set incorrectly.
+    N_phases: int = 3  # Number of phases to sample. Note: This is not checked in the code if set incorrectly.
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""

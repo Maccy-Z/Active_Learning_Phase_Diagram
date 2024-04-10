@@ -122,6 +122,15 @@ class MainWindow(QMainWindow):
         self.dynamicLabel.setStyleSheet("color: red;")
         self.dynamicLabel.repaint()
 
+        with open("./analysis/allthereeDPhaseIndex.npy", "rb") as f:
+            data = np.load(f)
+
+        x = int(self.text_x.text() * 10)
+        y = int(self.text_y.text() * 10)
+        z = int(self.text_z.text() * 10)
+        print(x, y, z)
+        print(data[x, y, z])
+
         # Get next observation
         try:
             phase = int(self.text_phase.text())
