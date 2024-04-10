@@ -125,18 +125,18 @@ class MainWindow(QMainWindow):
         with open("./analysis/allthereeDPhaseIndex.npy", "rb") as f:
             data = np.load(f)
 
-        x = int(self.text_x.text() * 10)
-        y = int(self.text_y.text() * 10)
-        z = int(self.text_z.text() * 10)
-        print(x, y, z)
-        print(data[x, y, z])
-
         # Get next observation
         try:
             phase = int(self.text_phase.text())
-            x = float(self.text_x.text().replace(',', '.'))
-            y = float(self.text_y.text().replace(',', '.'))
-            z = float(self.text_z.text().replace(',', '.'))
+            # x = float(self.text_x.text().replace(',', '.'))
+            # y = float(self.text_y.text().replace(',', '.'))
+            # z = float(self.text_z.text().replace(',', '.'))
+
+            x = int(float(self.text_x.text()) * 10)
+            y = int(float(self.text_y.text()) * 10)
+            z = int(float(self.text_z.text()) * 10)
+
+            phase = data[x, y, z]
         except ValueError as e:
             self.dynamicLabel.setText(f'Invalid phase or coordinates entered. {e}')
             self.dynamicLabel.repaint()
