@@ -5,7 +5,7 @@ import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-from src.utils import ObsHolder, make_grid, bin_pd, new_save_folder, quad_pd, tri_pd, to_real_scale
+from src.utils import make_grid, bin_pd, quad_pd, tri_pd, to_real_scale
 from src.config import Config
 
 import numpy as np

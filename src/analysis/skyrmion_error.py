@@ -156,7 +156,7 @@ def main():
                                "It might need transposing / reflecting to orient properly. ")
     # plt.imshow(true_pd[10, :, :], origin='lower')
     # plt.show()
-
+    print(os.listdir("."))
     f = sorted([int(s) for s in os.listdir("../saves")])
     save_name = f[-1]
     print(f'{save_name = }')
