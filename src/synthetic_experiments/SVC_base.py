@@ -1,17 +1,12 @@
 # Evaluate error of GP model
 import sys
 import os
+
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-import GPy
-import numpy as np
-from matplotlib import pyplot as plt
-
-from my_code.utils import ObsHolder, make_grid, bin_pd, new_save_folder, quad_pd, tri_pd
-from my_code.config import Config
-
-
+from src.utils import ObsHolder, make_grid, bin_pd, new_save_folder, quad_pd, tri_pd, to_real_scale
+from src.config import Config
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -57,10 +52,10 @@ def suggest_point(Xs, labels):
         contour3 = measure.find_contours(y_pred, 2.5)
 
         # The contours are given in (row, column) coordinates, so you need to swap the axes and rescale them to get the (x, y) coordinates
-        contour1 = [(y / y_pred.shape[1]* 4 - 2, x / y_pred.shape[0]* 4 - 2) for x, y in contour1[0]]
-        contour2 = [(y / y_pred.shape[1]* 4 - 2, x / y_pred.shape[0]* 4 - 2) for x, y in contour2[0]]
+        contour1 = [(y / y_pred.shape[1] * 4 - 2, x / y_pred.shape[0] * 4 - 2) for x, y in contour1[0]]
+        contour2 = [(y / y_pred.shape[1] * 4 - 2, x / y_pred.shape[0] * 4 - 2) for x, y in contour2[0]]
         try:
-            contour3 = [(y / y_pred.shape[1]* 4 - 2, x / y_pred.shape[0]* 4 - 2) for x, y in contour3[0]]
+            contour3 = [(y / y_pred.shape[1] * 4 - 2, x / y_pred.shape[0] * 4 - 2) for x, y in contour3[0]]
             contors = np.concatenate([contour3, contour2, contour1])
 
         except IndexError as e:
@@ -86,18 +81,18 @@ def suggest_point(Xs, labels):
         return contour[min_point], [contour], Z > 0
 
 
-def plot(Xs, labels, min_point, contours, pred_pd):
-
+def plot(Xs, labels, new_point, contours, pred_pd):
     # Plot the results
     plt.figure(figsize=(3, 3))
     plt.title("4-phase diagram")
 
-    #plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=30, c=labels, cmap='bwr')#, c=labels, cmap='viridis')
-    #plt.scatter(min_point[0], min_point[1], c='r')
+    plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=30, c=labels, cmap='bwr')  # , c=labels, cmap='viridis')
     plt.imshow(pred_pd, extent=(-2, 2, -2, 2), origin="lower")  # Phase diagram
-    # for contor in contours:
-    #     plt.plot(*zip(*contor), c='k', linestyle='dashed')
-
+    if new_point is not None:
+        plt.scatter(new_point[0], new_point[1], c='r')
+    if contours is not None:
+        for contor in contours:
+            plt.plot(*zip(*contor), c='k', linestyle='dashed')
 
     plt.xlim([-2, 2])
     plt.ylim([-2, 2])
@@ -109,19 +104,20 @@ def plot(Xs, labels, min_point, contours, pred_pd):
 
 
 def error(pred_pd, pd_fn):
-    plot_Xs, X1, X2 = make_grid(pred_pd.shape[0], Config().extent)
+    points, _ = make_grid(pred_pd.shape[0], Config().extent)
+    points = to_real_scale(points, ((-2, 2), (-2, 2)))
     true_pd = []
-    for X in plot_Xs:
-        true_phase = pd_fn(X, train=False)
+    for X in points:
+        true_phase = pd_fn(X, train=False)[0]
         true_pd.append(true_phase)
 
-    true_pd = np.stack(true_pd).reshape(pred_pd.shape)
+    true_pd = np.stack(true_pd).reshape(pred_pd.shape).T
 
     diff = np.not_equal(pred_pd, true_pd)
     diff_mean = np.mean(diff)
-
-    plot(plot_Xs, true_pd, [], None, true_pd)
-    exit()
+    #
+    # print(points)
+    # plot(np.array([[0, 0]]), np.array([0]), None, None, true_pd)
     return diff_mean
 
 
@@ -129,31 +125,28 @@ def main():
     pd_fn = quad_pd
 
     Xs = np.array([[0, -1.25], [0, 1]])
-    #Xs, _, _ = make_grid(5, (-2, 2, -2, 2))
 
-    labels = [pd_fn(X, train=False) for X in Xs]
+    labels = [pd_fn(X, train=False)[0] for X in Xs]
 
     errors = []
     for i in range(101):
         new_point, contors, full_pd = suggest_point(Xs, labels)
-        #print(full_pd.shape)
+
+        Xs = np.append(Xs, [new_point], axis=0)
+        labels.append(pd_fn(new_point)[0])
 
         pred_error = error(full_pd, pd_fn)
         errors.append(pred_error)
-
         if i % 20 == 0:
-            plot(Xs, labels, new_point, contors, full_pd)
+            plot(Xs, labels, new_point, None, full_pd)
             print(pred_error)
 
-
-        Xs = np.append(Xs, [new_point], axis=0)
-        labels.append(pd_fn(new_point))
-
-    # plt.imshow(full_pd, origin="lower")
-    # plt.show()
+    plt.imshow(full_pd, origin="lower")
+    plt.show()
 
     print(errors)
     print(len(errors))
+
 
 if __name__ == "__main__":
     main()

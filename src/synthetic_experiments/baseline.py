@@ -4,12 +4,16 @@ import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-import GPy
+try:
+    import GPy
+except ImportError:
+    print("GPy not installed. This specific baseline requires the GPy package. Please install it via `pip install GPy`")
+
 import numpy as np
 from matplotlib import pyplot as plt
 
-from my_code.utils import ObsHolder, make_grid, bin_pd
-from my_code.config import Config
+from src.utils import ObsHolder, make_grid, bin_pd
+from src.config import Config
 
 
 # Fit model to existing observations
@@ -97,7 +101,7 @@ def error(pred_pd):
     plot_Xs, X1, X2 = make_grid(pred_pd.shape[0], Config().extent)
     true_pd = []
     for X in plot_Xs:
-        true_phase = bin_pd(X, train=False)
+        true_phase = bin_pd(X, train=False)[0]
         true_pd.append(true_phase)
 
     true_pd = np.stack(true_pd).reshape(pred_pd.shape)
@@ -114,7 +118,7 @@ def main():
 
     # X_init, _, _ = make_grid(4, cfg.extent)
     X_init = [[0, -1.2], [0, 1]]
-    phase_init = np.array([bin_pd(X) for X in X_init])
+    phase_init = np.array([bin_pd(X)[0] for X in X_init])
 
     for X, Y in zip(X_init, phase_init):
         obs_holder.make_obs(X, phase=Y)
@@ -123,7 +127,7 @@ def main():
     for i in range(51):
         # print("Step", i)
         new_point, plots = suggest_point(obs_holder, cfg)
-        obs_holder.make_obs(new_point, phase=bin_pd(new_point))
+        obs_holder.make_obs(new_point, phase=bin_pd(new_point)[0])
 
         y_pred = plots[1] > 0
         e = error(y_pred)
