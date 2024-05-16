@@ -209,12 +209,16 @@ def skyrmion_pd(X, train=None):
     return phase
 
 
-
 # Make nxn...nx grid
 @lru_cache(maxsize=10)
-def make_grid(n, extent: tuple[tuple[float, float]]) -> (np.ndarray, np.ndarray):
+def make_grid(n: int | tuple[int, ...], extent: tuple[tuple[float, float]]) -> (np.ndarray, np.ndarray):
     extent = np.array(extent)
-    lin_spaces = [np.linspace(start, end, n) for start, end in extent]
+
+    if isinstance(n, int):
+        lin_spaces = [np.linspace(start, end, n) for start, end in extent]
+    else:
+        lin_spaces = [np.linspace(start, end, num) for (start, end), num in zip(extent, n)]
+
     mesh = np.meshgrid(*lin_spaces, indexing='ij')
 
     # Reshape the meshgrid to have a list of points
