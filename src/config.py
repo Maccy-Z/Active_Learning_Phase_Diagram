@@ -9,7 +9,7 @@ class Config:
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""
-    N_dist: int = 19  # Points distance function is evaluated at
+    N_dist: int | tuple[int, ...] = (10, 3, 3)  # Points distance function is evaluated at
     N_eval: int | tuple[int, ...] = (10, 3, 3)  # Candidate points for new sample
     N_display: int = 38  # Number of points to visualise
     reg_grid: bool = False
