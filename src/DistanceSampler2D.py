@@ -76,9 +76,9 @@ class DistanceSampler2D(DistanceSampler):
                                   origin="lower", vmax=max_error_prob, vmin=0., aspect='auto')
         self._show_cb(im, self.p_obs_ax)
 
-        self.pd_ax.set_yticks([-2, -1, 0, 1, 2])
-        self.acq_ax.set_yticks([-2, -1, 0, 1, 2])
-        self.p_obs_ax.set_yticks([-2, -1, 0, 1, 2])
+        # self.pd_ax.set_yticks([-2, -1, 0, 1, 2])
+        # self.acq_ax.set_yticks([-2, -1, 0, 1, 2])
+        # self.p_obs_ax.set_yticks([-2, -1, 0, 1, 2])
 
     def single_obs(self):
         """
@@ -90,9 +90,17 @@ class DistanceSampler2D(DistanceSampler):
         new_point = to_real_scale(new_point, self.cfg.extent)
 
         pd = pd_old.reshape([self.cfg.N_display for _ in range(2)]).T
-        acq_fn = acq_fn.reshape([self.cfg.N_eval for _ in range(2)]).T
+
+        if self.cfg.reg_grid:
+            acq_fn = acq_fn.reshape([self.cfg.N_eval for _ in range(2)]).T
+        else:
+            acq_fn = acq_fn.reshape(*self.cfg.N_eval).T
         error_prob = 1 - np.amax(pd_probs, axis=1)
-        error_prob = error_prob.reshape([self.cfg.N_eval for _ in range(2)]).T
+
+        if self.cfg.reg_grid:
+            error_prob = error_prob.reshape([self.cfg.N_eval for _ in range(2)]).T
+        else:
+            error_prob = error_prob.reshape(*self.cfg.N_eval).T
 
         plot_holder = {'new_point': new_point, 'pd': pd, 'acq_fn': acq_fn, 'error_prob': error_prob, 'pd_probs': pd_probs}
         self.plot(plot_holder)

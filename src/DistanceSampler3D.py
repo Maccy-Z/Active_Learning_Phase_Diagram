@@ -230,9 +230,16 @@ class DistanceSampler3D(DistanceSampler):
         new_point, prob_at_point, (pd_old, acq_fn, pd_probs) = suggest_point(self.pool, self.obs_holder, self.cfg)
         # Reshape and process raw data for plotting
         pd = pd_old.reshape([self.cfg.N_display for _ in range(3)])
-        acq_fn = acq_fn.reshape([self.cfg.N_eval for _ in range(3)])
+        if self.cfg.reg_grid:
+            acq_fn = acq_fn.reshape([self.cfg.N_eval for _ in range(3)])
+        else:
+            acq_fn = acq_fn.reshape(*self.cfg.N_eval)
+
         error_prob = 1 - np.amax(pd_probs, axis=1)
-        error_prob = error_prob.reshape([self.cfg.N_eval for _ in range(3)])
+        if self.cfg.reg_grid:
+            error_prob = error_prob.reshape([self.cfg.N_eval for _ in range(3)])
+        else:
+            error_prob = error_prob.reshape(*self.cfg.N_eval)
 
         plot_holder = {'new_point': new_point, 'pd': pd, 'acq_fn': acq_fn, 'error_prob': error_prob, 'pd_probs': pd_probs}
         self.plot(plot_holder)
