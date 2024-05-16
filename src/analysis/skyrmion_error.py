@@ -170,10 +170,10 @@ def main():
 
     errors = []
     for t in range(len(og_obs.obs_phase)):
-        print(t)
         obs_holder = copy.deepcopy(og_obs)
         error = dist(obs_holder, true_pd=true_pd, points=eval_points, t=t, cfg=cfg)
         errors.append(error)
+        print(f'{t = }, {error = :.3g}')
 
     plt.plot(errors)
     plt.ylim([0, 0.5])
@@ -186,7 +186,6 @@ def main():
     print("Errors:")
     print("Copy me to error_plot.py")
     print(errors)
-    print("Copy me to error_plot.py")
 
 
 if __name__ == "__main__":

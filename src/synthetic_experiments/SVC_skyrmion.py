@@ -6,12 +6,10 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
 from src.utils import make_grid, to_real_scale, skyrmion_pd
-from src.config import Config
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm
-from skimage import measure
 
 Extent = ((0, 1.), (0., 1.), (0., 1.))
 
@@ -22,7 +20,7 @@ def acqusition_fn(obs, candidates):
         # print(point)
         dist = np.linalg.norm(obs - point, axis=1)
 
-        weighted_dist = np.exp(- 15 * dist)
+        weighted_dist = np.exp(- 17 * dist)
         dists.append(np.mean(weighted_dist))
     return dists
 
@@ -150,13 +148,15 @@ def main():
             # plot(Xs, labels, new_point, None, full_pd)
             print(pred_error)
 
+
+    print(errors)
+    print(len(errors))
+
     plot(Xs, labels, None, None, full_pd)
 
     # plt.imshow(full_pd, origin="lower")
     # plt.show()
 
-    print(errors)
-    print(len(errors))
 
 
 if __name__ == "__main__":
