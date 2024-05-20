@@ -40,22 +40,21 @@ def dist(obs_holder, *, true_pd, cfg, points, t):
     diff = np.not_equal(pd_pred, true_pd_grid)
     diff_mean = np.mean(diff)
 
-    # if t == 50:
-    #     plt_phase = pd_pred.flatten()
-    #     plt_true = true_pd_grid.flatten()
-    #
-    #     print(f'{plt_true.shape = }')
-    #     fig = plt.figure()
-    #     ax = fig.add_subplot(111, projection='3d')
-    #     ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_true)
-    #     plt.show()
-    #
-    #     print(f'{plt_phase.shape = }')
-    #     fig = plt.figure()
-    #     ax = fig.add_subplot(111, projection='3d')
-    #     ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_phase)
-    #     plt.show()
-    #     exit(8)
+    if t == 240:
+        plt_phase = pd_pred.flatten()
+        plt_true = true_pd_grid.flatten()
+
+        print(f'{plt_true.shape = }')
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_true)
+        plt.show()
+
+        print(f'{plt_phase.shape = }')
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_phase)
+        plt.show()
 
     return diff_mean
 
@@ -115,7 +114,7 @@ def main():
 
     c_print("Reducing true_pd to 11x11x10", color='magenta')
     true_pd = true_pd[:, :, 1:]
-    print()
+    print(true_pd.shape)
 
     # true_pd = np.zeros([11, 11])
     true_pd = true_pd.astype(int)
