@@ -5,14 +5,16 @@ import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-from src.utils import make_grid, to_real_scale, skyrmion_pd
-
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm
 
-Extent = ((0, 1.), (0., 1.), (0., 1.))
+from src.utils import make_grid, to_real_scale
+from pd import skyrmion_pd_3D, skyrmion_pd_2D
 
+Extent = ((0, 1.), (0., 1.))
+n_dim = 2
+grid = (21, 21)
 
 def acqusition_fn(obs, candidates):
     dists = []
@@ -20,7 +22,7 @@ def acqusition_fn(obs, candidates):
         # print(point)
         dist = np.linalg.norm(obs - point, axis=1)
 
-        weighted_dist = np.exp(- 17 * dist)
+        weighted_dist = np.exp(- 10 * dist)
         dists.append(np.mean(weighted_dist))
     return dists
 
@@ -28,25 +30,27 @@ def acqusition_fn(obs, candidates):
 # Vectorized boundary checking
 def find_boundaries_vectorized(predictions):
     # Create boolean arrays for each shift in both directions along each axis
-    shift_x_forward = predictions[:-1, :, :] != predictions[1:, :, :]
-    shift_x_backward = predictions[1:, :, :] != predictions[:-1, :, :]
+    shift_x_forward = predictions[:-1, :] != predictions[1:, :]
+    shift_x_backward = predictions[1:, :] != predictions[:-1, :]
 
-    shift_y_forward = predictions[:, :-1, :] != predictions[:, 1:, :]
-    shift_y_backward = predictions[:, 1:, :] != predictions[:, :-1, :]
+    shift_y_forward = predictions[:, :-1] != predictions[:, 1:]
+    shift_y_backward = predictions[:, 1:] != predictions[:, :-1]
 
-    shift_z_forward = predictions[:, :, :-1] != predictions[:, :, 1:]
-    shift_z_backward = predictions[:, :, 1:] != predictions[:, :, :-1]
+    if n_dim == 3:
+        shift_z_forward = predictions[:, :, :-1] != predictions[:, :, 1:]
+        shift_z_backward = predictions[:, :, 1:] != predictions[:, :, :-1]
 
     # Combine shifts to identify boundaries
     bounds = np.zeros_like(predictions, dtype=bool)
-    bounds[:-1, :, :] |= shift_x_forward
-    bounds[1:, :, :] |= shift_x_backward
+    bounds[:-1, :] |= shift_x_forward
+    bounds[1:, :] |= shift_x_backward
 
-    bounds[:, :-1, :] |= shift_y_forward
-    bounds[:, 1:, :] |= shift_y_backward
+    bounds[:, :-1] |= shift_y_forward
+    bounds[:, 1:] |= shift_y_backward
 
-    bounds[:, :, :-1] |= shift_z_forward
-    bounds[:, :, 1:] |= shift_z_backward
+    if n_dim == 3:
+        bounds[:, :, :-1] |= shift_z_forward
+        bounds[:, :, 1:] |= shift_z_backward
 
     return bounds
 
@@ -57,19 +61,23 @@ def suggest_point(Xs, labels):
     clf.fit(Xs, labels)
 
     # Create a grid of points
-    grid_points, mesh = make_grid(11, Extent)
+    grid_points, mesh = make_grid(grid, Extent)
 
     # Get the decision function for each point on the grid
     Z = clf.decision_function(grid_points)
 
     # Get the class with the highest decision function for each point
-    Z = Z.reshape(11, 11, 11, -1)
+    Z = Z.reshape(*grid, -1)
 
-    y_pred = np.argmax(Z, axis=-1).reshape(11, 11, 11)
+    y_pred = np.argmax(Z, axis=-1).reshape(*grid)
+    #
+    # print(f'{Z.shape = }')
+    # print(labels, Xs)
+    # exit(7)
 
     boundaries = find_boundaries_vectorized(y_pred)
 
-    grid_points = grid_points.reshape(11, 11, 11, 3)
+    grid_points = grid_points.reshape(*grid, 2)
     boundary_points = grid_points[boundaries]
 
     # print(boundary_points)
@@ -82,10 +90,10 @@ def suggest_point(Xs, labels):
 
 
 def plot(Xs, labels, new_point, contours, pred_pd):
-    pred_pd = pred_pd[:, :, 5].T
-    mask = (Xs[:, 2] > 0.4) & (Xs[:, 2] < 0.6)
-    Xs = Xs[mask]
-    labels = np.array(labels)[mask]
+    pred_pd = pred_pd.T
+    #mask = (Xs[:, 2] > 0.4) & (Xs[:, 2] < 0.6)
+    #Xs = Xs[mask]
+    labels = np.array(labels)#[mask]
 
     # Plot the results
     plt.figure(figsize=(3, 3))
@@ -112,7 +120,7 @@ def error(pred_pd, pd_fn):
     points = to_real_scale(points, Extent)
     true_pd = []
     for X in points:
-        true_phase = pd_fn(X, train=False)
+        true_phase = pd_fn(X)
         true_pd.append(true_phase)
 
     true_pd = np.stack(true_pd).reshape(pred_pd.shape)
@@ -126,17 +134,20 @@ def error(pred_pd, pd_fn):
 
 
 def main():
-    pd_fn = skyrmion_pd
+    pd_fn = skyrmion_pd_2D
 
-    Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+    # Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+
+    Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
     Xs = np.array(Xs).T
+
     # Xs = np.array([[0, 0, 0], [0, .1, .1], [1, 0.2, 0.8]])
     # Xs, _ = make_grid(11, Extent)
 
-    labels = [pd_fn(X, train=False) for X in Xs]
+    labels = [pd_fn(X) for X in Xs]
     print(labels)
     errors = []
-    for i in range(251):
+    for i in range(152):
         new_point, contors, full_pd = suggest_point(Xs, labels)
 
         Xs = np.append(Xs, [new_point], axis=0)
@@ -148,7 +159,6 @@ def main():
             # plot(Xs, labels, new_point, None, full_pd)
             print(pred_error)
 
-
     print(errors)
     print(len(errors))
 
@@ -156,7 +166,6 @@ def main():
 
     # plt.imshow(full_pd, origin="lower")
     # plt.show()
-
 
 
 if __name__ == "__main__":

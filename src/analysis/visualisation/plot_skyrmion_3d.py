@@ -121,12 +121,13 @@ ours_old =  [0.41697971450037563, 0.30954169797145004, 0.3245679939894816, 0.340
   0.03155522163786627, 0.03155522163786627, 0.03155522163786627, 0.03155522163786627]
 
 print(len(ours))
-plt.plot(SVC)
-plt.plot(grid)
-plt.plot(ours)
-plt.plot(ours_old)
+plt.plot(SVC, label='svc')
+plt.plot(grid, label='grid')
+plt.plot(ours[4:], label='ours')
+plt.plot(ours_old[4:], label='old')
 plt.ylim([0., 0.4])
 plt.xlim([0, 250])
+plt.legend()
 plt.show()
 
 

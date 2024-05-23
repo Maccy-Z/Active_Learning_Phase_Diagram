@@ -5,24 +5,28 @@ import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-from src.utils import make_grid, to_real_scale, skyrmion_pd
+from src.utils import make_grid, to_real_scale
 from src.config import Config
+from pd import skyrmion_pd_3D, skyrmion_pd_2D
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
 
-Extent = ((0, 1.), (0., 1.), (0., 1.))
+Extent = ((0, 1.), (0., 1.))
+n_dim = 2
+grid = (21, 21)
 
 
 class GridSearch:
-    def __init__(self, full_dimensions=(6, 6, 6), low_res_dimensions=(3, 3, 3)):
+    def __init__(self, full_dimensions=(20, 20), low_res_dimensions=(10, 10)):
         self.full_dimensions = full_dimensions
         self.low_res_dimensions = low_res_dimensions
         self.low_res_total_points = np.prod(low_res_dimensions)
-        self.full_total_points = np.prod(full_dimensions)
-        self.low_res_grid = np.indices(low_res_dimensions).reshape(3, -1).T
-        self.full_grid = np.indices(full_dimensions).reshape(3, -1).T
+        self.full_total_points = 155 #np.prod(full_dimensions)
+        self.low_res_grid = np.indices(low_res_dimensions).reshape(n_dim, -1).T
+        self.full_grid = np.indices(full_dimensions).reshape(n_dim, -1).T
+
         self.current_index = 0
         self.low_res_done = False
 
@@ -34,7 +38,7 @@ class GridSearch:
             if self.current_index < self.low_res_total_points:
                 point = self.low_res_grid[self.current_index]
                 self.current_index += 1
-                return point * 1/5
+                return point * 1/self.low_res_dimensions[0]
             else:
                 self.low_res_done = True
                 self.current_index = 0
@@ -42,7 +46,10 @@ class GridSearch:
         if self.current_index < self.full_total_points:
             point = self.full_grid[self.current_index]
             self.current_index += 1
-            return point * 1/5
+
+            # print(f'{point = }')
+
+            return point * 1/self.full_dimensions[0]
         else:
             raise StopIteration
 
@@ -53,11 +60,11 @@ def suggest_point(Xs, labels):
     clf.fit(Xs, labels)
 
     # Create a grid of points
-    grid_points, mesh = make_grid(11, Extent)
+    grid_points, mesh = make_grid(grid, Extent)
 
     # Get the decision function for each point on the grid
     Z = clf.predict(grid_points)
-    y_pred = Z.reshape(11, 11, 11, -1)
+    y_pred = Z.reshape(*grid, -1)
     return y_pred
 
 
@@ -89,10 +96,10 @@ def plot(Xs, labels, new_point, contours, pred_pd):
 
 def error(pred_pd, pd_fn):
     points, _ = make_grid(pred_pd.shape[0], Extent)
-    points = to_real_scale(points, Extent)
+    # points = to_real_scale(points, Extent)
     true_pd = []
     for X in points:
-        true_phase = pd_fn(X, train=False)
+        true_phase = pd_fn(X)
         true_pd.append(true_phase)
 
     true_pd = np.stack(true_pd).reshape(pred_pd.shape)
@@ -106,14 +113,16 @@ def error(pred_pd, pd_fn):
 
 
 def main():
-    pd_fn = skyrmion_pd
+    pd_fn = skyrmion_pd_2D
 
-    Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+    # Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+    Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
     Xs = np.array(Xs).T
+
     # Xs = np.array([[0, 0, 0], [0, .1, .1], [1, 0.2, 0.8]])
     # Xs, _ = make_grid(11, Extent)
 
-    labels = [pd_fn(X, train=False) for X in Xs]
+    labels = [pd_fn(X) for X in Xs]
     print(labels)
     errors = []
     for i, new_point in enumerate(GridSearch()):
