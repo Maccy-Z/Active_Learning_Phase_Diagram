@@ -18,7 +18,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from src.utils import make_grid, ObsHolder, c_print, synth_3d_pd
 from src.config import Config
 from src.gaussian_sampler import fit_gp, gen_pd
-from src.synthetic_experiments.pd import skyrmion_pd_2D, skyrmion_pd_3D
+from src.experiments.pd import skyrmion_pd_2D, skyrmion_pd_3D
 
 
 def deduplicate(obs_holder: ObsHolder):
