@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
         print()
         #
         self.steps += 1
-        if self.steps >= 100:
+        if self.steps >= 260:
             self.timer.stop()  # Stop the timer
             QApplication.quit()  # Exit the application
 

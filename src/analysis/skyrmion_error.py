@@ -21,50 +21,6 @@ from src.gaussian_sampler import fit_gp, gen_pd
 from src.synthetic_experiments.pd import skyrmion_pd_2D, skyrmion_pd_3D
 
 
-# Distance between true PD and prediction
-def dist(obs_holder, *, true_pd, cfg, points, t):
-    # Truncate observations up to time t, assuming first 2 observations are given.
-    Xs, Ys, prob = obs_holder.get_og_obs()
-    T = t + 6
-    obs_holder._obs_pos = Xs[:T]
-    obs_holder.obs_phase = Ys[:T]
-    obs_holder.obs_prob = prob[:T]
-
-    model = fit_gp(obs_holder, cfg=cfg)
-
-    X_eval, _ = make_grid(points, cfg.unit_extent)
-    probs = gen_pd(model, X_eval, cfg=cfg)
-
-    pd_pred = np.argmax(probs, axis=1).reshape(*points)
-    true_pd_grid = np.stack(true_pd).reshape(*points)
-
-    diff = np.not_equal(pd_pred, true_pd_grid)
-    diff_mean = np.mean(diff)
-
-    if t == 150:
-
-        # plt_phase = pd_pred.flatten()
-        # plt_true = true_pd_grid.flatten()
-        # print(f'{plt_true.shape = }')
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        # ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_true)
-        # plt.show()
-        #
-        # print(f'{plt_phase.shape = }')
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        # ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_phase)
-        # plt.show()
-
-        plt.imshow(true_pd_grid, origin='lower')
-        plt.show()
-        plt.imshow(pd_pred, origin='lower')
-        plt.show()
-
-    return diff_mean
-
-
 def deduplicate(obs_holder: ObsHolder):
     c_print("Deduplicating observations", "green")
     Xs, phases, probs = obs_holder.get_og_obs()
@@ -81,6 +37,50 @@ def deduplicate(obs_holder: ObsHolder):
     obs_holder._obs_pos = seen_Xs
     obs_holder.obs_phase = seen_phase
     obs_holder.obs_prob = seen_prob
+
+
+# Distance between true PD and prediction
+def dist(obs_holder, *, true_pd, cfg, points, t, n_dim):
+    # Truncate observations up to time t, assuming first 2 observations are given.
+    Xs, Ys, prob = obs_holder.get_og_obs()
+    T = t + 2
+    obs_holder._obs_pos = Xs[:T]
+    obs_holder.obs_phase = Ys[:T]
+    obs_holder.obs_prob = prob[:T]
+
+    model = fit_gp(obs_holder, cfg=cfg)
+
+    X_eval, _ = make_grid(points, cfg.unit_extent)
+    probs = gen_pd(model, X_eval, cfg=cfg)
+
+    pd_pred = np.argmax(probs, axis=1).reshape(*points)
+    true_pd_grid = np.stack(true_pd).reshape(*points)
+
+    diff = np.not_equal(pd_pred, true_pd_grid)
+    diff_mean = np.mean(diff)
+
+    if t > 0:
+        if n_dim == 3:
+            plt_phase = pd_pred.flatten()
+            plt_true = true_pd_grid.flatten()
+            print(f'{plt_true.shape = }')
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_true)
+            plt.show()
+
+            print(f'{plt_phase.shape = }')
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.scatter(X_eval[:, 0], X_eval[:, 1], X_eval[:, 2], c=plt_phase)
+            plt.show()
+        elif n_dim == 2:
+            plt.imshow(true_pd_grid, origin='lower')
+            plt.show()
+            plt.imshow(pd_pred, origin='lower')
+            plt.show()
+
+    return diff_mean
 
 
 def main():
@@ -126,10 +126,10 @@ def main():
     # true_pd = true_pd.astype(int)
 
     # Get true pd
-    pd_fn = skyrmion_pd_2D
-    Extent = ((0, 1.), (0., 1.))
-    n_dim = 2
-    grid = (21, 21)
+    pd_fn = skyrmion_pd_3D
+    Extent = ((0, 1.), (0., 1.), (0., 1.))
+    n_dim = 3
+    grid = (11, 11, 10)
 
     points, _ = make_grid(grid, Extent)
     # points = to_real_scale(points, Extent)
@@ -164,7 +164,7 @@ def main():
     errors = []
     for t in range(len(og_obs.obs_phase)):
         obs_holder = copy.deepcopy(og_obs)
-        error = dist(obs_holder, true_pd=true_pd, points=eval_points, t=t, cfg=cfg)
+        error = dist(obs_holder, true_pd=true_pd, points=eval_points, t=t, cfg=cfg, n_dim=n_dim)
         errors.append(error)
         print(f'{t = }, {error = :.3g}')
 

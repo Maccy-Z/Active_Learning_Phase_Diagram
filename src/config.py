@@ -30,7 +30,7 @@ class Config:
     def __post_init__(self):
         self.extent = ((0, 1),
                        (0, 1),
-                       (0, 1)
+                       (0.1, 1)
                        )
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 

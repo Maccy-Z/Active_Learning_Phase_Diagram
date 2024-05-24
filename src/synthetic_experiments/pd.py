@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def skyrmion_pd_3D(X):
     sk_pd_array = np.array([[[1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0], [0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
                              [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0], [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
@@ -102,7 +103,6 @@ def skyrmion_pd_2D(X):
     # Step 2: Split each row into individual elements
     array_2d = [row.split() for row in rows]
 
-
     # Step 3: Convert the list of lists into a NumPy array
     sk_pd_array = np.array(array_2d, dtype=int)
     X = X * 20
@@ -110,7 +110,59 @@ def skyrmion_pd_2D(X):
     phase = sk_pd_array[tuple(X)]
     return phase
 
+
 if __name__ == "__main__":
-    xs = [0.075, 0.0125, 0.15, 0.075, 0.2, 0.125]
-    xs = np.array(xs)
-    print((xs * 4).tolist())
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from mpl_toolkits.mplot3d import Axes3D
+
+    # Make nxn...nx grid
+    def make_grid(n: int | tuple[int, ...], extent: tuple[tuple[float, float]]) -> (np.ndarray, np.ndarray):
+        extent = np.array(extent)
+
+        if isinstance(n, int):
+            lin_spaces = [np.linspace(start, end, n) for start, end in extent]
+        else:
+            lin_spaces = [np.linspace(start, end, num) for (start, end), num in zip(extent, n)]
+
+        mesh = np.meshgrid(*lin_spaces, indexing='ij')
+
+        # Reshape the meshgrid to have a list of points
+        grid_shape = mesh[0].shape  # Shape of the n-dimensional grid
+        num_points = np.prod(grid_shape)  # Total number of points
+
+        # Create an array of points
+        points = np.vstack([mesh_dim.reshape(num_points) for mesh_dim in mesh]).T
+
+        return points, mesh
+
+    def plot_3d_colored_scatter(x, y, z, color):
+        """
+        Plots a 3D scatter plot with colors defined by the color array.
+
+        Parameters:
+        x (ndarray): An array of x coordinates.
+        y (ndarray): An array of y coordinates.
+        z (ndarray): An array of z coordinates.
+        color (ndarray): An array of values to be used for coloring the points.
+        """
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Create a scatter plot
+        scatter = ax.scatter(x, y, z, c=color, cmap=plt.cm.viridis, marker='o')
+
+        # Add a color bar which maps values to colors
+        cbar = fig.colorbar(scatter, ax=ax, shrink=0.5, aspect=5)
+        cbar.set_label('Color scale')
+
+        plt.show()
+
+
+    # Example usage:
+    # Generate some example data
+    grid, _ = make_grid((11, 11, 10), ((0, 1), (0, 1), (0.1, 1)))
+
+    colors = [skyrmion_pd_3D(x) for x in grid]
+    print(grid.shape)
+    plot_3d_colored_scatter(grid[:, 0], grid[:, 1], grid[:, 2], color=colors)
