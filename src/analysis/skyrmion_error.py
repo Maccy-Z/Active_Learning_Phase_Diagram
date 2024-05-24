@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 import copy
 from mpl_toolkits.mplot3d import Axes3D
 
-from src.utils import make_grid, ObsHolder, c_print
+from src.utils import make_grid, ObsHolder, c_print, synth_3d_pd
 from src.config import Config
 from src.gaussian_sampler import fit_gp, gen_pd
 from src.synthetic_experiments.pd import skyrmion_pd_2D, skyrmion_pd_3D
@@ -59,7 +59,7 @@ def dist(obs_holder, *, true_pd, cfg, points, t, n_dim):
     diff = np.not_equal(pd_pred, true_pd_grid)
     diff_mean = np.mean(diff)
 
-    if t > 0:
+    if t == 200:
         if n_dim == 3:
             plt_phase = pd_pred.flatten()
             plt_true = true_pd_grid.flatten()
@@ -126,8 +126,8 @@ def main():
     # true_pd = true_pd.astype(int)
 
     # Get true pd
-    pd_fn = skyrmion_pd_3D
-    Extent = ((0, 1.), (0., 1.), (0., 1.))
+    pd_fn = synth_3d_pd # skyrmion_pd_3D
+    Extent = ((0, 1.), (0., 1.), (.1, 1.))
     n_dim = 3
     grid = (11, 11, 10)
 
@@ -138,18 +138,16 @@ def main():
         true_phase = pd_fn(X)
         true_pd.append(true_phase)
 
-    true_pd = np.stack(true_pd).reshape(*grid).T
-    true_pd = np.flip(true_pd, axis=1)
+    true_pd = np.stack(true_pd).reshape(*grid)# .T
+    # true_pd = np.flip(true_pd, axis=1)
     eval_points = true_pd.shape
     c_print(f'Evaluation points = {eval_points}', color='yellow')
     assert len(true_pd) != 0, ("Fill in the true phase diagram as a 2D numpy array, with the same number of points as eval_points. "
                                "It might need transposing / reflecting to orient properly. ")
-    # plt.imshow(true_pd, origin='lower')
-    # plt.show()
 
     # Load model
     f = sorted([int(s) for s in os.listdir("../saves")])
-    save_name = f[-1]
+    save_name = f[-2]
     print(f'{save_name = }')
 
     og_obs = ObsHolder.load(f'../saves/{save_name}')
@@ -168,10 +166,6 @@ def main():
         errors.append(error)
         print(f'{t = }, {error = :.3g}')
 
-    plt.plot(errors)
-    plt.ylim([0, 0.5])
-    plt.show()
-
     print()
     for s in [10, 20, 30, 40, 50]:
         print(f'{errors[s]}')
@@ -179,6 +173,11 @@ def main():
     print("Errors:")
     print("Copy me to error_plot.py")
     print(errors)
+
+
+    plt.plot(errors)
+    plt.ylim([0, 0.5])
+    plt.show()
 
 
 if __name__ == "__main__":

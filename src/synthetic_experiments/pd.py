@@ -115,6 +115,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import numpy as np
     from mpl_toolkits.mplot3d import Axes3D
+    from src.utils import synth_3d_pd
 
     # Make nxn...nx grid
     def make_grid(n: int | tuple[int, ...], extent: tuple[tuple[float, float]]) -> (np.ndarray, np.ndarray):
@@ -163,6 +164,6 @@ if __name__ == "__main__":
     # Generate some example data
     grid, _ = make_grid((11, 11, 10), ((0, 1), (0, 1), (0.1, 1)))
 
-    colors = [skyrmion_pd_3D(x) for x in grid]
+    colors = [synth_3d_pd(x) for x in grid]
     print(grid.shape)
     plot_3d_colored_scatter(grid[:, 0], grid[:, 1], grid[:, 2], color=colors)

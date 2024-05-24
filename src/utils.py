@@ -134,6 +134,17 @@ def quad_pd(X, train=True):
     return 2, 0.99
 
 
+def synth_3d_pd(X):
+    x, y, z = X
+    x, y, z = (x-0.5)*2, (y-0.5)*2, (z-0.5)*2
+    r = np.sqrt(x**2 + y**2 + z**2)
+    if r < 0.86:
+        return 0
+    elif x < 0:
+        return 1
+    else:
+        return 2
+
 # Make nxn...nx grid
 @lru_cache(maxsize=10)
 def make_grid(n: int | tuple[int, ...], extent: tuple[tuple[float, float]]) -> (np.ndarray, np.ndarray):

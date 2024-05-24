@@ -9,13 +9,15 @@ import numpy as np
 
 from synthetic_experiments.pd import skyrmion_pd_3D
 from DistanceSampler3D import DistanceSampler3D, Visualization
+from utils import synth_3d_pd
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, gui_to_sampler: DistanceSampler3D, cfg):
+    def __init__(self, gui_to_sampler: DistanceSampler3D, cfg, pd_fn):
         super(MainWindow, self).__init__()
         self.cfg = cfg
         self.steps = 0
+        self.pd_fn = pd_fn
 
         # Make the plots
         self.plots = []
@@ -47,18 +49,13 @@ class MainWindow(QMainWindow):
         self.timer.start(100)  # 3000 milliseconds = 3 seconds
 
     def sample_and_plot(self):
-
+        print()
         print("Next point")
         new_point, prob_at_point = self.gui_to_sampler.single_obs()
-        new_phase = skyrmion_pd_3D(new_point)
-        print(new_point, new_phase)
+        new_phase = self.pd_fn(new_point)
+        print(new_point, new_phase, f'{prob_at_point = }')
         self.gui_to_sampler.add_obs(new_phase, np.array(new_point), prob=0.95)
 
-        x, y, z = new_point
-
-        print(x, y, z)
-        print()
-        #
         self.steps += 1
         if self.steps >= 260:
             self.timer.stop()  # Stop the timer
@@ -67,6 +64,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     from config import Config
+    pd_fn = synth_3d_pd
 
     save_dir = "../saves"
 
@@ -75,11 +73,11 @@ if __name__ == "__main__":
 
     X_init = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
     X_init = np.array(X_init).T
-    phase_init = [skyrmion_pd_3D(x) for x in X_init]
+    phase_init = [pd_fn(x) for x in X_init]
 
 
     app = QApplication(sys.argv)
     distance_sampler = DistanceSampler3D(phase_init, X_init, cfg, save_dir=save_dir)
 
-    window = MainWindow(distance_sampler, cfg)
+    window = MainWindow(distance_sampler, cfg, pd_fn=pd_fn)
     sys.exit(app.exec_())

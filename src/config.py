@@ -15,12 +15,12 @@ class Config:
     reg_grid: bool = False
 
     """Acquisition function parameters"""
-    skip_point: float = 0.95  # Min prob to be confident enough to skip a point
+    skip_point: float = 0.94  # Min prob to be confident enough to skip a point
     skip_phase: float = 0.05  # Min prob to skip sampling a phase
     sample_dist: float = 0.5  # Size of region to sample P_{n+1} over.
 
     """GP parameters"""
-    obs_prob: float = 0.98  # Default certainty of observations. (Not too close to 1 or 0)
+    obs_prob: float = 0.95  # Default certainty of observations. (Not too close to 1 or 0)
     gaus_herm_n: int = 10  # Number of samples for Gauss Hermite quadrature
     N_optim_steps: int = 200  # Number of steps to optimise hyperparameters
 
