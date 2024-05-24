@@ -71,7 +71,7 @@ def skyrmion_pd_3D(X):
 
     X = np.array(X)
     X = X * 10
-    X = X.astype(np.int64)
+    X = np.round(X).astype(np.int64)
     phase = sk_pd_array[tuple(X)]
     return phase
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import numpy as np
     from mpl_toolkits.mplot3d import Axes3D
-    from src.utils import synth_3d_pd
+    # from src.utils import synth_3d_pd
 
     # Make nxn...nx grid
     def make_grid(n: int | tuple[int, ...], extent: tuple[tuple[float, float]]) -> (np.ndarray, np.ndarray):
@@ -159,11 +159,12 @@ if __name__ == "__main__":
 
         plt.show()
 
-
+    print(skyrmion_pd_3D([0.5, 0.5, 0.49999]))
+    exit(7)
     # Example usage:
     # Generate some example data
     grid, _ = make_grid((11, 11, 10), ((0, 1), (0, 1), (0.1, 1)))
 
-    colors = [synth_3d_pd(x) for x in grid]
+    colors = [skyrmion_pd_3D(x) for x in grid]
     print(grid.shape)
     plot_3d_colored_scatter(grid[:, 0], grid[:, 1], grid[:, 2], color=colors)

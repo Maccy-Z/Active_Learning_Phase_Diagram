@@ -1,4 +1,13 @@
 import sys
+import os
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+
+cwd = os.getcwd()
+os.chdir(os.path.dirname(cwd))
+print(os.getcwd())
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QDialog
 from PyQt5.QtWidgets import QLineEdit, QLabel, QHBoxLayout
 from PyQt5.QtWidgets import QVBoxLayout
@@ -7,9 +16,9 @@ from PyQt5.QtCore import QTimer
 
 import numpy as np
 
-from synthetic_experiments.pd import skyrmion_pd_3D
-from DistanceSampler3D import DistanceSampler3D, Visualization
-from utils import synth_3d_pd
+from pd import skyrmion_pd_3D
+from src.DistanceSampler3D import DistanceSampler3D, Visualization
+from src.utils import synth_3d_pd
 
 
 class MainWindow(QMainWindow):
@@ -63,15 +72,15 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    from config import Config
-    pd_fn = synth_3d_pd
+    from src.config import Config
+    pd_fn = skyrmion_pd_3D
 
     save_dir = "../saves"
 
     print(save_dir)
     cfg = Config()
 
-    X_init = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+    X_init = [[0.0, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0.1, 0.1, 0.5, 0.3, 0.4, 1]]
     X_init = np.array(X_init).T
     phase_init = [pd_fn(x) for x in X_init]
 

@@ -141,23 +141,37 @@ def acquisition(old_model: GPRSoftmax, acq_Xs, pool, cfg):
     return np.array(avg_dists), obs_probs
 
 
+def duplicate_mask(arr1, arr2):
+    # Find common coordinates using broadcasting and vectorized operations
+    common_coords = np.all(np.isclose(arr1[:, None, :], arr2[None, :, :]), axis=-1)
+
+    # Create masks to filter out common coordinates
+    mask1 = ~np.any(common_coords, axis=1)
+    return mask1
+
+
 # Suggest a single point to sample given current observations
 def suggest_point(pool, obs_holder, cfg: Config):
     # Fit to existing observations
     model = fit_gp(obs_holder, cfg=cfg)
 
-    # Find max_x A(x)
-    acq_Xs, _ = make_grid(cfg.N_eval, cfg.unit_extent)  # Points to test for aquisition
-    # acq_Xs = np.array([[0.5, 0.5], [0.5, 0.5]])
+    # Points to test for aquisition
+    acq_Xs, _ = make_grid(cfg.N_eval, cfg.unit_extent)
 
+    # Find A(x)
     acq_fn, pd_probs = acquisition(model, acq_Xs, pool, cfg)
+
+    # Do not select duplicate points
+    if cfg.no_duplicate:
+        existing_Xs = obs_holder.get_obs()[0]
+        acq_mask = duplicate_mask(acq_Xs, existing_Xs)
+        acq_fn[~acq_mask] = 0.
+        # print(f'{acq_fn = }')
+
     max_pos = np.argmax(acq_fn)
 
     new_point = acq_Xs[max_pos]
     prob_at_point = pd_probs[max_pos]
-
-    # Rescale new point to real coordiantes
-    # new_point = to_real_scale(new_point, cfg.extent)
 
     # Plot old phase diagram
     X_display, _ = make_grid(cfg.N_display, cfg.unit_extent)
@@ -165,5 +179,3 @@ def suggest_point(pool, obs_holder, cfg: Config):
     pd_old = np.argmax(probs_old, axis=1)
 
     return new_point, prob_at_point, (pd_old, acq_fn, pd_probs),
-
-

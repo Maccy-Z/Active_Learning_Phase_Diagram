@@ -126,20 +126,17 @@ def main():
     # true_pd = true_pd.astype(int)
 
     # Get true pd
-    pd_fn = synth_3d_pd # skyrmion_pd_3D
+    pd_fn = skyrmion_pd_3D
     Extent = ((0, 1.), (0., 1.), (.1, 1.))
     n_dim = 3
     grid = (11, 11, 10)
 
     points, _ = make_grid(grid, Extent)
     # points = to_real_scale(points, Extent)
-    true_pd = []
-    for X in points:
-        true_phase = pd_fn(X)
-        true_pd.append(true_phase)
-
+    true_pd = [pd_fn(X) for X in points]
     true_pd = np.stack(true_pd).reshape(*grid)# .T
     # true_pd = np.flip(true_pd, axis=1)
+
     eval_points = true_pd.shape
     c_print(f'Evaluation points = {eval_points}', color='yellow')
     assert len(true_pd) != 0, ("Fill in the true phase diagram as a 2D numpy array, with the same number of points as eval_points. "
@@ -147,7 +144,7 @@ def main():
 
     # Load model
     f = sorted([int(s) for s in os.listdir("../saves")])
-    save_name = f[-2]
+    save_name = f[-1]
     print(f'{save_name = }')
 
     og_obs = ObsHolder.load(f'../saves/{save_name}')
