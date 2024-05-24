@@ -9,8 +9,8 @@ class Config:
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""
-    N_dist: int | tuple[int, ...] = (10, 3, 3)  # Points distance function is evaluated at
-    N_eval: int | tuple[int, ...] = (10, 3, 3)  # Candidate points for new sample
+    N_dist: int | tuple[int, ...] = (11, 11, 10)  # Points distance function is evaluated at
+    N_eval: int | tuple[int, ...] = (11, 11, 10)  # Candidate points for new sample
     N_display: int = 38  # Number of points to visualise
     reg_grid: bool = False
 
@@ -20,7 +20,7 @@ class Config:
     sample_dist: float = 0.5  # Size of region to sample P_{n+1} over.
 
     """GP parameters"""
-    obs_prob: float = 0.99  # Default certainty of observations. (Not too close to 1 or 0)
+    obs_prob: float = 0.98  # Default certainty of observations. (Not too close to 1 or 0)
     gaus_herm_n: int = 10  # Number of samples for Gauss Hermite quadrature
     N_optim_steps: int = 200  # Number of steps to optimise hyperparameters
 

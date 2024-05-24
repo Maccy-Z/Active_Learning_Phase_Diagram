@@ -1,33 +1,13 @@
-from DistanceSampler3D import DistanceSampler3D
+from DistanceSampler3D import DistanceSampler3D, Visualization
 from utils import Config
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QDialog
 from PyQt5.QtWidgets import QLineEdit, QLabel, QHBoxLayout
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
-from mayavi import mlab
-from mayavi.core.api import Engine
-from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
-from traits.api import HasTraits, Instance
-from traitsui.api import View, Item
 
 import sys
 import numpy as np
-
-
-class Visualization(HasTraits):
-    engine = Instance(Engine, args=())
-    scene = Instance(MlabSceneModel)
-    view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
-                     height=250, width=300, show_label=False),
-                resizable=True)  # Make the view resizable.
-
-    def _scene_default(self):
-        self.engine.start()
-        return MlabSceneModel(engine=self.engine)
-
-    def clear_plot(self):
-        mlab.clf(figure=self.scene.mayavi_scene)
 
 
 class MainWindow(QMainWindow):

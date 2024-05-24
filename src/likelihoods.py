@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import time
 from numpy.polynomial.hermite import hermgauss
 import scipy
 from functools import lru_cache
@@ -105,38 +104,3 @@ def gauss_hermite_quadrature_inner(mean_vector, cov_diag, sqrt2_grid, weight_pro
 
     return probs
 
-
-def main():
-    mean = np.array([1, -1, -1])
-    var_mat = np.diag([1, 0.1, 0.1])
-
-    # Compute the integral with respect to a normal distribution
-    mean_prob = gauss_hermite_quadrature(softmax_fn, 64, mean, var_mat)
-    print(f'{mean_prob = }')
-
-    # E(x^2)
-    mean_sq = gauss_hermite_quadrature(like_sq, 64, mean, var_mat)
-    print(f'{mean_sq = }')
-
-    var = mean_sq - mean_prob ** 2
-    print(f'{var = }')
-
-    # Plot out the likelihood function and likelihood * normal distribution
-    xs = np.linspace(-5, 5, 100)
-    xs_other = np.zeros_like(xs) - 1
-    xs_stack = np.stack([xs, xs_other, xs_other]).T
-
-    ys_like = softmax_fn(xs_stack)
-    normal = scipy.stats.norm.pdf(xs, mean[0], var_mat[0, 0])
-    ys_prob = ys_like * normal
-
-    plt.plot(xs, ys_like, label='likelihood')
-    plt.plot(xs, ys_prob, label='probability density')
-    # plt.axvline(integral_normal)
-    plt.legend()
-    plt.show()
-
-
-if __name__ == '__main__':
-    main()
-#

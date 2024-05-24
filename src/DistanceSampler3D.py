@@ -7,8 +7,27 @@ from config import Config
 from utils import to_real_scale
 
 from tvtk.util.ctf import ColorTransferFunction
-from mayavi import mlab
 import vtk
+from mayavi import mlab
+from mayavi.core.api import Engine
+from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
+from traits.api import HasTraits, Instance
+from traitsui.api import View, Item
+
+
+class Visualization(HasTraits):
+    engine = Instance(Engine, args=())
+    scene = Instance(MlabSceneModel)
+    view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
+                     height=250, width=300, show_label=False),
+                resizable=True)  # Make the view resizable.
+
+    def _scene_default(self):
+        self.engine.start()
+        return MlabSceneModel(engine=self.engine)
+
+    def clear_plot(self):
+        mlab.clf(figure=self.scene.mayavi_scene)
 
 
 class Plotter:
@@ -217,7 +236,7 @@ class DistanceSampler3D(DistanceSampler):
         self.phase_plotter = PhasePlotter(cfg)
 
     # Load in axes for plotting
-    def set_scenes(self, mavi_scenes: list):
+    def set_scenes(self, mavi_scenes: list[Visualization]):
         self.mayavi_scenes = []
         for scene in mavi_scenes:
             self.mayavi_scenes.append(scene)
