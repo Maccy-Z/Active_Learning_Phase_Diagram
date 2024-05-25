@@ -9,19 +9,19 @@ class Config:
     extent: tuple = None  # Extent of parameter space to search. Set below.
 
     """Search resolution"""
-    N_dist: int | tuple[int, ...] = (11, 11, 10)  # Points distance function is evaluated at
-    N_eval: int | tuple[int, ...] = (11, 11, 10)  # Candidate points for new sample
+    N_dist: int | tuple[int, ...] = (11, 11, 11)  # Points distance function is evaluated at
+    N_eval: int | tuple[int, ...] = (11, 11, 11)  # Candidate points for new sample
     N_display: int = 38  # Number of points to visualise
     reg_grid: bool = False
 
     """Acquisition function parameters"""
-    skip_point: float = 0.90  # Min prob to be confident enough to skip a point
+    skip_point: float = 0.95  # Min prob to be confident enough to skip a point
     skip_phase: float = 0.05  # Min prob to skip sampling a phase
     sample_dist: float = 0.5  # Size of region to sample P_{n+1} over.
     no_duplicate: bool = True # Do not duplicate points
 
     """GP parameters"""
-    obs_prob: float = 0.90  # Default certainty of observations. (Not too close to 1 or 0)
+    obs_prob: float = 0.95  # Default certainty of observations. (Not too close to 1 or 0)
     gaus_herm_n: int = 10  # Number of samples for Gauss Hermite quadrature
     N_optim_steps: int = 200  # Number of steps to optimise hyperparameters
 
@@ -31,7 +31,7 @@ class Config:
     def __post_init__(self):
         self.extent = ((0, 1),
                        (0, 1),
-                       (0.1, 1)
+                       (0, 1)
                        )
         self.unit_extent = tuple(((0, 1) for _ in range(self.N_dim)))
 

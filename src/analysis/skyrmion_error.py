@@ -37,7 +37,7 @@ def deduplicate(obs_holder: ObsHolder):
     obs_holder._obs_pos = seen_Xs
     obs_holder.obs_phase = seen_phase
     obs_holder.obs_prob = seen_prob
-
+    c_print(f'{len(seen_Xs)} unique observations', 'green')
 
 # Distance between true PD and prediction
 def dist(obs_holder, *, true_pd, cfg, points, t, n_dim):
@@ -59,7 +59,7 @@ def dist(obs_holder, *, true_pd, cfg, points, t, n_dim):
     diff = np.not_equal(pd_pred, true_pd_grid)
     diff_mean = np.mean(diff)
 
-    if t == 200:
+    if t == 500:
         if n_dim == 3:
             plt_phase = pd_pred.flatten()
             plt_true = true_pd_grid.flatten()
@@ -127,9 +127,9 @@ def main():
 
     # Get true pd
     pd_fn = skyrmion_pd_3D
-    Extent = ((0, 1.), (0., 1.), (.1, 1.))
+    Extent = ((0, 1.), (0., 1.), (0, 1.))
     n_dim = 3
-    grid = (11, 11, 10)
+    grid = (11, 11, 11)
 
     points, _ = make_grid(grid, Extent)
     # points = to_real_scale(points, Extent)

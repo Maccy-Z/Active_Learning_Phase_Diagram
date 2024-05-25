@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         self.gui_to_sampler.add_obs(new_phase, np.array(new_point), prob=0.95)
 
         self.steps += 1
-        if self.steps >= 260:
+        if self.steps >= 500:
             self.timer.stop()  # Stop the timer
             QApplication.quit()  # Exit the application
 
