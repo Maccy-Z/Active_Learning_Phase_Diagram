@@ -12,9 +12,10 @@ from sklearn import svm
 from src.utils import make_grid, to_real_scale
 from pd import skyrmion_pd_3D, skyrmion_pd_2D
 
-Extent = ((0, 1.), (0., 1.))
-n_dim = 2
-grid = (21, 21)
+Extent = ((0, 1.), (0., 1.), (0., 1.))
+n_dim = 3
+grid = (11, 11, 11)
+
 
 def acqusition_fn(obs, candidates):
     dists = []
@@ -22,7 +23,7 @@ def acqusition_fn(obs, candidates):
         # print(point)
         dist = np.linalg.norm(obs - point, axis=1)
 
-        weighted_dist = np.exp(- 10 * dist)
+        weighted_dist = np.exp(- 20 * dist)
         dists.append(np.mean(weighted_dist))
     return dists
 
@@ -77,7 +78,7 @@ def suggest_point(Xs, labels):
 
     boundaries = find_boundaries_vectorized(y_pred)
 
-    grid_points = grid_points.reshape(*grid, 2)
+    grid_points = grid_points.reshape(*grid, n_dim)
     boundary_points = grid_points[boundaries]
 
     # print(boundary_points)
@@ -93,7 +94,7 @@ def plot(Xs, labels, new_point, contours, pred_pd):
     pred_pd = pred_pd.T
     #mask = (Xs[:, 2] > 0.4) & (Xs[:, 2] < 0.6)
     #Xs = Xs[mask]
-    labels = np.array(labels)#[mask]
+    labels = np.array(labels)  #[mask]
 
     # Plot the results
     plt.figure(figsize=(3, 3))
@@ -134,11 +135,10 @@ def error(pred_pd, pd_fn):
 
 
 def main():
-    pd_fn = skyrmion_pd_2D
+    pd_fn = skyrmion_pd_3D
 
-    # Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
-
-    Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
+    Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+    # Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
     Xs = np.array(Xs).T
 
     # Xs = np.array([[0, 0, 0], [0, .1, .1], [1, 0.2, 0.8]])
@@ -147,7 +147,7 @@ def main():
     labels = [pd_fn(X) for X in Xs]
     print(labels)
     errors = []
-    for i in range(152):
+    for i in range(501):
         new_point, contors, full_pd = suggest_point(Xs, labels)
 
         Xs = np.append(Xs, [new_point], axis=0)

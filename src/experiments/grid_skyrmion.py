@@ -13,17 +13,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
 
-Extent = ((0, 1.), (0., 1.))
-n_dim = 2
-grid = (21, 21)
+Extent = ((0, 1.), (0., 1.), (0., 1.))
+n_dim = 3
+grid = (11, 11, 11)
 
 
 class GridSearch:
-    def __init__(self, full_dimensions=(20, 20), low_res_dimensions=(10, 10)):
+    def __init__(self, full_dimensions=(11, 11, 11), low_res_dimensions=(1, 1, 1)):
         self.full_dimensions = full_dimensions
         self.low_res_dimensions = low_res_dimensions
         self.low_res_total_points = np.prod(low_res_dimensions)
-        self.full_total_points = 155 #np.prod(full_dimensions)
+        self.full_total_points = np.prod(full_dimensions)
         self.low_res_grid = np.indices(low_res_dimensions).reshape(n_dim, -1).T
         self.full_grid = np.indices(full_dimensions).reshape(n_dim, -1).T
 
@@ -38,7 +38,7 @@ class GridSearch:
             if self.current_index < self.low_res_total_points:
                 point = self.low_res_grid[self.current_index]
                 self.current_index += 1
-                return point * 1/self.low_res_dimensions[0]
+                return point * 1# / (self.low_res_dimensions[0]-1)
             else:
                 self.low_res_done = True
                 self.current_index = 0
@@ -49,7 +49,7 @@ class GridSearch:
 
             # print(f'{point = }')
 
-            return point * 1/self.full_dimensions[0]
+            return point * 1/(self.full_dimensions[0]-1)
         else:
             raise StopIteration
 
@@ -113,14 +113,11 @@ def error(pred_pd, pd_fn):
 
 
 def main():
-    pd_fn = skyrmion_pd_2D
+    pd_fn = skyrmion_pd_3D
 
-    # Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
-    Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
+    Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+    # Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
     Xs = np.array(Xs).T
-
-    # Xs = np.array([[0, 0, 0], [0, .1, .1], [1, 0.2, 0.8]])
-    # Xs, _ = make_grid(11, Extent)
 
     labels = [pd_fn(X) for X in Xs]
     print(labels)
