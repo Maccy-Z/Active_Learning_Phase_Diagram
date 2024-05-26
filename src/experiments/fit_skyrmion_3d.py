@@ -11,7 +11,6 @@ print(os.getcwd())
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QDialog
 from PyQt5.QtWidgets import QLineEdit, QLabel, QHBoxLayout
 from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtCore import QTimer
 
 import numpy as np
@@ -59,14 +58,14 @@ class MainWindow(QMainWindow):
 
     def sample_and_plot(self):
         print()
-        print("Next point")
+        print(f"Next point {self.steps}")
         new_point, prob_at_point = self.gui_to_sampler.single_obs()
         new_phase = self.pd_fn(new_point)
         print(new_point, new_phase, f'{prob_at_point = }')
         self.gui_to_sampler.add_obs(new_phase, np.array(new_point), prob=0.95)
 
         self.steps += 1
-        if self.steps >= 500:
+        if self.steps >= 501:
             self.timer.stop()  # Stop the timer
             QApplication.quit()  # Exit the application
 

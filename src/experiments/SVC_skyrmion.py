@@ -12,9 +12,9 @@ from sklearn import svm
 from src.utils import make_grid, to_real_scale
 from pd import skyrmion_pd_3D, skyrmion_pd_2D
 
-Extent = ((0, 1.), (0., 1.), (0.1, 1.))
+Extent = ((0, 1.), (0., 1.), (0, 1.))
 n_dim = 3
-grid = (11, 11, 10)
+grid = (11, 11, 11)
 
 
 def acqusition_fn(obs, candidates):
@@ -23,7 +23,7 @@ def acqusition_fn(obs, candidates):
         # print(point)
         dist = np.linalg.norm(obs - point, axis=1)
 
-        weighted_dist = np.exp(- 20 * dist)
+        weighted_dist = np.exp(- 17 * dist)
         dists.append(np.mean(weighted_dist))
     return dists
 
