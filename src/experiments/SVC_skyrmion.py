@@ -12,9 +12,9 @@ from sklearn import svm
 from src.utils import make_grid, to_real_scale
 from pd import skyrmion_pd_3D, skyrmion_pd_2D
 
-Extent = ((0, 1.), (0., 1.), (0., 1.))
+Extent = ((0, 1.), (0., 1.), (0.1, 1.))
 n_dim = 3
-grid = (11, 11, 11)
+grid = (11, 11, 10)
 
 
 def acqusition_fn(obs, candidates):
@@ -117,7 +117,7 @@ def plot(Xs, labels, new_point, contours, pred_pd):
 
 
 def error(pred_pd, pd_fn):
-    points, _ = make_grid(pred_pd.shape[0], Extent)
+    points, _ = make_grid(pred_pd.shape, Extent)
     points = to_real_scale(points, Extent)
     true_pd = []
     for X in points:
@@ -140,9 +140,6 @@ def main():
     Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
     # Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
     Xs = np.array(Xs).T
-
-    # Xs = np.array([[0, 0, 0], [0, .1, .1], [1, 0.2, 0.8]])
-    # Xs, _ = make_grid(11, Extent)
 
     labels = [pd_fn(X) for X in Xs]
     print(labels)
