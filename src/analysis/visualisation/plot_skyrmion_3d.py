@@ -134,7 +134,7 @@ plt.plot(grid, label='grid')
 plt.plot(ours[4:], label='11x11x11')
 plt.plot(ours_old[4:], label='11x11x10')
 plt.ylim([0., 0.3])
-# plt.xlim([0, 250])
+plt.xlim([0, 500])
 plt.legend()
 plt.show()
 

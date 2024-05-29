@@ -85,7 +85,6 @@ def dist(obs_holder, *, true_pd, cfg, points, t, n_dim):
 
 
 def main():
-
     # Get true pd
     pd_fn = skyrmion_pd_3D
     Extent = ((0, 1.), (0., 1.), (0.1, 1.))
@@ -104,8 +103,8 @@ def main():
                                "It might need transposing / reflecting to orient properly. ")
 
     # Load model
-    f = sorted([int(s) for s in os.listdir("../saves")])
-    save_name = f[-1]
+    #f = sorted([int(s) for s in os.listdir("../saves")])
+    save_name = "10-95"  #f[-1]
     print(f'{save_name = }')
 
     og_obs = ObsHolder.load(f'../saves/{save_name}')
@@ -115,9 +114,11 @@ def main():
         cfg: Config = pickle.load(f)
     assert true_pd.ndim == cfg.N_dim, "Observation dimension must be the same as model dimension"
     print(cfg.N_dist, true_pd.shape)
+    assert cfg.N_dist == true_pd.shape
 
     # Calculate errors
     errors = []
+    # for t in [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]:
     for t in range(len(og_obs.obs_phase)):
         obs_holder = copy.deepcopy(og_obs)
         error = dist(obs_holder, true_pd=true_pd, points=eval_points, t=t, cfg=cfg, n_dim=n_dim)
