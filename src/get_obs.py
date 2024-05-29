@@ -1,4 +1,4 @@
-# Evaluate error of GP model
+# Load raw observations from a saved file and plot them.
 import sys
 import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
