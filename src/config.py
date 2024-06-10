@@ -16,7 +16,7 @@ class Config:
 
     """Acquisition function parameters"""
     skip_point: float = 0.95  # Min prob to be confident enough to skip a point
-    skip_phase: float = 0.05  # Min prob to skip sampling a phase
+    skip_phase: float = 0.04  # Min prob to skip sampling a phase
     sample_dist: float = 0.5  # Size of region to sample P_{n+1} over.
     no_duplicate: bool = True # Do not duplicate points
 
@@ -26,7 +26,7 @@ class Config:
     N_optim_steps: int = 200  # Number of steps to optimise hyperparameters
 
     """General Parameters"""
-    N_CPUs: int = 8  # Number of parallel CPU threads to use
+    N_CPUs: int = 12  # Number of parallel CPU threads to use
 
     def __post_init__(self):
         self.extent = ((0, 1),

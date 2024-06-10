@@ -11,7 +11,6 @@ print(os.getcwd())
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QDialog
 from PyQt5.QtWidgets import QLineEdit, QLabel, QHBoxLayout
 from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtCore import QTimer
 
 import numpy as np
@@ -19,10 +18,10 @@ import numpy as np
 from pd import skyrmion_pd_3D
 from src.DistanceSampler3D import DistanceSampler3D, Visualization
 from src.utils import synth_3d_pd
-
+from src.config import Config
 
 class MainWindow(QMainWindow):
-    def __init__(self, gui_to_sampler: DistanceSampler3D, cfg, pd_fn):
+    def __init__(self, gui_to_sampler: DistanceSampler3D, cfg: Config, pd_fn):
         super(MainWindow, self).__init__()
         self.cfg = cfg
         self.steps = 0
@@ -59,14 +58,14 @@ class MainWindow(QMainWindow):
 
     def sample_and_plot(self):
         print()
-        print("Next point")
+        print(f"Next point {self.steps}")
         new_point, prob_at_point = self.gui_to_sampler.single_obs()
         new_phase = self.pd_fn(new_point)
         print(new_point, new_phase, f'{prob_at_point = }')
-        self.gui_to_sampler.add_obs(new_phase, np.array(new_point), prob=0.95)
+        self.gui_to_sampler.add_obs(new_phase, np.array(new_point), prob=self.cfg.obs_prob)
 
         self.steps += 1
-        if self.steps >= 500:
+        if self.steps >= 501:
             self.timer.stop()  # Stop the timer
             QApplication.quit()  # Exit the application
 
