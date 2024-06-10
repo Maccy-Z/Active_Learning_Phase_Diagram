@@ -73,9 +73,9 @@ Total number of phases in the phase diagram. Note too many phases will give slow
 N_phases: int = ...
 ```
 ### Optional parameters
-Number of points to search over. The search space will be a **N_dist** x **N_dist** (x **N_dist**) grid. Typically, set **N_dist**=**N_eval**. Too many points will give slow sampling. **N_display** is the number of points displayed in the GUI, higher than number of search points for good quality graphics. 
+Number of points to search over: The search space will be a **N_dist** x **N_dist** (x **N_dist**) grid, or a rectangular grid if set to a tuple. Typically, set **N_dist**=**N_eval**. Too many points will give slow sampling. **N_display** is the number of points displayed in the GUI, higher than number of search points for good quality graphics. 
 ```
-N_dist: int = ...
+N_dist: | tuple[int, ...] = ...
 ```
 
 The parameters **skip_point** and **skip_phase** are used to skip sampling points that have high certantity to speed up sampling. **sample_dist** is size of region to compute distance function over, a larger distance is more accurate but slower.
@@ -97,6 +97,7 @@ When running the GUI, an window wil open prompting for first/exisitng observatio
 The main GUI will then open after a pause. Suggestions will be shown on the plot, and the exact suggested coordinates will also be shown. After conducting an observation at the suggested point, enter the measured phase (as an integer) and observation certantity (can be blank to use default). 
 Note a different coordinate can be entered if you do not want to use the suggested point. Note the program will freeze during the computation. This is normal. 
 
+After running the program, the observations will be saved in the /saves/ folder. To get and plot the results, run **get_obs.py** to print out observations and make a plot. 
 ## Reproducing Results
 The folder /src/synthetic_results contains the baseline implementations. The folder /src/analysis contains the code used to analyse the results. 
 
