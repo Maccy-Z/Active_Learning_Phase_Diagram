@@ -12,9 +12,9 @@ from sklearn import svm
 from src.utils import make_grid, to_real_scale
 from pd import skyrmion_pd_3D, skyrmion_pd_2D
 
-Extent = ((0, 1.), (0., 1.), (0, 1.))
+Extent = ((0, 1.), (0., 1.), (0.1, 1.))
 n_dim = 3
-grid = (11, 11, 11)
+grid = (11, 11, 10)
 
 
 def acqusition_fn(obs, candidates):
@@ -71,10 +71,6 @@ def suggest_point(Xs, labels):
     Z = Z.reshape(*grid, -1)
 
     y_pred = np.argmax(Z, axis=-1).reshape(*grid)
-    #
-    # print(f'{Z.shape = }')
-    # print(labels, Xs)
-    # exit(7)
 
     boundaries = find_boundaries_vectorized(y_pred)
 
@@ -97,28 +93,35 @@ def plot(Xs, labels, new_point, contours, pred_pd):
     labels = np.array(labels)  #[mask]
 
     # Plot the results
-    plt.figure(figsize=(3, 3))
+    if n_dim == 2:
+        plt.figure(figsize=(3, 3))
+        plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=30, c=labels, cmap='bwr')  # , c=labels, cmap='viridis')
+        plt.imshow(pred_pd, extent=(0, 1, 0, 1), origin="lower")  # Phase diagram
 
-    plt.scatter(Xs[:, 0], Xs[:, 1], marker="x", s=30, c=labels, cmap='bwr')  # , c=labels, cmap='viridis')
-    plt.imshow(pred_pd, extent=(0, 1, 0, 1), origin="lower")  # Phase diagram
-    if new_point is not None:
-        plt.scatter(new_point[0], new_point[1], c='r')
-    if contours is not None:
-        for contor in contours:
-            plt.plot(*zip(*contor), c='k', linestyle='dashed')
+        if new_point is not None:
+            plt.scatter(new_point[0], new_point[1], c='r')
+        if contours is not None:
+            for contor in contours:
+                plt.plot(*zip(*contor), c='k', linestyle='dashed')
 
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    # plt.yticks(np.linspace(-2, 2, 5))
-    # plt.xticks(np.linspace(-2, 2, 5))
-    plt.subplots_adjust(left=0.1, right=0.99, top=0.925, bottom=0.1, wspace=0.4, hspace=0.4)
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        plt.subplots_adjust(left=0.1, right=0.99, top=0.925, bottom=0.1, wspace=0.4, hspace=0.4)
+
+    elif n_dim == 3:
+        ax = plt.figure().add_subplot(111, projection='3d')
+        ax.scatter(Xs[:, 0], Xs[:, 1], Xs[:, 2], c=labels)
+
+
 
     plt.show()
 
 
 def error(pred_pd, pd_fn):
-    points, _ = make_grid(pred_pd.shape, Extent)
-    points = to_real_scale(points, Extent)
+    points, _ = make_grid(grid, Extent)
+
+    # points = to_real_scale(points, Extent)
+
     true_pd = []
     for X in points:
         true_phase = pd_fn(X)
@@ -128,16 +131,14 @@ def error(pred_pd, pd_fn):
 
     diff = np.not_equal(pred_pd, true_pd)
     diff_mean = np.mean(diff)
-    #
-    # print(points)
-    # plot(np.array([[0, 0]]), np.array([0]), None, None, true_pd)
+
     return diff_mean
 
 
 def main():
     pd_fn = skyrmion_pd_3D
 
-    Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0, 0.1, 0.5, 0.3, 0.4, 1]]
+    Xs = [[0.3, 0.4, 0.5, 0.6, 0, 0.7], [0, 0.1, 0, 0.5, 0, 0.8], [0.1, 0.1, 0.5, 0.3, 0.4, 1]]
     # Xs = [[0.05, 0.45, 0.1, 0.6, 0.2, 0.8, 1], [0.3, 0.05, 0.6, 0.3, 0.8, 0.5, 1]]
     Xs = np.array(Xs).T
 
